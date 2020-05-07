@@ -1,0 +1,131 @@
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Test suite for FIDO 2 authenticators
+
+# Darwin and Windows are untested so far.
+cc_library(
+    name = "hid_device",
+    srcs = ["hid/hid_device.cc"],
+    hdrs = [
+        "constants.h",
+        "device_interface.h",
+        "hid/hid_device.h",
+    ],
+    deps = [
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+        "@com_google_absl//absl/types:optional",
+        "@com_google_glog//:glog",
+    ] + select({
+        "@bazel_tools//src/conditions:darwin": ["@com_github_kaczmarczyck_hidapi//:hidapi-osx"],
+        "@bazel_tools//src/conditions:windows": ["@com_github_kaczmarczyck_hidapi//:hidapi-libusb"],
+        "//conditions:default": ["@com_github_kaczmarczyck_hidapi//:hidapi-linux"],
+    }),
+)
+
+cc_library(
+    name = "cbor_builders",
+    srcs = ["cbor_builders.cc"],
+    hdrs = [
+        "cbor_builders.h",
+        "constants.h",
+    ],
+    deps = [
+        "crypto_utility",
+        "//third_party/chromium_components_cbor:cbor",
+    ],
+)
+
+cc_library(
+    name = "crypto_utility",
+    srcs = ["crypto_utility.cc"],
+    hdrs = [
+        "constants.h",
+        "crypto_utility.h",
+    ],
+    deps = [
+        "//third_party/chromium_components_cbor:cbor",
+        "@boringssl//:crypto",
+        "@com_google_glog//:glog",
+    ],
+)
+
+cc_library(
+    name = "fido2_commands",
+    srcs = ["fido2_commands.cc"],
+    hdrs = [
+        "constants.h",
+        "device_interface.h",
+        "fido2_commands.h",
+    ],
+    deps = [
+        "crypto_utility",
+        "parameter_check",
+        "//third_party/chromium_components_cbor:cbor",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/types:optional",
+        "@com_google_absl//absl/types:variant",
+        "@com_google_glog//:glog",
+        "@boringssl//:crypto",
+    ],
+)
+
+cc_library(
+    name = "parameter_check",
+    srcs = ["parameter_check.cc"],
+    hdrs = [
+        "parameter_check.h",
+    ],
+    deps = [
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_glog//:glog",
+    ],
+)
+
+cc_library(
+    name = "test_series",
+    srcs = ["test_series.cc"],
+    hdrs = [
+        "device_interface.h",
+        "test_series.h",
+    ],
+    copts = [
+        "-Wno-return-type",
+    ],
+    deps = [
+        "cbor_builders",
+        "crypto_utility",
+        "fido2_commands",
+        "parameter_check",
+        "//third_party/chromium_components_cbor:cbor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+        "@com_google_absl//absl/types:variant",
+        "@com_google_glog//:glog",
+    ],
+)
+
+cc_binary(
+    name = "fido2_conformance",
+    srcs = ["fido2_conformance_main.cc"],
+    deps = [
+        "hid_device",
+        "parameter_check",
+        "test_series",
+        "@com_github_gflags_gflags//:gflags",
+        "@com_google_glog//:glog",
+    ],
+)

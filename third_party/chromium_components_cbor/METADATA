@@ -1,0 +1,18 @@
+# Format: google3/devtools/metadata/metadata.proto (go/google3metadata)
+
+name: "chromium_components_cbor"
+description: "Chromium's CBOR reader and writer."
+
+third_party {
+  url {
+    type: GIT
+    value: "https://chromium.googlesource.com/chromium/src.git"
+  }
+  version: "8171db7d9f54a54530858524dc4feb64556719b9 as of 2018-12-26"
+  last_upgrade_date: {
+    year: 2019
+    month: 01
+    day: 31
+  }
+  local_modifications: "TBD"
+}
