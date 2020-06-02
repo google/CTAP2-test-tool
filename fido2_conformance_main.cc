@@ -17,6 +17,7 @@
 #include "gflags/gflags.h"
 #include "glog/logging.h"
 #include "constants.h"
+#include "device_tracker.h"
 #include "hid/hid_device.h"
 #include "parameter_check.h"
 #include "test_series.h"
@@ -44,21 +45,21 @@ int main(int argc, char** argv) {
     fido2_tests::hid::PrintFidoDevices();
     exit(0);
   }
+
+  fido2_tests::DeviceTracker tracker;
   std::unique_ptr<fido2_tests::DeviceInterface> device =
-      absl::make_unique<fido2_tests::hid::HidDevice>(FLAGS_token_path,
+      absl::make_unique<fido2_tests::hid::HidDevice>(&tracker, FLAGS_token_path,
                                                      FLAGS_verbose);
   CHECK(fido2_tests::Status::kErrNone == device->Init())
       << "CTAPHID initialization failed";
   device->Wink();
-  fido2_tests::KeyChecker key_checker((std::vector<std::vector<uint8_t>>()));
-  fido2_tests::CounterChecker counter_checker;
 
   fido2_tests::InputParameterTestSeries input_parameter_test_series =
-      fido2_tests::InputParameterTestSeries(device.get(), &key_checker,
-                                            &counter_checker);
+      fido2_tests::InputParameterTestSeries(
+          device.get(), tracker.GetKeyChecker(), tracker.GetCounterChecker());
   fido2_tests::SpecificationProcedure specification_procedure_test_series =
-      fido2_tests::SpecificationProcedure(device.get(), &key_checker,
-                                          &counter_checker);
+      fido2_tests::SpecificationProcedure(device.get(), tracker.GetKeyChecker(),
+                                          tracker.GetCounterChecker());
 
   specification_procedure_test_series.Reset();
   bool is_fido_2_1_compliant =
@@ -112,8 +113,7 @@ int main(int argc, char** argv) {
   }
 
   std::cout << "\nRESULTS" << std::endl;
-  device->PrintReport();
-  counter_checker.ReportFindings();
+  tracker.ReportFindings();
   input_parameter_test_series.PrintResults();
   specification_procedure_test_series.PrintResults();
 }

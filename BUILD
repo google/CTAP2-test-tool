@@ -24,6 +24,7 @@ cc_library(
         "hid/hid_device.h",
     ],
     deps = [
+        "device_tracker",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/time",
         "@com_google_absl//absl/types:optional",
@@ -59,6 +60,18 @@ cc_library(
         "//third_party/chromium_components_cbor:cbor",
         "@boringssl//:crypto",
         "@com_google_glog//:glog",
+    ],
+)
+
+cc_library(
+    name = "device_tracker",
+    srcs = ["device_tracker.cc"],
+    hdrs = [
+        "device_tracker.h",
+    ],
+    deps = [
+        "parameter_check",
+        "//third_party/chromium_components_cbor:cbor",
     ],
 )
 
@@ -122,6 +135,7 @@ cc_binary(
     name = "fido2_conformance",
     srcs = ["fido2_conformance_main.cc"],
     deps = [
+        "device_tracker",
         "hid_device",
         "parameter_check",
         "test_series",
