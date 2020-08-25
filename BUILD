@@ -85,7 +85,7 @@ cc_library(
     ],
     deps = [
         "crypto_utility",
-        "parameter_check",
+        "device_tracker",
         "//third_party/chromium_components_cbor:cbor",
         "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_absl//absl/types:optional",
@@ -121,8 +121,8 @@ cc_library(
     deps = [
         "cbor_builders",
         "crypto_utility",
+        "device_tracker",
         "fido2_commands",
-        "parameter_check",
         "//third_party/chromium_components_cbor:cbor",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/time",

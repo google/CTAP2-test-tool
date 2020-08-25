@@ -55,11 +55,9 @@ int main(int argc, char** argv) {
   device->Wink();
 
   fido2_tests::InputParameterTestSeries input_parameter_test_series =
-      fido2_tests::InputParameterTestSeries(
-          device.get(), tracker.GetKeyChecker(), tracker.GetCounterChecker());
+      fido2_tests::InputParameterTestSeries(device.get(), &tracker);
   fido2_tests::SpecificationProcedure specification_procedure_test_series =
-      fido2_tests::SpecificationProcedure(device.get(), tracker.GetKeyChecker(),
-                                          tracker.GetCounterChecker());
+      fido2_tests::SpecificationProcedure(device.get(), &tracker);
 
   specification_procedure_test_series.Reset();
   bool is_fido_2_1_compliant =

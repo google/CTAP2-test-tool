@@ -195,8 +195,8 @@ bool ExtractUpOptionFromGetAssertionRequest(const cbor::Value& request) {
 }  // namespace
 
 absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
-    DeviceInterface* device, KeyChecker* key_checker,
-    CounterChecker* counter_checker, const cbor::Value& request) {
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    const cbor::Value& request) {
   auto encoded_request = cbor::Writer::Write(request);
   CHECK(encoded_request.has_value()) << "encoding went wrong - TEST SUITE BUG";
 
@@ -258,13 +258,15 @@ absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
   ByteVector credential_id(
       auth_data.begin() + length_offset + 2,
       auth_data.begin() + length_offset + 2 + credential_id_length);
-  counter_checker->RegisterCounter(credential_id, signature_counter);
+  device_tracker->GetCounterChecker()->RegisterCounter(credential_id,
+                                                       signature_counter);
 
   // This ByteVector can have extraneous data for extensions.
   ByteVector cose_key(
       auth_data.begin() + length_offset + 2 + credential_id_length,
       auth_data.end());
-  size_t cose_key_size = PubKeyDuplicateCheck(key_checker, cose_key);
+  size_t cose_key_size = PubKeyDuplicateCheck(device_tracker->GetKeyChecker(),
+                                              cose_key);
   bool has_extension_flag = flags & 0x80;
   CHECK(has_extension_flag == (cose_key_size < cose_key.size()))
       << "extension flag not matching response";
@@ -296,8 +298,9 @@ absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
     CHECK(inner_iter->second.is_bytestring())
         << "\"sig\" in attStmt for fmt \"packed\" is not a bytestring";
     if (alg == static_cast<int>(Algorithm::kEs256Algorithm)) {
-      key_checker->CheckKey(crypto_utility::ExtractEcdsaSignatureR(
-          inner_iter->second.GetBytestring()));
+      device_tracker->GetKeyChecker()->CheckKey(
+          crypto_utility::ExtractEcdsaSignatureR(
+              inner_iter->second.GetBytestring()));
     }
   }
 
@@ -311,8 +314,8 @@ absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
 }
 
 absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
-    DeviceInterface* device, KeyChecker* key_checker,
-    CounterChecker* counter_checker, const cbor::Value& request) {
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    const cbor::Value& request) {
   auto encoded_request = cbor::Writer::Write(request);
   CHECK(encoded_request.has_value()) << "encoding went wrong - TEST SUITE BUG";
 
@@ -375,7 +378,8 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
 
   CHECK_GE(auth_data.size(), 37u) << "authData does not fit the counter";
   uint32_t signature_counter = absl::big_endian::Load32(auth_data.data() + 33);
-  counter_checker->CheckCounter(credential_id, signature_counter);
+  device_tracker->GetCounterChecker()->CheckCounter(credential_id,
+                                                    signature_counter);
 
   size_t extension_data_size = auth_data.size() - 37;
   bool has_extension_flag = flags & 0x80;
@@ -443,8 +447,8 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
 }
 
 absl::variant<cbor::Value, Status> GetNextAssertionPositiveTest(
-    DeviceInterface* device, KeyChecker* key_checker,
-    CounterChecker* counter_checker, const cbor::Value& request) {
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    const cbor::Value& request) {
   // TODO(kaczmarczyck) reuse the assertion checks
   return cbor::Value();
 }
@@ -579,7 +583,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
 }
 
 absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
-    DeviceInterface* device, KeyChecker* key_checker,
+    DeviceInterface* device, DeviceTracker* device_tracker,
     const cbor::Value& request) {
   auto encoded_request = cbor::Writer::Write(request);
   CHECK(encoded_request.has_value()) << "encoding went wrong - TEST SUITE BUG";

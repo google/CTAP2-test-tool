@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "device_interface.h"
-#include "parameter_check.h"
+#include "device_tracker.h"
 #include "absl/types/variant.h"
 #include "third_party/chromium_components_cbor/values.h"
 
@@ -29,17 +29,17 @@ namespace fido2_commands {
 // in case of success. If any internal checks fail, it terminates the program.
 // If the status code is not 0x00, it returns a null optional.
 absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
-    DeviceInterface* device, KeyChecker* key_checker,
-    CounterChecker* counter_checker, const cbor::Value& request);
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    const cbor::Value& request);
 absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
-    DeviceInterface* device, KeyChecker* key_checker,
-    CounterChecker* counter_checker, const cbor::Value& request);
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    const cbor::Value& request);
 absl::variant<cbor::Value, Status> GetNextAssertionPositiveTest(
-    DeviceInterface* device, KeyChecker* key_checker,
-    CounterChecker* counter_checker, const cbor::Value& request);
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    const cbor::Value& request);
 absl::variant<cbor::Value, Status> GetInfoPositiveTest(DeviceInterface* device);
 absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
-    DeviceInterface* device, KeyChecker* key_checker,
+    DeviceInterface* device, DeviceTracker* device_tracker,
     const cbor::Value& request);
 absl::variant<cbor::Value, Status> ResetPositiveTest(DeviceInterface* device);
 
