@@ -19,11 +19,11 @@
 #include <string>
 #include <vector>
 
+#include "absl/time/time.h"
+#include "absl/types/optional.h"
 #include "constants.h"
 #include "device_interface.h"
 #include "device_tracker.h"
-#include "absl/time/time.h"
-#include "absl/types/optional.h"
 #include "hidapi/hidapi.h"
 
 namespace fido2_tests {

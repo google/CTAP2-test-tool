@@ -22,10 +22,10 @@
 #include <iomanip>
 #include <iostream>
 
-#include "glog/logging.h"
-#include "constants.h"
 #include "absl/strings/str_cat.h"
 #include "absl/time/clock.h"
+#include "constants.h"
+#include "glog/logging.h"
 
 namespace fido2_tests {
 namespace hid {

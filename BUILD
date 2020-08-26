@@ -67,6 +67,7 @@ cc_library(
     name = "device_tracker",
     srcs = ["device_tracker.cc"],
     hdrs = [
+        "constants.h",
         "device_tracker.h",
     ],
     deps = [

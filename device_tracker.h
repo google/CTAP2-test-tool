@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "absl/container/flat_hash_set.h"
+#include "constants.h"
 #include "parameter_check.h"
 #include "third_party/chromium_components_cbor/values.h"
 
@@ -27,22 +28,49 @@ namespace fido2_tests {
 // i.e. properties that can not be changed through CTAP commands.
 class DeviceTracker {
  public:
+  // Generates a new KeyChecker and CounterChecker. Version specific information
+  // is not available until calling Initialize. You can always log findings.
   DeviceTracker();
+  // Writes information about device capabilities. Call this function during a
+  // GetInfo call.
   void Initialize(const cbor::Value::ArrayValue& versions,
                   const cbor::Value::ArrayValue& extensions,
                   const cbor::Value::MapValue& options);
+  // Adds a string to the list of observations. Duplicates are ignored. Use this
+  // function for merely informational comments.
   void AddObservation(const std::string& observation);
+  // Adds a string to the list of problems. Duplicates are ignored. Problems
+  // are highlighted more prominently during a report. Use this if you suspect
+  // the finding to be potentially problematic.
   void AddProblem(const std::string& problem);
+  // Checks a general condition, reporting the result and writing statistics.
+  void CheckAndReport(bool condition, const std::string& test_name);
+  // As above, but checks specifically whether the variant is a CBOR value.
+  void CheckAndReport(
+      const absl::variant<cbor::Value, Status>& returned_variant,
+      const std::string& test_name);
+  // As above, but checks specifically if the expected and returned status are
+  // both an error or both not an error. If both are different errors, the test
+  // counts as passed, but the report contains a warning.
+  void CheckAndReport(Status expected_status, Status returned_status,
+                      const std::string& test_name);
+  // Returns a reference to the KeyChecker instance.
   KeyChecker* GetKeyChecker();
+  // Returns a reference to the CounterChecker instance.
   CounterChecker* GetCounterChecker();
+  // Prints a report including all information from the CounterChecker, logged
+  // observations, problems and tests.
   void ReportFindings() const;
 
  private:
   KeyChecker key_checker_;
   CounterChecker counter_checker_;
-  // We want the observations and problems to be listed in order of appearance.
+  // We want the observations, problems and tests to be listed in order of
+  // appearance.
   std::vector<std::string> observations_;
   std::vector<std::string> problems_;
+  std::vector<std::string> successful_tests_;
+  std::vector<std::string> failed_tests_;
   absl::flat_hash_set<std::string> versions_;
   absl::flat_hash_set<std::string> extensions_;
   // Some options have three states, unsupported, inactive and active.
@@ -54,4 +82,3 @@ class DeviceTracker {
 }  // namespace fido2_tests
 
 #endif  // DEVICE_TRACKER_H_
-

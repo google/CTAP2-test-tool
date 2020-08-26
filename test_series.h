@@ -17,10 +17,10 @@
 
 #include <cstdio>
 
+#include "absl/types/variant.h"
 #include "cbor_builders.h"
 #include "device_interface.h"
 #include "device_tracker.h"
-#include "absl/types/variant.h"
 #include "third_party/chromium_components_cbor/values.h"
 
 namespace fido2_tests {
@@ -38,12 +38,6 @@ class TestSeries {
   void PrintResults();
 
  protected:
-  // Asserts a general condition, reporting the result and exiting on failure.
-  void AssertCondition(bool condition, const std::string& test_name);
-  // As above, but asserts the success of an executed command.
-  void AssertResponse(
-      const absl::variant<cbor::Value, Status>& returned_variant,
-      const std::string& test_name);
   // Checks a general condition, reporting the result and writing statistics.
   void CheckAndReport(bool condition, const std::string& test_name);
   // As above, but checks specifically whether the variant is a CBOR value.
@@ -76,7 +70,8 @@ class InputParameterTestSeries : public TestSeries {
  public:
   // The ownership for device_tracker stays with the caller and must outlive
   // the InputParameterTestSeries instance.
-  InputParameterTestSeries(DeviceInterface* device, DeviceTracker* device_tracker);
+  InputParameterTestSeries(DeviceInterface* device,
+                           DeviceTracker* device_tracker);
   // Check if MakeCredential accepts different CBOR types for its parameters.
   void MakeCredentialBadParameterTypesTest();
   // Check if MakeCredential accepts leaving out one of the required parameters.
@@ -176,7 +171,8 @@ class SpecificationProcedure : public TestSeries {
  public:
   // The ownership for device_tracker stays with the caller and must outlive
   // the SpecificationProcedure instance.
-  SpecificationProcedure(DeviceInterface* device, DeviceTracker* device_tracker);
+  SpecificationProcedure(DeviceInterface* device,
+                         DeviceTracker* device_tracker);
   // Tests if the authenticator checks the exclude list properly.
   void MakeCredentialExcludeListTest();
   // Tests correct behavior with different COSE algorithms. Tests non-existing

@@ -17,12 +17,12 @@
 #include <cstdint>
 #include <iostream>
 
-#include "glog/logging.h"
-#include "constants.h"
-#include "crypto_utility.h"
-#include "parameter_check.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/types/optional.h"
+#include "constants.h"
+#include "crypto_utility.h"
+#include "glog/logging.h"
+#include "parameter_check.h"
 #include "third_party/chromium_components_cbor/reader.h"
 #include "third_party/chromium_components_cbor/writer.h"
 
@@ -265,8 +265,8 @@ absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
   ByteVector cose_key(
       auth_data.begin() + length_offset + 2 + credential_id_length,
       auth_data.end());
-  size_t cose_key_size = PubKeyDuplicateCheck(device_tracker->GetKeyChecker(),
-                                              cose_key);
+  size_t cose_key_size =
+      PubKeyDuplicateCheck(device_tracker->GetKeyChecker(), cose_key);
   bool has_extension_flag = flags & 0x80;
   CHECK(has_extension_flag == (cose_key_size < cose_key.size()))
       << "extension flag not matching response";

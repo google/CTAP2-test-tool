@@ -14,10 +14,10 @@
 
 #include <iostream>
 
-#include "gflags/gflags.h"
-#include "glog/logging.h"
 #include "constants.h"
 #include "device_tracker.h"
+#include "gflags/gflags.h"
+#include "glog/logging.h"
 #include "hid/hid_device.h"
 #include "parameter_check.h"
 #include "test_series.h"
