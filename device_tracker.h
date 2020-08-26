@@ -24,8 +24,12 @@
 
 namespace fido2_tests {
 
-// Tracks device capabilities and findings. This includes all global state,
-// i.e. properties that can not be changed through CTAP commands.
+// Tracks all interesting capabilities and findings during test execution. This
+// includes all global state, i.e. properties that can not be changed through
+// CTAP commands. You can manually add observations or problems. When executing
+// a command, you can also call one of the variants of CheckAndReport to
+// evaluate it. To summarize the findings, run ReportFindings. Initialization
+// requires the output of a GetInfo command.
 class DeviceTracker {
  public:
   // Generates a new KeyChecker and CounterChecker. Version specific information

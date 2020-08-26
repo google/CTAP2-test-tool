@@ -25,37 +25,6 @@
 
 namespace fido2_tests {
 
-// This is the base class for all test series, capable of printing a summary of
-// test results. You can choose to assert, if the success of the assertion is
-// critical for further execution of the test suite. If a failure is tolerable,
-// CheckAndReport tracks the success rate of all tests executed in this series.
-// Non-mandatory tests are included for checking conditions that do not
-// necessarily mean faulty behavior.
-class TestSeries {
- public:
-  explicit TestSeries(std::string test_series_name);
-  // Uses the name and counters to print result strings.
-  void PrintResults();
-
- protected:
-  // Checks a general condition, reporting the result and writing statistics.
-  void CheckAndReport(bool condition, const std::string& test_name);
-  // As above, but checks specifically whether the variant is a CBOR value.
-  void CheckAndReport(
-      const absl::variant<cbor::Value, Status>& returned_variant,
-      const std::string& test_name);
-  // As above, but checks specifically if the expected and returned status are
-  // both an error or both not an error. If both are different errors, the test
-  // counts as passed, but the report contains a warning.
-  void CheckAndReport(Status expected_status, Status returned_status,
-                      const std::string& test_name);
-
- private:
-  std::string test_series_name_;
-  int total_tests_ = 0;
-  int successful_tests_ = 0;
-};
-
 // Systematically check all input parameters, if they follow the specification.
 // That includes enforcing the correct type of parameters, including members of
 // maps and arrays. It is very strict at checking unexpected additional
@@ -66,7 +35,7 @@ class TestSeries {
 //    fido2_tests::InputParameterTestSeries input_parameter_test_series =
 //        fido2_tests::InputParameterTestSeries(device, key_checker);
 //    input_parameter_test_series.MakeCredentialBadParameterTypesTest();
-class InputParameterTestSeries : public TestSeries {
+class InputParameterTestSeries {
  public:
   // The ownership for device_tracker stays with the caller and must outlive
   // the InputParameterTestSeries instance.
@@ -167,7 +136,7 @@ class InputParameterTestSeries : public TestSeries {
   cbor::Value::MapValue cose_key_example_;
 };
 
-class SpecificationProcedure : public TestSeries {
+class SpecificationProcedure {
  public:
   // The ownership for device_tracker stays with the caller and must outlive
   // the SpecificationProcedure instance.

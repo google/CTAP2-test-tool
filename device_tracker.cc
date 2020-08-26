@@ -154,6 +154,10 @@ void DeviceTracker::ReportFindings() const {
   for (const std::string& test : failed_tests_) {
     PrintFailMessage(test);
   }
+  size_t successful_test_count = successful_tests_.size();
+  size_t test_count = successful_test_count + failed_tests_.size();
+  std::cout << "Passed " << successful_test_count << " out of " << test_count
+            << " tests." << std::endl;
 }
 
 }  // namespace fido2_tests
