@@ -27,33 +27,31 @@ DeviceTracker::DeviceTracker()
 void DeviceTracker::Initialize(const cbor::Value::ArrayValue& versions,
                                const cbor::Value::ArrayValue& extensions,
                                const cbor::Value::MapValue& options) {
-  if (!is_initialized_) {
-    is_initialized_ = true;
+  if (is_initialized_) {
+    return;
+  }
+  is_initialized_ = true;
 
-    versions_ = absl::flat_hash_set<std::string>();
-    for (const auto& versions_iter : versions) {
-      if (versions_iter.is_string()) {
-        versions_.insert(versions_iter.GetString());
-      }
+  for (const auto& versions_iter : versions) {
+    if (versions_iter.is_string()) {
+      versions_.insert(versions_iter.GetString());
     }
+  }
 
-    extensions_ = absl::flat_hash_set<std::string>();
-    for (const auto& extensions_iter : extensions) {
-      if (extensions_iter.is_string()) {
-        extensions_.insert(extensions_iter.GetString());
-      }
+  for (const auto& extensions_iter : extensions) {
+    if (extensions_iter.is_string()) {
+      extensions_.insert(extensions_iter.GetString());
     }
+  }
 
-    options_ = absl::flat_hash_set<std::string>();
-    std::vector<std::string> mutable_options = {"clientPin", "uv", "bioEnroll"};
-    for (const auto& options_iter : options) {
-      if (options_iter.first.is_string() && options_iter.second.is_bool()) {
-        bool is_mutable =
-            std::find(mutable_options.begin(), mutable_options.end(),
-                      options_iter.first.GetString()) != mutable_options.end();
-        if (is_mutable || options_iter.second.GetBool()) {
-          options_.insert(options_iter.first.GetString());
-        }
+  absl::flat_hash_set<std::string> mutable_options =
+      {"clientPin", "uv", "bioEnroll"};
+  for (const auto& options_iter : options) {
+    if (options_iter.first.is_string() && options_iter.second.is_bool()) {
+      bool is_mutable = mutable_options.contains(
+          options_iter.first.GetString());
+      if (is_mutable || options_iter.second.GetBool()) {
+        options_.insert(options_iter.first.GetString());
       }
     }
   }
@@ -73,11 +71,15 @@ void DeviceTracker::AddProblem(const std::string& problem) {
   }
 }
 
-KeyChecker* DeviceTracker::GetKeyChecker() { return &key_checker_; }
+KeyChecker* DeviceTracker::GetKeyChecker() {
+  return &key_checker_;
+}
 
-CounterChecker* DeviceTracker::GetCounterChecker() { return &counter_checker_; }
+CounterChecker* DeviceTracker::GetCounterChecker() {
+  return &counter_checker_;
+}
 
-void DeviceTracker::ReportFindings() {
+void DeviceTracker::ReportFindings() const {
   for (const std::string& observation : observations_) {
     std::cout << observation << "\n";
   }

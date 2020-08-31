@@ -34,6 +34,9 @@ struct ByteVectorHash {
   }
 };
 
+// Tracks used key material for signs of reuse. Reuse of key material is a
+// sign for bad RNG and hints at a critical security vulnerability. Any finding
+// terminates the execution.
 class KeyChecker {
  public:
   explicit KeyChecker(const std::vector<std::vector<uint8_t>>& common_keys);
@@ -43,12 +46,18 @@ class KeyChecker {
   absl::flat_hash_set<std::vector<uint8_t>, ByteVectorHash> key_set_;
 };
 
+// Investigates the signature counter. Counters should be strictly increasing.
+// Additionally, the class tries to infer the type of signature counter.
+// Options are:
+// - always zero (discouraged by the specification, flash friendly)
+// - global counters (RPs see increments > 1)
+// - individual counters (privacy friendly)
 class CounterChecker {
  public:
   CounterChecker();
   void RegisterCounter(const std::vector<uint8_t>& id, uint32_t start_value);
   void CheckCounter(const std::vector<uint8_t>& id, uint32_t value);
-  void ReportFindings();
+  void ReportFindings() const;
 
  private:
   absl::flat_hash_map<std::vector<uint8_t>, uint32_t, ByteVectorHash>
