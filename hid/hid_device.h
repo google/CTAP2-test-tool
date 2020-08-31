@@ -101,7 +101,8 @@ class HidDevice : public DeviceInterface {
   void Log(const std::string& message) const;
   void Log(const std::string& direction, Frame* frame) const;
   // Scans connected HID devices for one with the same product ID as this device
-  // and returns its filesystem path, or fails if none was found.
+  // and returns its filesystem path, or fails if none was found. Sets the
+  // product name in the DeviceTracker as a side effect.
   std::string FindDevicePath();
 
   // Points to a global test tracker to report findings.

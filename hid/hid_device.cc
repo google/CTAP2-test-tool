@@ -487,6 +487,13 @@ std::string HidDevice::FindDevicePath() {
   }
   CHECK(devs) << "The key with the expected vendor & product ID was not found.";
   std::string pathname = devs->path;
+  // Tracks the product name as a side effect here. Non-ASCII characters might
+  // not be converted properly.
+  std::wstring product_name(devs->product_string);
+  if (!product_name.empty()) {
+    tracker_->SetProductName(std::string(product_name.begin(),
+                                         product_name.end()));
+  }
   hid_free_enumeration(root);
   CHECK(!pathname.empty()) << "No path found for this device.";
   return pathname;
