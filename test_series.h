@@ -19,7 +19,7 @@
 
 #include "cbor_builders.h"
 #include "device_interface.h"
-#include "parameter_check.h"
+#include "device_tracker.h"
 #include "absl/types/variant.h"
 #include "third_party/chromium_components_cbor/values.h"
 
@@ -74,8 +74,9 @@ class TestSeries {
 //    input_parameter_test_series.MakeCredentialBadParameterTypesTest();
 class InputParameterTestSeries : public TestSeries {
  public:
-  InputParameterTestSeries(DeviceInterface* device, KeyChecker* key_checker,
-                           CounterChecker* counter_checker);
+  // The ownership for device_tracker stays with the caller and must outlive
+  // the InputParameterTestSeries instance.
+  InputParameterTestSeries(DeviceInterface* device, DeviceTracker* device_tracker);
   // Check if MakeCredential accepts different CBOR types for its parameters.
   void MakeCredentialBadParameterTypesTest();
   // Check if MakeCredential accepts leaving out one of the required parameters.
@@ -155,8 +156,7 @@ class InputParameterTestSeries : public TestSeries {
                                                   int map_key,
                                                   const std::string& rp_id);
   DeviceInterface* device_;
-  KeyChecker* key_checker_;
-  CounterChecker* counter_checker_;
+  DeviceTracker* device_tracker_;
   // These are arbitrary example values for each CBOR type.
   std::map<cbor::Value::Type, cbor::Value> type_examples_;
   // This map is a subset of the type_examples_. Since CBOR implementations do
@@ -174,8 +174,9 @@ class InputParameterTestSeries : public TestSeries {
 
 class SpecificationProcedure : public TestSeries {
  public:
-  SpecificationProcedure(DeviceInterface* device, KeyChecker* key_checker,
-                         CounterChecker* counter_checker);
+  // The ownership for device_tracker stays with the caller and must outlive
+  // the SpecificationProcedure instance.
+  SpecificationProcedure(DeviceInterface* device, DeviceTracker* device_tracker);
   // Tests if the authenticator checks the exclude list properly.
   void MakeCredentialExcludeListTest();
   // Tests correct behavior with different COSE algorithms. Tests non-existing
@@ -289,8 +290,7 @@ class SpecificationProcedure : public TestSeries {
   // test.
   void CheckPinAbsenceByMakeCredential();
   DeviceInterface* device_;
-  KeyChecker* key_checker_;
-  CounterChecker* counter_checker_;
+  DeviceTracker* device_tracker_;
   // The PIN is persistent, the other state is kept for a power cycle.
   cbor::Value::MapValue platform_cose_key_;
   cbor::Value::BinaryValue shared_secret_;
