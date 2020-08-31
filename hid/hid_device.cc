@@ -139,12 +139,19 @@ bool IsKnownStatusByte(uint8_t status_byte) {
 }
 }  // namespace
 
-HidDevice::HidDevice(const std::string& pathname)
-    : HidDevice(pathname, /* verbose_logging = */ false) {}
+HidDevice::HidDevice(DeviceTracker* tracker, const std::string& pathname)
+    : HidDevice(tracker, pathname, /* verbose_logging = */ false) {}
 
-HidDevice::HidDevice(const std::string& pathname, bool verbose_logging)
-    : verbose_logging_(verbose_logging),
-      vendor_product_id_(ReadDeviceIdentifiers(pathname)) {}
+HidDevice::HidDevice(DeviceTracker* tracker, const std::string& pathname,
+                     bool verbose_logging)
+    : tracker_(tracker),
+      verbose_logging_(verbose_logging),
+      vendor_product_id_(ReadDeviceIdentifiers(pathname)) {
+  tracker_->AddObservation(absl::StrCat(
+      " Vendor ID: 0x", absl::Hex(vendor_product_id_.first, absl::kZeroPad4)));
+  tracker_->AddObservation(absl::StrCat(
+      "Product ID: 0x", absl::Hex(vendor_product_id_.second, absl::kZeroPad4)));
+}
 
 HidDevice::~HidDevice() {
   if (dev_) {
@@ -195,10 +202,19 @@ Status HidDevice::Init() {
            (static_cast<uint32_t>(response.init.data[9]) << 16) |
            (static_cast<uint32_t>(response.init.data[10]) << 8) |
            (static_cast<uint32_t>(response.init.data[11]) << 0);
+
     has_wink_capability_ = response.init.data[16] & kWinkCapabilityMask;
-    has_cbor_capability_ = response.init.data[16] & kCborCapabilityMask;
-    // This is intended, because this is a negative feature flag.
-    has_msg_capability_ = !(response.init.data[16] & kNmsgCapabilityMask);
+    if (response.init.data[16] & kCborCapabilityMask) {
+      tracker_->AddObservation("The CBOR capability was set.");
+    } else {
+      tracker_->AddProblem("The CBOR capability was NOT set.");
+    }
+    // The negation is intended, because this is a negative feature flag.
+    if (!(response.init.data[16] & kNmsgCapabilityMask)) {
+      tracker_->AddObservation("The MSG capability was set.");
+    } else {
+      tracker_->AddObservation("The MSG capability was NOT set.");
+    }
 
     break;
   }
@@ -206,17 +222,18 @@ Status HidDevice::Init() {
 }
 
 Status HidDevice::Wink() {
-  can_wink_ = false;
-  uint8_t cmd = kCtapHidWink;
-  Status status = SendCommand(cmd, std::vector<uint8_t>());
-  if (status != Status::kErrNone) return status;
-
-  std::vector<uint8_t> recv_data;
-  status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
-  if (cmd != kCtapHidWink) return Status::kErrInvalidCommand;
-  if (!recv_data.empty()) return Status::kErrInvalidLength;
-  can_wink_ = status == Status::kErrNone;
-  return status;
+  Status wink_status = ExecuteWink();
+  bool can_wink = wink_status == Status::kErrNone;
+  if (can_wink) {
+    tracker_->AddObservation("The optional command WINK worked.");
+  } else {
+    tracker_->AddObservation("The optional command WINK did not work.");
+  }
+  if (can_wink != has_wink_capability_) {
+    tracker_->AddProblem(
+        "The reported WINK capability did NOT match the observed response.");
+  }
+  return wink_status;
 }
 
 Status HidDevice::ExchangeCbor(Command command,
@@ -292,38 +309,6 @@ Status HidDevice::ExchangeCbor(Command command,
       << "The returned byte is unspecified: 0x"
       << absl::StrCat(absl::Hex(recv_data[0], absl::kZeroPad2));
   return Status(recv_data[0]);
-}
-
-void HidDevice::PrintReport() const {
-  std::cout << " Vendor ID: "
-            << absl::StrCat(
-                   "0x", absl::Hex(vendor_product_id_.first, absl::kZeroPad4))
-            << std::endl;
-  std::cout << "Product ID: "
-            << absl::StrCat(
-                   "0x", absl::Hex(vendor_product_id_.second, absl::kZeroPad4))
-            << std::endl;
-  if (can_wink_.has_value()) {
-    if (can_wink_) {
-      std::cout << "The optional command WINK worked." << std::endl;
-    } else {
-      std::cout << "The optional command WINK did not work." << std::endl;
-    }
-    if (can_wink_ != has_wink_capability_) {
-      PrintFailMessage(
-          "The reported WINK capability did NOT match the observed response.");
-    }
-  }
-  if (has_cbor_capability_) {
-    std::cout << "The CBOR capability was set." << std::endl;
-  } else {
-    std::cout << "The CBOR capability was NOT set." << std::endl;
-  }
-  if (has_msg_capability_) {
-    std::cout << "The MSG capability was set." << std::endl;
-  } else {
-    std::cout << "The MSG capability was NOT set." << std::endl;
-  }
 }
 
 KeepaliveStatus HidDevice::ProcessKeepalive(
@@ -443,6 +428,18 @@ Status HidDevice::ReceiveFrame(absl::Duration timeout, Frame* frame) const {
 
   Log("timeout");
   return Status::kErrTimeout;
+}
+
+Status HidDevice::ExecuteWink() {
+  uint8_t cmd = kCtapHidWink;
+  Status status = SendCommand(cmd, std::vector<uint8_t>());
+  if (status != Status::kErrNone) return status;
+
+  std::vector<uint8_t> recv_data;
+  status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
+  if (cmd != kCtapHidWink) return Status::kErrInvalidCommand;
+  if (!recv_data.empty()) return Status::kErrInvalidLength;
+  return status;
 }
 
 void HidDevice::Log(const std::string& message) const {

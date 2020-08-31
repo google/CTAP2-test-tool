@@ -37,9 +37,6 @@ class DeviceInterface {
                               const std::vector<uint8_t>& payload,
                               bool expect_up_check,
                               std::vector<uint8_t>* response_cbor) const = 0;
-  // Prints device information, capabilities and a summary of performed checks
-  // to std::out.
-  virtual void PrintReport() const = 0;
 };
 
 }  // namespace fido2_tests

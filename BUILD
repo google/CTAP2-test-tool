@@ -24,6 +24,7 @@ cc_library(
         "hid/hid_device.h",
     ],
     deps = [
+        ":device_tracker",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/time",
         "@com_google_absl//absl/types:optional",
@@ -43,7 +44,7 @@ cc_library(
         "constants.h",
     ],
     deps = [
-        "crypto_utility",
+        ":crypto_utility",
         "//third_party/chromium_components_cbor:cbor",
     ],
 )
@@ -63,6 +64,18 @@ cc_library(
 )
 
 cc_library(
+    name = "device_tracker",
+    srcs = ["device_tracker.cc"],
+    hdrs = [
+        "device_tracker.h",
+    ],
+    deps = [
+        ":parameter_check",
+        "//third_party/chromium_components_cbor:cbor",
+    ],
+)
+
+cc_library(
     name = "fido2_commands",
     srcs = ["fido2_commands.cc"],
     hdrs = [
@@ -71,8 +84,8 @@ cc_library(
         "fido2_commands.h",
     ],
     deps = [
-        "crypto_utility",
-        "parameter_check",
+        ":crypto_utility",
+        ":parameter_check",
         "//third_party/chromium_components_cbor:cbor",
         "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_absl//absl/types:optional",
@@ -85,9 +98,7 @@ cc_library(
 cc_library(
     name = "parameter_check",
     srcs = ["parameter_check.cc"],
-    hdrs = [
-        "parameter_check.h",
-    ],
+    hdrs = ["parameter_check.h"],
     deps = [
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/container:flat_hash_set",
@@ -122,9 +133,10 @@ cc_binary(
     name = "fido2_conformance",
     srcs = ["fido2_conformance_main.cc"],
     deps = [
-        "hid_device",
-        "parameter_check",
-        "test_series",
+        ":device_tracker",
+        ":hid_device",
+        ":parameter_check",
+        ":test_series",
         "@com_github_gflags_gflags//:gflags",
         "@com_google_glog//:glog",
     ],

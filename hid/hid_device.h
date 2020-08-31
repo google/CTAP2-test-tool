@@ -21,6 +21,7 @@
 
 #include "constants.h"
 #include "device_interface.h"
+#include "device_tracker.h"
 #include "absl/time/time.h"
 #include "absl/types/optional.h"
 #include "hidapi/hidapi.h"
@@ -62,10 +63,13 @@ void PrintFidoDevices();
 
 class HidDevice : public DeviceInterface {
  public:
-  // The constructor without the second parameter implicitly assumes false.
-  explicit HidDevice(const std::string& pathname);
+  // The constructor without the third parameter implicitly assumes false.
+  // In both constructors, the ownership for tracker stays with the caller
+  // and it must outlive the HidDevice instance.
+  HidDevice(DeviceTracker* tracker, const std::string& pathname);
   // Prepares the object for sending packets. The pathname points to the device.
-  explicit HidDevice(const std::string& pathname, bool verbose_logging);
+  HidDevice(DeviceTracker* tracker, const std::string& pathname,
+                     bool verbose_logging);
   ~HidDevice() override;
   // In contrast to the constructor, Init sends a package to initilialize the
   // communication with the authenticator and establish a channel ID.
@@ -77,7 +81,6 @@ class HidDevice : public DeviceInterface {
   Status ExchangeCbor(Command command, const std::vector<uint8_t>& payload,
                       bool expect_up_check,
                       std::vector<uint8_t>* response_cbor) const override;
-  void PrintReport() const override;
 
  private:
   // A received response can be status 0, an error, or a keepalive in case the
@@ -93,12 +96,16 @@ class HidDevice : public DeviceInterface {
   Status SendFrame(Frame* frame) const;
   // The lowest abstraction layer, receives a single frame with in a given time.
   Status ReceiveFrame(absl::Duration timeout, Frame* frame) const;
+  // Perform the Wink command.
+  Status ExecuteWink();
   void Log(const std::string& message) const;
   void Log(const std::string& direction, Frame* frame) const;
   // Scans connected HID devices for one with the same product ID as this device
   // and returns its filesystem path, or fails if none was found.
   std::string FindDevicePath();
 
+  // Points to a global test tracker to report findings.
+  DeviceTracker* tracker_;
   // Set by the constructor, decides if the Log function actually print.
   bool verbose_logging_ = false;
   // This is the device from hdiapi.
@@ -109,12 +116,8 @@ class HidDevice : public DeviceInterface {
   unsigned int seed_ = 0;
   // This device's vendor & product ID (in this order) are used for reconnects.
   const std::pair<uint16_t, uint16_t> vendor_product_id_;
-  // Reflects whether WINK executes without errors.
-  absl::optional<bool> can_wink_ = absl::nullopt;
   // The last seen device capability flag for WINK in the response to INIT.
   bool has_wink_capability_ = false;
-  bool has_cbor_capability_ = false;
-  bool has_msg_capability_ = false;
 };
 
 }  // namespace hid
