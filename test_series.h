@@ -74,6 +74,8 @@ class TestSeries {
 //    input_parameter_test_series.MakeCredentialBadParameterTypesTest();
 class InputParameterTestSeries : public TestSeries {
  public:
+  // The ownership for device_tracker stays with the caller and must outlive
+  // the InputParameterTestSeries instance.
   InputParameterTestSeries(DeviceInterface* device, DeviceTracker* device_tracker);
   // Check if MakeCredential accepts different CBOR types for its parameters.
   void MakeCredentialBadParameterTypesTest();
@@ -172,6 +174,8 @@ class InputParameterTestSeries : public TestSeries {
 
 class SpecificationProcedure : public TestSeries {
  public:
+  // The ownership for device_tracker stays with the caller and must outlive
+  // the SpecificationProcedure instance.
   SpecificationProcedure(DeviceInterface* device, DeviceTracker* device_tracker);
   // Tests if the authenticator checks the exclude list properly.
   void MakeCredentialExcludeListTest();

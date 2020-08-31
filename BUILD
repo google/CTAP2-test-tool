@@ -84,8 +84,8 @@ cc_library(
         "fido2_commands.h",
     ],
     deps = [
-        ":device_tracker",
         ":crypto_utility",
+        ":device_tracker",
         "//third_party/chromium_components_cbor:cbor",
         "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_absl//absl/types:optional",
