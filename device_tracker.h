@@ -23,6 +23,8 @@
 
 namespace fido2_tests {
 
+// Tracks device capabilities and findings. This includes all global state,
+// i.e. properties that can not be changed through CTAP commands.
 class DeviceTracker {
  public:
   DeviceTracker();
@@ -33,7 +35,7 @@ class DeviceTracker {
   void AddProblem(const std::string& problem);
   KeyChecker* GetKeyChecker();
   CounterChecker* GetCounterChecker();
-  void ReportFindings();
+  void ReportFindings() const;
 
  private:
   KeyChecker key_checker_;

@@ -64,7 +64,7 @@ void CounterChecker::CheckCounter(const std::vector<uint8_t>& id,
   counter_map_[id] = value;
 }
 
-void CounterChecker::ReportFindings() {
+void CounterChecker::ReportFindings() const {
   if (could_be_zero_) {
     std::cout << "All counters were constant zero." << std::endl;
   } else {

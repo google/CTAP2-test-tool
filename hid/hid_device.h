@@ -63,10 +63,12 @@ void PrintFidoDevices();
 
 class HidDevice : public DeviceInterface {
  public:
-  // The constructor without the second parameter implicitly assumes false.
-  explicit HidDevice(DeviceTracker* tracker, const std::string& pathname);
+  // The constructor without the third parameter implicitly assumes false.
+  // In both constructors, the ownership for tracker stays with the caller
+  // and it must outlive the HidDevice instance.
+  HidDevice(DeviceTracker* tracker, const std::string& pathname);
   // Prepares the object for sending packets. The pathname points to the device.
-  explicit HidDevice(DeviceTracker* tracker, const std::string& pathname,
+  HidDevice(DeviceTracker* tracker, const std::string& pathname,
                      bool verbose_logging);
   ~HidDevice() override;
   // In contrast to the constructor, Init sends a package to initilialize the
