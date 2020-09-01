@@ -112,6 +112,4 @@ int main(int argc, char** argv) {
 
   std::cout << "\nRESULTS" << std::endl;
   tracker.ReportFindings();
-  input_parameter_test_series.PrintResults();
-  specification_procedure_test_series.PrintResults();
 }

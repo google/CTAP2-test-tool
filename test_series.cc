@@ -134,18 +134,9 @@ void PrintNoTouchPrompt() {
 }
 }  // namespace
 
-TestSeries::TestSeries(std::string test_series_name)
-    : test_series_name_(std::move(test_series_name)) {}
-
-void TestSeries::PrintResults() {
-  std::cout << test_series_name_ << ": passed " << successful_tests_ << " of "
-            << total_tests_ << " tests" << std::endl;
-}
-
 InputParameterTestSeries::InputParameterTestSeries(
     DeviceInterface* device, DeviceTracker* device_tracker)
-    : TestSeries("Input parameter test series"),
-      device_(device),
+    : device_(device),
       device_tracker_(device_tracker),
       cose_key_example_(crypto_utility::GenerateExampleEcdhCoseKey()) {
   cbor::Value::ArrayValue array_example;
@@ -646,8 +637,7 @@ void InputParameterTestSeries::TestCredentialDescriptorsArrayForCborDepth(
 
 SpecificationProcedure::SpecificationProcedure(DeviceInterface* device,
                                                DeviceTracker* device_tracker)
-    : TestSeries("Specification procedure test series"),
-      device_(device),
+    : device_(device),
       device_tracker_(device_tracker),
       bad_pin_({0x66, 0x61, 0x6B, 0x65}) {}
 
