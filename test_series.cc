@@ -70,23 +70,6 @@ std::string CborToString(const std::string& name_prefix,
   }
 }
 
-std::string CommandToString(Command command) {
-  switch (command) {
-    case Command::kAuthenticatorMakeCredential:
-      return "make credential command";
-    case Command::kAuthenticatorGetAssertion:
-      return "get assertion command";
-    case Command::kAuthenticatorGetInfo:
-      return "get info command";
-    case Command::kAuthenticatorClientPIN:
-      return "client PIN command";
-    case Command::kAuthenticatorReset:
-      return "reset command";
-    case Command::kAuthenticatorGetNextAssertion:
-      return "get next assertion command";
-  }
-}
-
 // Asserts a general condition, exits on failure.
 void AssertCondition(bool condition, const std::string& test_name) {
   CHECK(condition) << "Failed critical test: " << test_name;

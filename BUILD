@@ -19,11 +19,11 @@ cc_library(
     name = "hid_device",
     srcs = ["hid/hid_device.cc"],
     hdrs = [
-        "constants.h",
         "device_interface.h",
         "hid/hid_device.h",
     ],
     deps = [
+        ":constants",
         ":device_tracker",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/time",
@@ -39,24 +39,29 @@ cc_library(
 cc_library(
     name = "cbor_builders",
     srcs = ["cbor_builders.cc"],
-    hdrs = [
-        "cbor_builders.h",
-        "constants.h",
-    ],
+    hdrs = ["cbor_builders.h"],
     deps = [
+        ":constants",
         ":crypto_utility",
         "//third_party/chromium_components_cbor:cbor",
     ],
 )
 
 cc_library(
+    name = "constants",
+    srcs = ["constants.cc"],
+    hdrs = ["constants.h"],
+    deps = [
+        "@com_google_glog//:glog",
+    ],
+)
+
+cc_library(
     name = "crypto_utility",
     srcs = ["crypto_utility.cc"],
-    hdrs = [
-        "constants.h",
-        "crypto_utility.h",
-    ],
+    hdrs = ["crypto_utility.h"],
     deps = [
+        ":constants",
         "//third_party/chromium_components_cbor:cbor",
         "@boringssl//:crypto",
         "@com_google_glog//:glog",
@@ -66,11 +71,9 @@ cc_library(
 cc_library(
     name = "device_tracker",
     srcs = ["device_tracker.cc"],
-    hdrs = [
-        "constants.h",
-        "device_tracker.h",
-    ],
+    hdrs = ["device_tracker.h"],
     deps = [
+        ":constants",
         ":parameter_check",
         "//third_party/chromium_components_cbor:cbor",
     ],
@@ -80,11 +83,11 @@ cc_library(
     name = "fido2_commands",
     srcs = ["fido2_commands.cc"],
     hdrs = [
-        "constants.h",
         "device_interface.h",
         "fido2_commands.h",
     ],
     deps = [
+        ":constants",
         ":crypto_utility",
         ":device_tracker",
         "//third_party/chromium_components_cbor:cbor",
