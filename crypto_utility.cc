@@ -14,8 +14,8 @@
 
 #include "crypto_utility.h"
 
-#include "glog/logging.h"
 #include "constants.h"
+#include "glog/logging.h"
 #include "openssl/aes.h"
 #include "openssl/bn.h"
 #include "openssl/ec.h"

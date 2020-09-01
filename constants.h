@@ -16,6 +16,7 @@
 #define CONSTANTS_H_
 
 #include <cstdint>
+#include <string>
 
 namespace fido2_tests {
 // This is the status byte returned by CTAP interactions.
@@ -65,6 +66,9 @@ enum class Status : uint8_t {
   kErrOther = 0x7F
 };
 
+// Converts a Status to a string for printing.
+std::string StatusToString(Status status);
+
 // These are the possible CTAP commands.
 enum class Command : uint8_t {
   kAuthenticatorMakeCredential = 0x01,
@@ -74,6 +78,9 @@ enum class Command : uint8_t {
   kAuthenticatorReset = 0x07,
   kAuthenticatorGetNextAssertion = 0x08
 };
+
+// Converts a Command to a string for printing.
+std::string CommandToString(Command command);
 
 // ES256 and RS256 are for signatures, while ECDH is for key agreement.
 enum class Algorithm {
