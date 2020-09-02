@@ -36,8 +36,6 @@ std::string CreateSaveFileDirectory() {
     results_dir = absl::StrCat(env_dir, "/", results_dir);
   }
   std::filesystem::create_directory(results_dir);
-  CHECK(std::filesystem::is_directory(results_dir))
-      << "Unable to create directory: " << results_dir;
   return results_dir;
 }
 
