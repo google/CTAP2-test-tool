@@ -74,10 +74,6 @@ class DeviceTracker {
   void SaveResultsToFile();
 
  private:
-  // Creates a directory for results files and returns the path. Just return
-  // the path if that directory already exists. Fails if the directory wasn't
-  // created successfully.
-  std::string CreateSaveFileDirectory();
   KeyChecker key_checker_;
   CounterChecker counter_checker_;
   std::string product_name_;

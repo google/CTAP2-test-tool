@@ -491,8 +491,8 @@ std::string HidDevice::FindDevicePath() {
   // not be converted properly.
   std::wstring product_name(devs->product_string);
   if (!product_name.empty()) {
-    tracker_->SetProductName(std::string(product_name.begin(),
-                                         product_name.end()));
+    tracker_->SetProductName(
+        std::string(product_name.begin(), product_name.end()));
   }
   hid_free_enumeration(root);
   CHECK(!pathname.empty()) << "No path found for this device.";

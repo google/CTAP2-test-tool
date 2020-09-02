@@ -14,18 +14,45 @@
 
 #include "device_tracker.h"
 
-#include <iostream>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
 
 #include "parameter_check.h"
 #include "third_party/chromium_components_cbor/values.h"
 
 namespace fido2_tests {
 namespace {
-static const char* const kRelativeDir = "results/";
-static const char* const kFileName = "NEW_TEST";
-static const char* const kFileType = ".md";
+constexpr std::string_view kRelativeDir = "results/";
+constexpr std::string_view kFileName = "NEW_TEST";
+constexpr std::string_view kFileType = ".md";
+
+// Creates a directory for results files and returns the path. Just return
+// the path if that directory already exists. Fails if the directory wasn't
+// created successfully.
+std::string CreateSaveFileDirectory() {
+  std::string results_dir = std::string(kRelativeDir);
+  if (const char* env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) {
+    results_dir = absl::StrCat(env_dir, "/", results_dir);
+  }
+  std::filesystem::create_directory(results_dir);
+  CHECK(std::filesystem::is_directory(results_dir))
+      << "Unable to create directory: " << results_dir;
+  return results_dir;
+}
+
+// If elements is not empty, prints header and elements in separate lines.
+void PrintStringVector(absl::string_view header,
+                       absl::Span<const std::string> elements,
+                       std::ofstream& output) {
+  if (elements.empty()) {
+    return;
+  }
+  output << "\n" << header << ":\n";
+  for (const std::string& element : elements) {
+    output << element << "\n";
+  }
+}
 
 void PrintSuccessMessage(const std::string& message) {
   std::cout << "\x1b[0;32m" << message << "\x1b[0m" << std::endl;
@@ -172,47 +199,22 @@ void DeviceTracker::ReportFindings() const {
 }
 
 void DeviceTracker::SaveResultsToFile() {
-  std::filesystem::path results_path = absl::StrCat(CreateSaveFileDirectory(),
-                                                    product_name_, kFileType);
+  std::filesystem::path results_path =
+      absl::StrCat(CreateSaveFileDirectory(), product_name_, kFileType);
   std::ofstream results_file;
   results_file.open(results_path);
   CHECK(results_file.is_open()) << "Unable to open file: " << results_path;
 
-  size_t successful_test_count = successful_tests_.size();
-  size_t test_count = successful_test_count + failed_tests_.size();
+  int successful_test_count = successful_tests_.size();
+  int failed_test_count = failed_tests_.size();
+  int test_count = successful_test_count + failed_test_count;
   results_file << "Passed " << successful_test_count << " out of " << test_count
-            << " tests.\n";
-  if (!failed_tests_.empty()) {
-    results_file << "\nFailed tests:\n";
-  }
-  for (const std::string& test : failed_tests_) {
-    results_file << test << "\n";
-  }
-  if (!problems_.empty()) {
-    results_file << "\nReported problems:\n";
-  }
-  for (const std::string& problem : problems_) {
-    results_file << problem << "\n";
-  }
-  if (!problems_.empty()) {
-    results_file << "\nReported observations:\n";
-  }
-  for (const std::string& observation : observations_) {
-    results_file << observation << "\n";
-  }
+               << " tests.\n";
+  PrintStringVector("Failed tests", failed_tests_, results_file);
+  PrintStringVector("Reported problems", problems_, results_file);
+  PrintStringVector("Reported observations", observations_, results_file);
 
   counter_checker_.ReportFindings();
-}
-
-std::string DeviceTracker::CreateSaveFileDirectory() {
-  std::string results_dir = kRelativeDir;
-  if(const char* env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) {
-    results_dir = absl::StrCat(env_dir, "/", results_dir);
-  }
-  std::filesystem::create_directory(results_dir);
-  CHECK(std::filesystem::is_directory(results_dir))
-      << "Unable to create directory: " << results_dir;
-  return results_dir;
 }
 
 }  // namespace fido2_tests

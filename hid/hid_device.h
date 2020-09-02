@@ -69,7 +69,7 @@ class HidDevice : public DeviceInterface {
   HidDevice(DeviceTracker* tracker, const std::string& pathname);
   // Prepares the object for sending packets. The pathname points to the device.
   HidDevice(DeviceTracker* tracker, const std::string& pathname,
-                     bool verbose_logging);
+            bool verbose_logging);
   ~HidDevice() override;
   // In contrast to the constructor, Init sends a package to initilialize the
   // communication with the authenticator and establish a channel ID.
