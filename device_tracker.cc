@@ -14,6 +14,8 @@
 
 #include "device_tracker.h"
 
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 
 #include "parameter_check.h"
@@ -21,6 +23,34 @@
 
 namespace fido2_tests {
 namespace {
+constexpr std::string_view kRelativeDir = "results/";
+constexpr std::string_view kFileName = "NEW_TEST";
+constexpr std::string_view kFileType = ".md";
+
+// Creates a directory for results files and returns the path. Just return
+// the path if that directory already exists. Fails if the directory wasn't
+// created successfully.
+std::string CreateSaveFileDirectory() {
+  std::string results_dir = std::string(kRelativeDir);
+  if (const char* env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) {
+    results_dir = absl::StrCat(env_dir, "/", results_dir);
+  }
+  std::filesystem::create_directory(results_dir);
+  return results_dir;
+}
+
+// If elements is not empty, prints header and elements in separate lines.
+void PrintStringVector(absl::string_view header,
+                       absl::Span<const std::string> elements,
+                       std::ofstream& output) {
+  if (elements.empty()) {
+    return;
+  }
+  output << "\n" << header << ":\n";
+  for (const std::string& element : elements) {
+    output << element << "\n";
+  }
+}
 
 void PrintSuccessMessage(const std::string& message) {
   std::cout << "\x1b[0;32m" << message << "\x1b[0m" << std::endl;
@@ -37,7 +67,8 @@ void PrintFailMessage(const std::string& message) {
 }  // namespace
 
 DeviceTracker::DeviceTracker()
-    : key_checker_(std::vector<std::vector<uint8_t>>()) {}
+    : key_checker_(std::vector<std::vector<uint8_t>>()),
+      product_name_(kFileName) {}
 
 void DeviceTracker::Initialize(const cbor::Value::ArrayValue& versions,
                                const cbor::Value::ArrayValue& extensions,
@@ -70,6 +101,10 @@ void DeviceTracker::Initialize(const cbor::Value::ArrayValue& versions,
       }
     }
   }
+}
+
+void DeviceTracker::SetProductName(const std::string& product_name) {
+  product_name_ = product_name;
 }
 
 void DeviceTracker::AddObservation(const std::string& observation) {
@@ -159,6 +194,25 @@ void DeviceTracker::ReportFindings() const {
   int test_count = successful_test_count + failed_test_count;
   std::cout << "Passed " << successful_test_count << " out of " << test_count
             << " tests." << std::endl;
+}
+
+void DeviceTracker::SaveResultsToFile() {
+  std::filesystem::path results_path =
+      absl::StrCat(CreateSaveFileDirectory(), product_name_, kFileType);
+  std::ofstream results_file;
+  results_file.open(results_path);
+  CHECK(results_file.is_open()) << "Unable to open file: " << results_path;
+
+  int successful_test_count = successful_tests_.size();
+  int failed_test_count = failed_tests_.size();
+  int test_count = successful_test_count + failed_test_count;
+  results_file << "Passed " << successful_test_count << " out of " << test_count
+               << " tests.\n";
+  PrintStringVector("Failed tests", failed_tests_, results_file);
+  PrintStringVector("Reported problems", problems_, results_file);
+  PrintStringVector("Reported observations", observations_, results_file);
+
+  counter_checker_.ReportFindings();
 }
 
 }  // namespace fido2_tests

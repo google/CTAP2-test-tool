@@ -40,6 +40,8 @@ class DeviceTracker {
   void Initialize(const cbor::Value::ArrayValue& versions,
                   const cbor::Value::ArrayValue& extensions,
                   const cbor::Value::MapValue& options);
+  // Setter for the product_name, which is used as a results file name.
+  void SetProductName(const std::string& product_name);
   // Adds a string to the list of observations. Duplicates are ignored. Use this
   // function for merely informational comments.
   void AddObservation(const std::string& observation);
@@ -65,10 +67,16 @@ class DeviceTracker {
   // Prints a report including all information from the CounterChecker, logged
   // observations, problems and tests.
   void ReportFindings() const;
+  // Saves the results to a markdown file. Creates a "results" directory, if
+  // necessary. The file name will be derived from the product name as listed
+  // through HID, or a default if none is found. Overwrites existing files of
+  // the same name.
+  void SaveResultsToFile();
 
  private:
   KeyChecker key_checker_;
   CounterChecker counter_checker_;
+  std::string product_name_;
   // We want the observations, problems and tests to be listed in order of
   // appearance.
   std::vector<std::string> observations_;
