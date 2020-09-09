@@ -46,9 +46,9 @@ void PrintStringVector(absl::string_view header,
   if (elements.empty()) {
     return;
   }
-  output << "\n" << header << ":\n";
+  output << "\n### " << header << ":\n";
   for (const std::string& element : elements) {
-    output << element << "\n";
+    output << "* " << element << "\n";
   }
 }
 
@@ -149,23 +149,23 @@ void DeviceTracker::CheckAndReport(Status expected_status,
       (returned_status == Status::kErrNone)) {
     if (expected_status == returned_status) {
       PrintSuccessMessage(absl::StrCat("Test successful: ", test_name,
-                                       " - returned status code ",
-                                       StatusToString(returned_status)));
+                                       " - returned status code `",
+                                       StatusToString(returned_status), "`"));
       successful_tests_.push_back(test_name);
     } else {
       PrintWarningMessage(absl::StrCat(
           "Test successful with unexpected error code: ", test_name,
-          " - expected ", StatusToString(expected_status), ", got ",
-          StatusToString(returned_status)));
-      AddProblem(absl::StrCat("Unexpected error code: expected ",
-                              StatusToString(expected_status), ", got ",
-                              StatusToString(returned_status)));
+          " - expected `", StatusToString(expected_status), "`, got `",
+          StatusToString(returned_status), "`"));
+      AddProblem(absl::StrCat("Unexpected error code: expected `",
+                              StatusToString(expected_status), "`, got `",
+                              StatusToString(returned_status), "`"));
     }
   } else {
     std::string fail_message =
-        absl::StrCat("Failed test: ", test_name, " - expected ",
-                     StatusToString(expected_status), ", got ",
-                     StatusToString(returned_status));
+        absl::StrCat("Failed test: ", test_name, " - expected `",
+                     StatusToString(expected_status), "`, got `",
+                     StatusToString(returned_status), "`");
     PrintFailMessage(fail_message);
     failed_tests_.push_back(fail_message);
   }
@@ -203,6 +203,7 @@ void DeviceTracker::SaveResultsToFile() {
   results_file.open(results_path);
   CHECK(results_file.is_open()) << "Unable to open file: " << results_path;
 
+  results_file << "## Results for " << product_name_ << "\n\n";
   int successful_test_count = successful_tests_.size();
   int failed_test_count = failed_tests_.size();
   int test_count = successful_test_count + failed_test_count;
