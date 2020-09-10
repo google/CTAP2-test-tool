@@ -128,6 +128,7 @@ void DeviceTracker::AddObservation(const std::string& observation) {
 }
 
 void DeviceTracker::AddProblem(const std::string& problem) {
+  PrintWarningMessage(problem);
   if (std::find(problems_.begin(), problems_.end(), problem) ==
       problems_.end()) {
     problems_.push_back(problem);
@@ -160,17 +161,10 @@ void DeviceTracker::CheckAndReport(Status expected_status,
                                    const std::string& test_name) {
   if ((expected_status == Status::kErrNone) ==
       (returned_status == Status::kErrNone)) {
-    if (expected_status == returned_status) {
-      PrintSuccessMessage(absl::StrCat("Test successful: ", test_name,
-                                       " - returned status code ",
-                                       StatusToString(returned_status)));
-      successful_tests_.push_back(test_name);
-    } else {
-      PrintWarningMessage(absl::StrCat(
-          "Test successful with unexpected error code: ", test_name,
-          " - expected ", StatusToString(expected_status), ", got ",
-          StatusToString(returned_status)));
-      AddProblem(absl::StrCat("Unexpected error code: expected ",
+    PrintSuccessMessage(absl::StrCat("Test successful: ", test_name));
+    successful_tests_.push_back(test_name);
+    if (expected_status != returned_status) {
+      AddProblem(absl::StrCat("Expected error code ",
                               StatusToString(expected_status), ", got ",
                               StatusToString(returned_status)));
     }

@@ -63,10 +63,6 @@ void PromptUser() {
   std::cout << "Please touch your security key!" << std::endl;
 }
 
-void PrintFailMessage(const std::string& message) {
-  std::cout << "\x1b[0;31m" << message << "\x1b[0m" << std::endl;
-}
-
 // This function outputs the vendor & product ID for a HID device at a given
 // path, for example "/dev/hidraw4".
 std::pair<uint16_t, uint16_t> ReadDeviceIdentifiers(std::string pathname) {
@@ -276,10 +272,10 @@ Status HidDevice::ExchangeCbor(Command command,
                         recv_data.end());
 
   if (has_sent_prompt && !expect_up_check) {
-    PrintFailMessage("A prompt was sent unexpectedly.");
+    tracker_->AddProblem("A prompt was sent unexpectedly.");
   }
   if (!has_sent_prompt && expect_up_check) {
-    PrintFailMessage(
+    tracker_->AddProblem(
         "A prompt was expected, but not performed. Sometimes it is just not "
         "recognized if performed too fast.");
   }
