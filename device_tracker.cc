@@ -68,7 +68,8 @@ void PrintFailMessage(const std::string& message) {
 
 DeviceTracker::DeviceTracker()
     : key_checker_(std::vector<std::vector<uint8_t>>()),
-      product_name_(kFileName) {}
+      product_name_(kFileName),
+      is_initialized_(false) {}
 
 void DeviceTracker::Initialize(const cbor::Value::ArrayValue& versions,
                                const cbor::Value::ArrayValue& extensions,
@@ -101,6 +102,18 @@ void DeviceTracker::Initialize(const cbor::Value::ArrayValue& versions,
       }
     }
   }
+}
+
+bool DeviceTracker::HasVersion(std::string_view version_name) {
+  return versions_.contains(version_name);
+}
+
+bool DeviceTracker::HasExtension(std::string_view extension_name) {
+  return extensions_.contains(extension_name);
+}
+
+bool DeviceTracker::HasOption(std::string_view option_name) {
+  return options_.contains(option_name);
 }
 
 void DeviceTracker::SetProductName(const std::string& product_name) {
