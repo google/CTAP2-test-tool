@@ -18,11 +18,6 @@ alias clang-format=clang-format-9
 
 clang-format --version
 
-for FILE in ./* hid/* ; do
-  case $FILE in
-    *.h|*.cc)
-      clang-format --verbose -i $FILE
-      ;;
-  esac
-done
+find . -name '*.h' -print0 -o -name '*.cc' -print0 -o -path './third_party' \
+  -prune -false | xargs -0 -n 1 clang-format --verbose -i
 
