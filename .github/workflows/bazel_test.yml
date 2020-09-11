@@ -12,21 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Runs clang-format and show diff.
+name: Run bazel tests
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+  pull_request:
+    types: [opened, synchronize, reopened]
 
-alias clang-format=clang-format-9
+jobs:
+  bazel_test:
+    name: bazel test all
+    runs-on: ubuntu-20.04
 
-clang-format --version
+    steps:
+      - uses: actions/checkout@v2
 
-EXIT_CODE=0
-
-while read FILE; do
-  # Run clang-format, then compare the output.
-  clang-format --verbose "${FILE}" | git diff --no-index --exit-code -- $FILE -
-  # Indicate formatting issues through the script exit code.
-  [ $? -eq 0 ] || EXIT_CODE=1
-done  < <(find . -name '*.h' -o -name '*.cc' -o \
-                 -path './third_party' -prune -false)
-
-exit $EXIT_CODE
+      - name: Install system libraries
+        run: |
+          sudo apt-get install libudev-dev
+      - name: Run gtest
+        run: |
+          bazel test --test_output=all --spawn_strategy=local --test_timeout=60 //:all
 

@@ -16,18 +16,18 @@ name: Run clang-format
 
 on:
   push:
-    branches: [ master ]
+    paths:
+      - '**.cc'
+      - '**.h'
   pull_request:
-    branches: [ master ]
+    types: [opened, synchronize, reopened]
 
 jobs:
   clang_format:
-    name: Run clang-format
-
+    name: clang-format-show-diff
     runs-on: ubuntu-18.04
 
     steps:
-    # Checks out the repository under ${GITHUB_WORKSPACE}.
     - uses: actions/checkout@v2
 
     - name: Install clang-format-9
