@@ -79,6 +79,16 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "device_tracker_test",
+    srcs = ["device_tracker_test.cc"],
+    deps = [
+        ":device_tracker",
+        "@com_google_googletest//:gtest_main",
+    ],
+    size = "small",
+)
+
 cc_library(
     name = "fido2_commands",
     srcs = ["fido2_commands.cc"],

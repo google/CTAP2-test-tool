@@ -104,6 +104,9 @@ class HidDevice : public DeviceInterface {
   // and returns its filesystem path, or fails if none was found. Sets the
   // product name in the DeviceTracker as a side effect.
   std::string FindDevicePath();
+  // Converts the status byte to the Status enum. If no variant corresponds to
+  // the given byte, returns kErrOther instead and reports unexpected behaviour.
+  Status ByteToStatus(uint8_t status_byte) const;
 
   // Points to a global test tracker to report findings.
   DeviceTracker* tracker_;

@@ -40,6 +40,15 @@ class DeviceTracker {
   void Initialize(const cbor::Value::ArrayValue& versions,
                   const cbor::Value::ArrayValue& extensions,
                   const cbor::Value::MapValue& options);
+  // Returns if the device supports the version. Will always return false if not
+  // initialized.
+  bool HasVersion(std::string_view version_name);
+  // Returns if the device supports the extension. Will always return false if
+  // not initialized.
+  bool HasExtension(std::string_view extension_name);
+  // Returns if the device supports the option. Will always return false if not
+  // initialized.
+  bool HasOption(std::string_view option_name);
   // Setter for the product_name, which is used as a results file name.
   void SetProductName(const std::string& product_name);
   // Adds a string to the list of observations. Duplicates are ignored. Use this

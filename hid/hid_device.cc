@@ -63,10 +63,6 @@ void PromptUser() {
   std::cout << "Please touch your security key!" << std::endl;
 }
 
-void PrintFailMessage(const std::string& message) {
-  std::cout << "\x1b[0;31m" << message << "\x1b[0m" << std::endl;
-}
-
 // This function outputs the vendor & product ID for a HID device at a given
 // path, for example "/dev/hidraw4".
 std::pair<uint16_t, uint16_t> ReadDeviceIdentifiers(std::string pathname) {
@@ -276,39 +272,15 @@ Status HidDevice::ExchangeCbor(Command command,
                         recv_data.end());
 
   if (has_sent_prompt && !expect_up_check) {
-    PrintFailMessage("A prompt was sent unexpectedly.");
+    tracker_->AddProblem("A prompt was sent unexpectedly.");
   }
   if (!has_sent_prompt && expect_up_check) {
-    PrintFailMessage(
+    tracker_->AddProblem(
         "A prompt was expected, but not performed. Sometimes it is just not "
         "recognized if performed too fast.");
   }
 
-  if (recv_data[0] == kCtap2ErrCborParsingRemovedStatus ||
-      recv_data[0] == kCtap2ErrInvalidCborTypeRemovedStatus) {
-    // This is a workaround to not fail on very common errors.
-    PrintFailMessage(absl::StrCat("Received deprecated error code 0x",
-                                  absl::Hex(recv_data[0], absl::kZeroPad2)));
-    return Status::kErrOther;
-  }
-
-  if (recv_data[0] >= kCtap2ErrExtensionFirst &&
-      recv_data[0] <= kCtap2ErrExtensionLast) {
-    PrintFailMessage(absl::StrCat("Received extension specific error code 0x",
-                                  absl::Hex(recv_data[0], absl::kZeroPad2)));
-    return Status::kErrOther;
-  }
-  if (recv_data[0] >= kCtap2ErrVendorFirst &&
-      recv_data[0] <= kCtap2ErrVendorLast) {
-    PrintFailMessage(absl::StrCat("Received vendor specific error code 0x",
-                                  absl::Hex(recv_data[0], absl::kZeroPad2)));
-    return Status::kErrOther;
-  }
-
-  CHECK(IsKnownStatusByte(recv_data[0]))
-      << "The returned byte is unspecified: 0x"
-      << absl::StrCat(absl::Hex(recv_data[0], absl::kZeroPad2));
-  return Status(recv_data[0]);
+  return ByteToStatus(recv_data[0]);
 }
 
 KeepaliveStatus HidDevice::ProcessKeepalive(
@@ -366,7 +338,7 @@ Status HidDevice::ReceiveCommand(absl::Duration timeout, uint8_t* cmd,
     if (status != Status::kErrNone) return status;
   } while (frame.cid != cid_ || !frame.IsInitType());
 
-  if (frame.init.cmd == kCtapHidError) return Status(frame.init.data[0]);
+  if (frame.init.cmd == kCtapHidError) return ByteToStatus(frame.init.data[0]);
 
   *cmd = frame.init.cmd;
 
@@ -497,6 +469,29 @@ std::string HidDevice::FindDevicePath() {
   hid_free_enumeration(root);
   CHECK(!pathname.empty()) << "No path found for this device.";
   return pathname;
+}
+
+Status HidDevice::ByteToStatus(uint8_t status_byte) const {
+  if (IsKnownStatusByte(status_byte)) {
+    return Status(status_byte);
+  }
+
+  std::string_view error_code_type = "unknown";
+  if (status_byte == kCtap2ErrCborParsingRemovedStatus ||
+      status_byte == kCtap2ErrInvalidCborTypeRemovedStatus) {
+    error_code_type = "deprecated";
+  } else if (status_byte >= kCtap2ErrExtensionFirst &&
+             status_byte <= kCtap2ErrExtensionLast) {
+    error_code_type = "extension specific";
+  } else if (status_byte >= kCtap2ErrVendorFirst &&
+             status_byte <= kCtap2ErrVendorLast) {
+    error_code_type = "vendor specific";
+  }
+
+  tracker_->AddProblem(
+      absl::StrCat("Received ", error_code_type, " error code `0x",
+                   absl::Hex(status_byte, absl::kZeroPad2), "`"));
+  return Status::kErrOther;
 }
 
 void PrintFidoDevices() {
