@@ -18,6 +18,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "nlohmann/json.hpp"
 #include "parameter_check.h"
 #include "third_party/chromium_components_cbor/values.h"
 
@@ -25,7 +26,7 @@ namespace fido2_tests {
 namespace {
 constexpr std::string_view kRelativeDir = "results/";
 constexpr std::string_view kFileName = "NEW_TEST";
-constexpr std::string_view kFileType = ".md";
+constexpr std::string_view kFileType = ".json";
 
 // Creates a directory for results files and returns the path. Just return
 // the path if that directory already exists. Fails if the directory wasn't
@@ -37,19 +38,6 @@ std::string CreateSaveFileDirectory() {
   }
   std::filesystem::create_directory(results_dir);
   return results_dir;
-}
-
-// If elements is not empty, prints header and elements in separate lines.
-void PrintStringVector(absl::string_view header,
-                       absl::Span<const std::string> elements,
-                       std::ofstream& output) {
-  if (elements.empty()) {
-    return;
-  }
-  output << "\n" << header << ":\n";
-  for (const std::string& element : elements) {
-    output << element << "\n";
-  }
 }
 
 void PrintSuccessMessage(const std::string& message) {
@@ -182,8 +170,7 @@ KeyChecker* DeviceTracker::GetKeyChecker() { return &key_checker_; }
 CounterChecker* DeviceTracker::GetCounterChecker() { return &counter_checker_; }
 
 void DeviceTracker::ReportFindings() const {
-  counter_checker_.ReportFindings();
-  std::cout << std::endl;
+  std::cout << counter_checker_.ReportFindings() << "\n\n";
   for (const std::string& observation : observations_) {
     std::cout << observation << "\n";
   }
@@ -212,13 +199,16 @@ void DeviceTracker::SaveResultsToFile() {
   int successful_test_count = successful_tests_.size();
   int failed_test_count = failed_tests_.size();
   int test_count = successful_test_count + failed_test_count;
-  results_file << "Passed " << successful_test_count << " out of " << test_count
-               << " tests.\n";
-  PrintStringVector("Failed tests", failed_tests_, results_file);
-  PrintStringVector("Reported problems", problems_, results_file);
-  PrintStringVector("Reported observations", observations_, results_file);
 
-  counter_checker_.ReportFindings();
+  nlohmann::json results = {
+      {"Passed tests", successful_test_count},
+      {"Total tests", test_count},
+      {"Failed tests", failed_tests_},
+      {"Reported problems", problems_},
+      {"Reported observations", observations_},
+      {"Counter", counter_checker_.ReportFindings()},
+  };
+  results_file << std::setw(2) << results << std::endl;
 }
 
 }  // namespace fido2_tests

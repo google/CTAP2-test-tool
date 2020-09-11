@@ -15,7 +15,6 @@
 #include "parameter_check.h"
 
 #include <algorithm>
-#include <iostream>
 
 #include "glog/logging.h"
 
@@ -64,20 +63,18 @@ void CounterChecker::CheckCounter(const std::vector<uint8_t>& id,
   counter_map_[id] = value;
 }
 
-void CounterChecker::ReportFindings() const {
+std::string_view CounterChecker::ReportFindings() const {
   if (could_be_zero_) {
-    std::cout << "All counters were constant zero." << std::endl;
+    return "All counters were constant zero.";
   } else {
     if (could_be_individual_) {
-      std::cout << "All counters were strictly incremented by 1." << std::endl;
+      return "All counters were strictly incremented by 1.";
     } else {
       if (could_be_global_) {
-        std::cout << "All counters were strictly increasing, but not "
-                     "necessarily incremented by 1."
-                  << std::endl;
+        return "All counters were strictly increasing, but not necessarily "
+               "incremented by 1.";
       } else {
-        std::cout << "There were counters that were not strictly increasing."
-                  << std::endl;
+        return "There were counters that were not strictly increasing.";
       }
     }
   }

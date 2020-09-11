@@ -14,7 +14,7 @@
 
 # Test suite for FIDO 2 authenticators
 
-# Darwin and Windows are untested so far.
+# Windows is untested so far.
 cc_library(
     name = "hid_device",
     srcs = ["hid/hid_device.cc"],
@@ -76,6 +76,7 @@ cc_library(
         ":constants",
         ":parameter_check",
         "//third_party/chromium_components_cbor:cbor",
+        "@com_github_nlohmann_json//:json",
     ],
 )
 
