@@ -35,14 +35,14 @@ TEST(DeviceTracker, TestInitialize) {
   options[cbor::Value("bioEnroll")] = cbor::Value(true);
 
   device_tracker.Initialize(versions, extensions, options);
-  ASSERT_TRUE(device_tracker.HasVersion("VERSION"));
-  ASSERT_FALSE(device_tracker.HasVersion("WRONG_VERSION"));
-  ASSERT_TRUE(device_tracker.HasExtension("EXTENSION"));
-  ASSERT_FALSE(device_tracker.HasExtension("WRONG_EXTENSION"));
-  ASSERT_FALSE(device_tracker.HasOption("up"));
-  ASSERT_TRUE(device_tracker.HasOption("rk"));
-  ASSERT_TRUE(device_tracker.HasOption("clientPin"));
-  ASSERT_TRUE(device_tracker.HasOption("bioEnroll"));
+  EXPECT_TRUE(device_tracker.HasVersion("VERSION"));
+  EXPECT_FALSE(device_tracker.HasVersion("WRONG_VERSION"));
+  EXPECT_TRUE(device_tracker.HasExtension("EXTENSION"));
+  EXPECT_FALSE(device_tracker.HasExtension("WRONG_EXTENSION"));
+  EXPECT_FALSE(device_tracker.HasOption("up"));
+  EXPECT_TRUE(device_tracker.HasOption("rk"));
+  EXPECT_TRUE(device_tracker.HasOption("clientPin"));
+  EXPECT_TRUE(device_tracker.HasOption("bioEnroll"));
 }
 
 TEST(DeviceTracker, TestAddObservation) {
@@ -57,7 +57,7 @@ TEST(DeviceTracker, TestAddObservation) {
       "OBSERVATION1\n"
       "OBSERVATION2\n"
       "\n\nPassed 0 out of 0 tests.\n";
-  ASSERT_EQ(output, expected_output);
+  EXPECT_EQ(output, expected_output);
 }
 
 TEST(DeviceTracker, TestAddProblem) {
@@ -72,7 +72,7 @@ TEST(DeviceTracker, TestAddProblem) {
       "PROBLEM1\n"
       "PROBLEM2\n"
       "\n\nPassed 0 out of 0 tests.\n";
-  ASSERT_EQ(output, expected_output);
+  EXPECT_EQ(output, expected_output);
 }
 
 TEST(DeviceTracker, TestCheckAndReport) {
@@ -103,7 +103,7 @@ TEST(DeviceTracker, TestCheckAndReport) {
       "\x1B[0;31mWRONG_STATUS_TEST - expected CTAP2_OK, got "
       "CTAP1_ERR_OTHER\x1B[0m\n"
       "Passed 4 out of 7 tests.\n";
-  ASSERT_EQ(output, expected_output);
+  EXPECT_EQ(output, expected_output);
 }
 
 }  // namespace

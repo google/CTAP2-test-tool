@@ -170,9 +170,8 @@ void DeviceTracker::CheckAndReport(Status expected_status,
     }
   } else {
     std::string fail_message =
-        absl::StrCat(test_name, " - expected ",
-                     StatusToString(expected_status), ", got ",
-                     StatusToString(returned_status));
+        absl::StrCat(test_name, " - expected ", StatusToString(expected_status),
+                     ", got ", StatusToString(returned_status));
     PrintFailMessage(absl::StrCat("Failed test: ", fail_message));
     failed_tests_.push_back(fail_message);
   }
