@@ -98,9 +98,9 @@ TEST(DeviceTracker, TestCheckAndReport) {
       "\x1B[0;33mExpected error code CTAP1_ERR_OTHER, got "
       "CTAP1_ERR_INVALID_COMMAND\x1B[0m\n\n"
       "\x1B[0;31mFALSE_TEST\x1B[0m\n"
-      "\x1B[0;31mFailed test: STATUS_VARIANT_TEST - expected CTAP2_OK, got "
+      "\x1B[0;31mSTATUS_VARIANT_TEST - expected CTAP2_OK, got "
       "CTAP1_ERR_OTHER\x1B[0m\n"
-      "\x1B[0;31mFailed test: WRONG_STATUS_TEST - expected CTAP2_OK, got "
+      "\x1B[0;31mWRONG_STATUS_TEST - expected CTAP2_OK, got "
       "CTAP1_ERR_OTHER\x1B[0m\n"
       "Passed 4 out of 7 tests.\n";
   ASSERT_EQ(output, expected_output);
