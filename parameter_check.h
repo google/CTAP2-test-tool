@@ -57,7 +57,7 @@ class CounterChecker {
   CounterChecker();
   void RegisterCounter(const std::vector<uint8_t>& id, uint32_t start_value);
   void CheckCounter(const std::vector<uint8_t>& id, uint32_t value);
-  void ReportFindings() const;
+  std::string_view ReportFindings() const;
 
  private:
   absl::flat_hash_map<std::vector<uint8_t>, uint32_t, ByteVectorHash>
