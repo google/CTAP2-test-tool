@@ -468,7 +468,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
   CHECK(decoded_response->is_map()) << "CBOR response is not a map";
   const auto& decoded_map = decoded_response->GetMap();
 
-  auto map_iter = decoded_map.find(cbor::Value(1));
+  auto map_iter = decoded_map.find(cbor::Value(0x01));
   CHECK(map_iter != decoded_map.end())
       << "no versions (key 1) included in GetInfo response";
   CHECK(map_iter->second.is_array()) << "versions entry is not an array";
@@ -482,7 +482,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
   CHECK(versions_set.find("FIDO_2_0") != versions_set.end())
       << "versions does not contain \"FIDO_2_0\"";
 
-  map_iter = decoded_map.find(cbor::Value(2));
+  map_iter = decoded_map.find(cbor::Value(0x02));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_array()) << "extensions entry is not an array";
     absl::flat_hash_set<std::string> extensions_set;
@@ -494,12 +494,12 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
     }
   }
 
-  map_iter = decoded_map.find(cbor::Value(3));
+  map_iter = decoded_map.find(cbor::Value(0x03));
   CHECK(map_iter != decoded_map.end())
       << "no AAGUID (key 3) in GetInfo response";
   CHECK(map_iter->second.is_bytestring()) << "aaguid entry is not a bytestring";
 
-  map_iter = decoded_map.find(cbor::Value(4));
+  map_iter = decoded_map.find(cbor::Value(0x04));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_map()) << "options entry is not a map";
     for (const auto& options_iter : map_iter->second.GetMap()) {
@@ -508,13 +508,13 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
     }
   }
 
-  map_iter = decoded_map.find(cbor::Value(5));
+  map_iter = decoded_map.find(cbor::Value(0x05));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "maxMsgSize entry is not an unsigned";
   }
 
-  map_iter = decoded_map.find(cbor::Value(6));
+  map_iter = decoded_map.find(cbor::Value(0x06));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_array()) << "pinProtocols entry is not an array";
     for (const auto& extension : map_iter->second.GetArray()) {
@@ -523,19 +523,19 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
     }
   }
 
-  map_iter = decoded_map.find(cbor::Value(7));
+  map_iter = decoded_map.find(cbor::Value(0x07));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "maxCredentialCountInList entry is not an unsigned";
   }
 
-  map_iter = decoded_map.find(cbor::Value(8));
+  map_iter = decoded_map.find(cbor::Value(0x08));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
-        << "maxCredentialIdLength  entry is not an unsigned";
+        << "maxCredentialIdLength entry is not an unsigned";
   }
 
-  map_iter = decoded_map.find(cbor::Value(9));
+  map_iter = decoded_map.find(cbor::Value(0x09));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_array()) << "transports entry is not an array";
     absl::flat_hash_set<std::string> transports_set;
@@ -547,7 +547,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
     }
   }
 
-  map_iter = decoded_map.find(cbor::Value(10));
+  map_iter = decoded_map.find(cbor::Value(0x0A));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_array()) << "algorithms entry is not an array";
     absl::flat_hash_set<int> algorithms_set;
@@ -573,10 +573,58 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
     }
   }
 
+  map_iter = decoded_map.find(cbor::Value(0x0B));
+  if (map_iter != decoded_map.end()) {
+    CHECK(map_iter->second.is_unsigned())
+        << "maxSerializedLargeBlobArray entry is not an unsigned";
+    CHECK_GE(map_iter->second.GetUnsigned(), 1024)
+        << "maxSerializedLargeBlobArray is too small";
+  }
+
+  map_iter = decoded_map.find(cbor::Value(0x0D));
+  if (map_iter != decoded_map.end()) {
+    CHECK(map_iter->second.is_unsigned())
+        << "minPINLength entry is not an unsigned";
+    CHECK_GE(map_iter->second.GetUnsigned(), 4)
+        << "minPINLength is too small";
+  }
+
+  map_iter = decoded_map.find(cbor::Value(0x0E));
+  if (map_iter != decoded_map.end()) {
+    CHECK(map_iter->second.is_unsigned())
+        << "firmwareVersion entry is not an unsigned";
+  }
+
+  map_iter = decoded_map.find(cbor::Value(0x0F));
+  if (map_iter != decoded_map.end()) {
+    CHECK(map_iter->second.is_unsigned())
+        << "maxCredBlobLength entry is not an unsigned";
+    CHECK_GE(map_iter->second.GetUnsigned(), 32)
+        << "maxCredBlobLength is too small";
+  }
+
+  map_iter = decoded_map.find(cbor::Value(0x10));
+  if (map_iter != decoded_map.end()) {
+    CHECK(map_iter->second.is_unsigned())
+        << "maxRPIDsForSetMinPINLength entry is not an unsigned";
+  }
+
+  map_iter = decoded_map.find(cbor::Value(0x11));
+  if (map_iter != decoded_map.end()) {
+    CHECK(map_iter->second.is_unsigned())
+        << "preferredPlatformUvAttempts entry is not an unsigned";
+  }
+
+  map_iter = decoded_map.find(cbor::Value(0x12));
+  if (map_iter != decoded_map.end()) {
+    CHECK(map_iter->second.is_unsigned())
+        << "uvModality entry is not an unsigned";
+  }
+
   for (const auto& map_entry : decoded_map) {
     CHECK(map_entry.first.is_unsigned()) << "some map keys are not unsigned";
     const int64_t map_key = map_entry.first.GetUnsigned();
-    CHECK(map_key >= 1 && map_key <= 10) << "there are unspecified map keys";
+    CHECK(map_key >= 1 && map_key <= 0x12) << "there are unspecified map keys";
   }
 
   return decoded_response->Clone();
