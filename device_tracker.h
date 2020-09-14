@@ -19,6 +19,7 @@
 
 #include "absl/container/flat_hash_set.h"
 #include "constants.h"
+#include "nlohmann/json.hpp"
 #include "parameter_check.h"
 #include "third_party/chromium_components_cbor/values.h"
 
@@ -76,7 +77,9 @@ class DeviceTracker {
   // Prints a report including all information from the CounterChecker, logged
   // observations, problems and tests.
   void ReportFindings() const;
-  // Saves the results to a markdown file. Creates a "results" directory, if
+  // Generates a JSON object with test results.
+  nlohmann::json GenerateResultsJson();
+  // Saves the results to a JSON file. Creates a "results" directory, if
   // necessary. The file name will be derived from the product name as listed
   // through HID, or a default if none is found. Overwrites existing files of
   // the same name.

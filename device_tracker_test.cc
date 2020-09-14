@@ -106,5 +106,24 @@ TEST(DeviceTracker, TestCheckAndReport) {
   EXPECT_EQ(output, expected_output);
 }
 
+TEST(DeviceTracker, TestGenerateResultsJson) {
+  DeviceTracker device_tracker = DeviceTracker();
+  device_tracker.AddObservation("OBSERVATION");
+  device_tracker.AddProblem("PROBLEM");
+  device_tracker.CheckAndReport(false, "FALSE_TEST");
+  device_tracker.CheckAndReport(true, "TRUE_TEST");
+
+  nlohmann::json output = device_tracker.GenerateResultsJson();
+  nlohmann::json expected_output = {
+      {"Passed tests", 1},
+      {"Total tests", 2},
+      {"Failed tests", {"FALSE_TEST"}},
+      {"Reported problems", {"PROBLEM"}},
+      {"Reported observations", {"OBSERVATION"}},
+      {"Counter", "All counters were constant zero."},
+  };
+  EXPECT_EQ(output, expected_output);
+}
+
 }  // namespace
 }  // namespace fido2_tests

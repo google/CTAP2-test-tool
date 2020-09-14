@@ -18,7 +18,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "nlohmann/json.hpp"
 #include "parameter_check.h"
 #include "third_party/chromium_components_cbor/values.h"
 
@@ -189,13 +188,7 @@ void DeviceTracker::ReportFindings() const {
             << " tests." << std::endl;
 }
 
-void DeviceTracker::SaveResultsToFile() {
-  std::filesystem::path results_path =
-      absl::StrCat(CreateSaveFileDirectory(), product_name_, kFileType);
-  std::ofstream results_file;
-  results_file.open(results_path);
-  CHECK(results_file.is_open()) << "Unable to open file: " << results_path;
-
+nlohmann::json DeviceTracker::GenerateResultsJson() {
   int successful_test_count = successful_tests_.size();
   int failed_test_count = failed_tests_.size();
   int test_count = successful_test_count + failed_test_count;
@@ -208,7 +201,17 @@ void DeviceTracker::SaveResultsToFile() {
       {"Reported observations", observations_},
       {"Counter", counter_checker_.ReportFindings()},
   };
-  results_file << std::setw(2) << results << std::endl;
+  return results;
+}
+
+void DeviceTracker::SaveResultsToFile() {
+  std::filesystem::path results_path =
+      absl::StrCat(CreateSaveFileDirectory(), product_name_, kFileType);
+  std::ofstream results_file;
+  results_file.open(results_path);
+  CHECK(results_file.is_open()) << "Unable to open file: " << results_path;
+
+  results_file << std::setw(2) << GenerateResultsJson() << std::endl;
 }
 
 }  // namespace fido2_tests
