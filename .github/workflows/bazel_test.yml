@@ -12,30 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Run clang-format
-
+name: Run bazel tests
 on:
   push:
-    paths:
-      - '**.cc'
-      - '**.h'
+    paths-ignore:
+      - 'docs/**'
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
-  clang_format:
-    name: clang-format-show-diff
-    runs-on: ubuntu-18.04
+  bazel_test:
+    name: bazel test all
+    runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Install clang-format-9
-      run: |
-        sudo apt install clang-format-9
-        alias clang-format=clang-format-9
-        clang-format --version
-    - name: Run clang-format
-      run: |
-        ./clang-format-show-diff.sh
+      - name: Install system libraries
+        run: |
+          sudo apt-get install libudev-dev
+      - name: Run gtest
+        run: |
+          bazel test --test_output=all --spawn_strategy=local --test_timeout=60 //:all
 
