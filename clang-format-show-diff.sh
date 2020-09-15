@@ -20,13 +20,15 @@ clang-format --version
 
 EXIT_CODE=0
 
-while read FILE; do
+# Recursively covers the same paths as clang-format-apply.sh. Breaks on
+# whitespace.
+for FILE in $(find . -name '*.h' -o -name '*.cc' -o \
+                     -path './third_party' -prune -false); do
   # Run clang-format, then compare the output.
   clang-format --verbose "${FILE}" | git diff --no-index --exit-code -- $FILE -
   # Indicate formatting issues through the script exit code.
   [ $? -eq 0 ] || EXIT_CODE=1
-done  < <(find . -name '*.h' -o -name '*.cc' -o \
-                 -path './third_party' -prune -false)
+done
 
 exit $EXIT_CODE
 
