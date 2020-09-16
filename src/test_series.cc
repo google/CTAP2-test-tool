@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "test_series.h"
+#include "src/test_series.h"
 
 #include <cstdint>
 #include <iostream>
@@ -20,11 +20,11 @@
 #include "absl/strings/str_cat.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "cbor_builders.h"
-#include "constants.h"
-#include "crypto_utility.h"
-#include "fido2_commands.h"
 #include "glog/logging.h"
+#include "src/cbor_builders.h"
+#include "src/constants.h"
+#include "src/crypto_utility.h"
+#include "src/fido2_commands.h"
 #include "third_party/chromium_components_cbor/writer.h"
 
 namespace fido2_tests {

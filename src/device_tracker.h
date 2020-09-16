@@ -18,9 +18,9 @@
 #include <vector>
 
 #include "absl/container/flat_hash_set.h"
-#include "constants.h"
 #include "nlohmann/json.hpp"
-#include "parameter_check.h"
+#include "src/constants.h"
+#include "src/parameter_check.h"
 #include "third_party/chromium_components_cbor/values.h"
 
 namespace fido2_tests {

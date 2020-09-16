@@ -21,10 +21,10 @@
 
 #include "absl/time/time.h"
 #include "absl/types/optional.h"
-#include "constants.h"
-#include "device_interface.h"
-#include "device_tracker.h"
 #include "hidapi/hidapi.h"
+#include "src/constants.h"
+#include "src/device_interface.h"
+#include "src/device_tracker.h"
 
 namespace fido2_tests {
 namespace hid {

@@ -18,8 +18,8 @@
 #include <vector>
 
 #include "absl/types/variant.h"
-#include "device_interface.h"
-#include "device_tracker.h"
+#include "src/device_interface.h"
+#include "src/device_tracker.h"
 #include "third_party/chromium_components_cbor/values.h"
 
 namespace fido2_tests {

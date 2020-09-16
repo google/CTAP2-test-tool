@@ -15,7 +15,7 @@
 #ifndef DEVICE_INTERFACE_H_
 #define DEVICE_INTERFACE_H_
 
-#include "constants.h"
+#include "src/constants.h"
 
 namespace fido2_tests {
 

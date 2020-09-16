@@ -18,9 +18,9 @@
 #include <cstdio>
 
 #include "absl/types/variant.h"
-#include "cbor_builders.h"
-#include "device_interface.h"
-#include "device_tracker.h"
+#include "src/cbor_builders.h"
+#include "src/device_interface.h"
+#include "src/device_tracker.h"
 #include "third_party/chromium_components_cbor/values.h"
 
 namespace fido2_tests {

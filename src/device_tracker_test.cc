@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "device_tracker.h"
+#include "src/device_tracker.h"
 
-#include "constants.h"
 #include "gtest/gtest.h"
+#include "src/constants.h"
 #include "third_party/chromium_components_cbor/values.h"
 
 namespace fido2_tests {

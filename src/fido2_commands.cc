@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "fido2_commands.h"
+#include "src/fido2_commands.h"
 
 #include <cstdint>
 #include <iostream>
 
 #include "absl/container/flat_hash_set.h"
 #include "absl/types/optional.h"
-#include "constants.h"
-#include "crypto_utility.h"
 #include "glog/logging.h"
-#include "parameter_check.h"
+#include "src/constants.h"
+#include "src/crypto_utility.h"
+#include "src/parameter_check.h"
 #include "third_party/chromium_components_cbor/reader.h"
 #include "third_party/chromium_components_cbor/writer.h"
 

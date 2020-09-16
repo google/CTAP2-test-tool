@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "crypto_utility.h"
+#include "src/crypto_utility.h"
 
-#include "constants.h"
 #include "glog/logging.h"
 #include "openssl/aes.h"
 #include "openssl/bn.h"
@@ -24,6 +23,7 @@
 #include "openssl/hmac.h"
 #include "openssl/pem.h"
 #include "openssl/sha.h"
+#include "src/constants.h"
 
 namespace fido2_tests {
 namespace crypto_utility {
