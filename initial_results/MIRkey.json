@@ -1,0 +1,33 @@
+{
+  "Date": "2020-02-03",
+  "Counter": "All counters were strictly increasing, but not necessarily incremented by 1.",
+  "Failed tests": [
+    "missing key 1 for command client PIN command - expected CTAP2_ERR_MISSING_PARAMETER, got CTAP2_OK",
+    "missing key 2 for command client PIN command - expected CTAP2_ERR_MISSING_PARAMETER, got CTAP2_OK",
+    "key was not touched for reset - expected CTAP2_ERR_USER_ACTION_TIMEOUT, got CTAP2_OK",
+    "reset not allowed more than 10 seconds after plugging in - expected CTAP2_ERR_NOT_ALLOWED, got CTAP2_OK",
+    "make a credential for an unrelated relying party - expected CTAP2_OK, got CTAP2_ERR_CREDENTIAL_EXCLUDED",
+    "PIN protocol not given, but PIN auth param is - expected CTAP2_ERR_MISSING_PARAMETER, got CTAP2_OK",
+    "key was not touched for make credential - expected CTAP2_ERR_USER_ACTION_TIMEOUT, got CTAP2_OK",
+    "the asserted credential shouldn't exist - expected CTAP2_ERR_NO_CREDENTIALS, got CTAP2_OK",
+    "reject invalid residential key option (false) - expected CTAP2_ERR_INVALID_OPTION, got CTAP2_OK",
+    "reject invalid residential key option (true) - expected CTAP2_ERR_INVALID_OPTION, got CTAP2_OK",
+    "PIN protocol not given, but PIN auth param is - expected CTAP2_ERR_MISSING_PARAMETER, got CTAP2_OK",
+    "key was not touched for get assertion - expected CTAP2_ERR_USER_ACTION_TIMEOUT, got CTAP2_OK",
+    "reject even the correct PIN if shared secrets do not match - expected CTAP2_ERR_PIN_INVALID, got CTAP2_OK"
+  ],
+  "Reported observations": [
+    " Vendor ID: ",
+    "Product ID: ",
+    "The CBOR capability was set.",
+    "The MSG capability was set.",
+    "The optional command WINK worked.",
+    "no LED"
+  ],
+  "Reported problems": [
+    "often does NOT require user presence",
+    "unspecified status bytes 0x10 and 0x13 returned",
+    "Expected error code ,CTAP2_ERR_CBOR_UNEXPECTED_TYPE got CTAP2_ERR_INVALID_OPTION",
+    "lots of unexplained CTAP1_ERR_OTHER"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "Date": "2020-06-08",
+  "Counter": "All counters were strictly increasing, but not necessarily incremented by 1.",
+  "Failed tests": [
+    "recognize user verification option (true) without PIN set - expected CTAP2_ERR_INVALID_OPTION, got CTAP2_OK"
+  ],
+  "Reported observations": [
+    " Vendor ID: 0x311f",
+    "Product ID: 0xa7f9",
+    "The CBOR capability was set.",
+    "The MSG capability was set.",
+    "The optional command WINK worked.",
+    "Received vendor specific error code 0xf8.",
+    "UTF-8 correctness is not checked."
+  ],
+  "Reported problems": [
+    "Expected error code CTAP2_ERR_CBOR_UNEXPECTED_TYPE, got CTAP2_ERR_INVALID_OPTION",
+    "Expected error code CTAP2_ERR_INVALID_CBOR, got CTAP2_ERR_CBOR_UNEXPECTED_TYPE",
+    "Expected error code CTAP2_ERR_MISSING_PARAMETER, got CTAP2_ERR_PIN_NOT_SET",
+    "Expected error code CTAP2_ERR_PIN_POLICY_VIOLATION, got CTAP2_ERR_PIN_AUTH_INVALID"
+  ]
+}

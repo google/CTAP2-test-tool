@@ -1,0 +1,22 @@
+{
+  "Date": "2020-01-28",
+  "Counter": "All counters were strictly increasing, but not necessarily incremented by 1.",
+  "Failed tests": [
+    "accept a valid extension - expected CTAP2_OK, got CTAP2_ERR_UNSUPPORTED_OPTION",
+    "make a credential for an unrelated relying party - expected CTAP2_OK, got CTAP2_ERR_CREDENTIAL_EXCLUDED"
+  ],
+  "Reported observations": [
+    " Vendor ID: 0x096e",
+    "Product ID: 0x085d",
+    "The CBOR capability was set.",
+    "The MSG capability was set.",
+    "UTF-8 correctness is not checked.",
+    "Random USB failures make it hard to get through the complete test suite."
+  ],
+  "Reported problems": [
+    "unspecified status byte 0x13 returned (CTAP2_ERR_INVALID_CBOR_TYPE?)",
+    "Expected error code CTAP2_ERR_MISSING_PARAMETER, got CTAP2_ERR_PIN_POLICY_VIOLATION",
+    "Expected error code CTAP2_ERR_PIN_POLICY_VIOLATION, got CTAP1_ERR_OTHER",
+    "Expected error code CTAP2_ERR_USER_ACTION_TIMEOUT, got CTAP2_ERR_PIN_REQUIRED"
+  ]
+}

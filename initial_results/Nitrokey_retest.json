@@ -1,0 +1,10 @@
+{
+  "Date": "2020-07-31",
+  "Reported problems": [
+    "The touch is extremely hard to trigger, full test tool not run yet.",
+    "Allows Reset after more than 10 seconds.",
+    "unspecified status byte 0x13 returned",
+    "Replugging grants user presence sometimes.",
+    "returned crypto material with bad encoding"
+  ]
+}

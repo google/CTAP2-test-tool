@@ -1,0 +1,10 @@
+{
+  "Date": "2020-02-05",
+  "Reported problems": [
+    "The touch is extremely hard to trigger, full test tool not run yet.",
+    "Allows Reset after more than 10 seconds.",
+    "unspecified status byte 0x13 returned",
+    "The maximum CBOR nesting depth is not checked.",
+    "1 random failure failing to perform a GetAssertion"
+  ]
+}
