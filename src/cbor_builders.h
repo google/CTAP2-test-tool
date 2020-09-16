@@ -15,7 +15,7 @@
 #ifndef CBOR_BUILDERS_H_
 #define CBOR_BUILDERS_H_
 
-#include "constants.h"
+#include "src/constants.h"
 #include "third_party/chromium_components_cbor/values.h"
 
 namespace fido2_tests {

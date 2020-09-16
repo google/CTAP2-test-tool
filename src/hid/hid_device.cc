@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "hid/hid_device.h"
+#include "src/hid/hid_device.h"
 
 #include <arpa/inet.h>
 
@@ -24,8 +24,8 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/time/clock.h"
-#include "constants.h"
 #include "glog/logging.h"
+#include "src/constants.h"
 
 namespace fido2_tests {
 namespace hid {

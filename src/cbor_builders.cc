@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "cbor_builders.h"
+#include "src/cbor_builders.h"
 
-#include "constants.h"
-#include "crypto_utility.h"
+#include "src/constants.h"
+#include "src/crypto_utility.h"
 
 namespace fido2_tests {
 
