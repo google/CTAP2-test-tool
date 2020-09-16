@@ -33,6 +33,9 @@ bazel run //:fido2_conformance -- --token_path=/dev/hidraw5
 :warning: Please do not plug in other security keys with the same product ID, or
 the tool might contact the wrong device during testing.
 
+While running the test tool, you will be prompted to touch or replug your
+security key multiple times, to test various features.
+
 ### Supported features
 
 At the moment, we only support USB HID as a transport. We test the commands from
@@ -42,10 +45,8 @@ but plan to add tests for supported extensions and
 
 ### Results
 
-While running the test tool, you will be prompted to touch or replug your
-security key multiple times, to test various features. After finishing all
-tests, you see a printed summary of your results in your terminal, and a report
-file is created in the `results` directory.
+For more information on checking or contributing test results, please check
+[results.md](docs/results.md).
 
 ### Contributing
 
@@ -53,5 +54,5 @@ If we didn't already test your security key or you have an updated version,
 please create a pull request with your result file!
 
 If you want to contribute code, please check
-[Contributing.md](docs/contributing.md).
+[contributing.md](docs/contributing.md).
 
