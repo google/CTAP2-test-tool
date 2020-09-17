@@ -187,8 +187,9 @@ void InputParameterTestSeries::MakeCredentialBadParameterTypesTest() {
 
   cbor::Value::MapValue options;
   options[cbor::Value("rk")] = cbor::Value(false);
-  // The correct behavior with "up" isn't specified well, but it should be okay.
-  options[cbor::Value("up")] = cbor::Value(true);
+  if (IsFido2Point1Complicant()) {
+    options[cbor::Value("up")] = cbor::Value(false);
+  }
   options[cbor::Value("uv")] = cbor::Value(false);
   full_builder.SetMapEntry(7, cbor::Value(options));
 
@@ -439,6 +440,9 @@ void InputParameterTestSeries::ClientPinGetPinUvAuthTokenUsingPinTest() {
 }
 
 void InputParameterTestSeries::ClientPinGetPinUvAuthTokenUsingUvTest() {
+  if (!IsFido2Point1Complicant()) {
+    return;
+  }
   AuthenticatorClientPinCborBuilder pin6_builder;
   pin6_builder.AddDefaultsForGetPinUvAuthTokenUsingUv(cose_key_example_);
   TestBadParameterTypes(Command::kAuthenticatorClientPIN, &pin6_builder);
@@ -446,10 +450,17 @@ void InputParameterTestSeries::ClientPinGetPinUvAuthTokenUsingUvTest() {
 }
 
 void InputParameterTestSeries::ClientPinGetUVRetriesTest() {
+  if (!IsFido2Point1Complicant()) {
+    return;
+  }
   AuthenticatorClientPinCborBuilder pin7_builder;
   pin7_builder.AddDefaultsForGetUvRetries();
   TestBadParameterTypes(Command::kAuthenticatorClientPIN, &pin7_builder);
   TestMissingParameters(Command::kAuthenticatorClientPIN, &pin7_builder);
+}
+
+bool InputParameterTestSeries::IsFido2Point1Complicant() {
+  return device_tracker_->HasVersion("FIDO_2_1_PRE");
 }
 
 cbor::Value InputParameterTestSeries::MakeTestCredential(
@@ -737,7 +748,6 @@ void SpecificationProcedure::MakeCredentialOptionsTest() {
 
   MakeCredentialCborBuilder options_builder;
   options_builder.AddDefaultsForRequiredFields(rp_id);
-  // The spec is a bit vague about "up" here, but it should be okay if true.
 
   options_builder.SetResidentialKeyOptions(false);
   response = fido2_commands::MakeCredentialPositiveTest(
@@ -757,11 +767,14 @@ void SpecificationProcedure::MakeCredentialOptionsTest() {
   device_tracker_->CheckAndReport(Status::kErrInvalidOption, returned_status,
                                   "reject user presence option set to false");
 
-  options_builder.SetUserPresenceOptions(true);
-  response = fido2_commands::MakeCredentialPositiveTest(
-      device_, device_tracker_, options_builder.GetCbor());
-  device_tracker_->CheckAndReport(response,
-                                  "recognize user presence option (true)");
+  // Option {up: true} was specified ambiguously in CTAP 2.0.
+  if (IsFido2Point1Complicant()) {
+    options_builder.SetUserPresenceOptions(true);
+    response = fido2_commands::MakeCredentialPositiveTest(
+        device_, device_tracker_, options_builder.GetCbor());
+    device_tracker_->CheckAndReport(response,
+                                    "recognize user presence option (true)");
+  }
 
   options_builder.SetUserVerificationOptions(false);
   response = fido2_commands::MakeCredentialPositiveTest(
@@ -770,11 +783,19 @@ void SpecificationProcedure::MakeCredentialOptionsTest() {
                                   "recognize user verification option (false)");
 
   options_builder.SetUserVerificationOptions(true);
-  if (GetInfoHasUvOption()) {
+  if (device_tracker_->HasOption("clientPin")) {
+    if (!device_tracker_->HasOption("uv")) {
+      GetAuthToken();
+      options_builder.SetDefaultPinUvAuthParam(auth_token_);
+      options_builder.SetDefaultPinUvAuthProtocol();
+    }
     response = fido2_commands::MakeCredentialPositiveTest(
         device_, device_tracker_, options_builder.GetCbor());
     device_tracker_->CheckAndReport(
         response, "recognize user verification option (true)");
+    options_builder.RemoveMapEntry(8);
+    options_builder.RemoveMapEntry(9);
+    Reset();
   } else {
     returned_status = fido2_commands::MakeCredentialNegativeTest(
         device_, options_builder.GetCbor(), false);
@@ -791,8 +812,7 @@ void SpecificationProcedure::MakeCredentialOptionsTest() {
   device_tracker_->CheckAndReport(response, "ignore unknown options");
 }
 
-void SpecificationProcedure::MakeCredentialPinAuthTest(
-    bool is_fido_2_1_compliant) {
+void SpecificationProcedure::MakeCredentialPinAuthTest() {
   std::string rp_id = "pinauth.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
@@ -802,7 +822,7 @@ void SpecificationProcedure::MakeCredentialPinAuthTest(
   pin_auth_builder.SetPinUvAuthParam(cbor::Value::BinaryValue());
   pin_auth_builder.SetDefaultPinUvAuthProtocol();
 
-  if (is_fido_2_1_compliant) {
+  if (IsFido2Point1Complicant()) {
     returned_status = fido2_commands::MakeCredentialNegativeTest(
         device_, pin_auth_builder.GetCbor(), true);
     device_tracker_->CheckAndReport(
@@ -834,7 +854,7 @@ void SpecificationProcedure::MakeCredentialPinAuthTest(
 
   pin_auth_builder.SetPinUvAuthParam(cbor::Value::BinaryValue());
   pin_auth_builder.SetDefaultPinUvAuthProtocol();
-  if (is_fido_2_1_compliant) {
+  if (IsFido2Point1Complicant()) {
     returned_status = fido2_commands::MakeCredentialNegativeTest(
         device_, pin_auth_builder.GetCbor(), true);
     device_tracker_->CheckAndReport(
@@ -983,25 +1003,33 @@ void SpecificationProcedure::MakeCredentialDisplayNameEncodingTest() {
   make_credential_builder.SetMapEntry(
       3, cbor::Value(std::move(pub_key_cred_user_entity)));
 
-  auto encoded_request = cbor::Writer::Write(make_credential_builder.GetCbor());
-  CHECK(encoded_request.has_value()) << "encoding went wrong - TEST SUITE BUG";
-  cbor::Value::BinaryValue req_cbor = encoded_request.value();
+  if (IsFido2Point1Complicant()) {
+    auto encoded_request =
+        cbor::Writer::Write(make_credential_builder.GetCbor());
+    CHECK(encoded_request.has_value())
+        << "encoding went wrong - TEST SUITE BUG";
+    cbor::Value::BinaryValue req_cbor = encoded_request.value();
 
-  std::vector<uint8_t> display_name_bytes(display_name.begin(),
-                                          display_name.end());
-  auto iter = std::search(req_cbor.begin(), req_cbor.end(),
-                          display_name_bytes.begin(), display_name_bytes.end());
-  CHECK(iter != req_cbor.end()) << "encoding problem - TEST SUITE BUG";
-  // Generating an invalid UTF-8 encoding here.
-  *iter = 0x80;
-  returned_status = fido2_commands::NonCborNegativeTest(
-      device_, req_cbor, Command::kAuthenticatorMakeCredential, false);
-  if (returned_status != Status::kErrInvalidCbor) {
-    device_tracker_->AddProblem("UTF-8 correctness is not checked.");
+    std::vector<uint8_t> display_name_bytes(display_name.begin(),
+                                            display_name.end());
+    auto iter =
+        std::search(req_cbor.begin(), req_cbor.end(),
+                    display_name_bytes.begin(), display_name_bytes.end());
+    CHECK(iter != req_cbor.end()) << "encoding problem - TEST SUITE BUG";
+    // Generating an invalid UTF-8 encoding here.
+    *iter = 0x80;
+    returned_status = fido2_commands::NonCborNegativeTest(
+        device_, req_cbor, Command::kAuthenticatorMakeCredential, false);
+    if (returned_status != Status::kErrInvalidCbor) {
+      device_tracker_->AddProblem("UTF-8 correctness is not checked.");
+    }
   }
 }
 
 void SpecificationProcedure::MakeCredentialHmacSecretTest() {
+  if (!device_tracker_->HasExtension("hmac-secret")) {
+    return;
+  }
   std::string rp_id = "hmac-secret.example.com";
   absl::variant<cbor::Value, Status> response;
 
@@ -1064,11 +1092,19 @@ void SpecificationProcedure::GetAssertionOptionsTest() {
                                   "recognize user verification option (false)");
 
   options_builder.SetUserVerificationOptions(true);
-  if (GetInfoHasUvOption()) {
+  if (device_tracker_->HasOption("clientPin")) {
+    if (!device_tracker_->HasOption("uv")) {
+      GetAuthToken();
+      options_builder.SetDefaultPinUvAuthParam(auth_token_);
+      options_builder.SetDefaultPinUvAuthProtocol();
+    }
     response = fido2_commands::GetAssertionPositiveTest(
         device_, device_tracker_, options_builder.GetCbor());
     device_tracker_->CheckAndReport(
         response, "recognize user verification option (true)");
+    options_builder.RemoveMapEntry(8);
+    options_builder.RemoveMapEntry(9);
+    Reset();
   } else {
     returned_status = fido2_commands::GetAssertionNegativeTest(
         device_, options_builder.GetCbor(), false);
@@ -1132,8 +1168,7 @@ void SpecificationProcedure::GetAssertionResidentialKeyTest() {
                                   "this credential ID is fake");
 }
 
-void SpecificationProcedure::GetAssertionPinAuthTest(
-    bool is_fido_2_1_compliant) {
+void SpecificationProcedure::GetAssertionPinAuthTest() {
   std::string rp_id = "pinauth.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
@@ -1145,7 +1180,7 @@ void SpecificationProcedure::GetAssertionPinAuthTest(
   pin_auth_builder.SetPinUvAuthParam(cbor::Value::BinaryValue());
   pin_auth_builder.SetDefaultPinUvAuthProtocol();
 
-  if (is_fido_2_1_compliant) {
+  if (IsFido2Point1Complicant()) {
     returned_status = fido2_commands::GetAssertionNegativeTest(
         device_, pin_auth_builder.GetCbor(), true);
     device_tracker_->CheckAndReport(
@@ -1177,7 +1212,7 @@ void SpecificationProcedure::GetAssertionPinAuthTest(
 
   pin_auth_builder.SetPinUvAuthParam(cbor::Value::BinaryValue());
   pin_auth_builder.SetDefaultPinUvAuthProtocol();
-  if (is_fido_2_1_compliant) {
+  if (IsFido2Point1Complicant()) {
     returned_status = fido2_commands::GetAssertionNegativeTest(
         device_, pin_auth_builder.GetCbor(), true);
     device_tracker_->CheckAndReport(
@@ -1236,7 +1271,7 @@ void SpecificationProcedure::GetAssertionPhysicalPresenceTest() {
 
 void SpecificationProcedure::GetInfoTest() {
   absl::variant<cbor::Value, Status> response =
-      fido2_commands::GetInfoPositiveTest(device_);
+      fido2_commands::GetInfoPositiveTest(device_, device_tracker_);
   AssertResponse(response, "correct GetInfo response");
 
   const auto& decoded_map = absl::get<cbor::Value>(response).GetMap();
@@ -1287,57 +1322,6 @@ void SpecificationProcedure::GetInfoTest() {
       "support of PIN protocol version 1 is expected in this test suite");
 }
 
-bool SpecificationProcedure::GetInfoIs2Point1Compliant() {
-  absl::variant<cbor::Value, Status> response =
-      fido2_commands::GetInfoPositiveTest(device_);
-  AssertResponse(response, "correct GetInfo response");
-
-  const auto& decoded_map = absl::get<cbor::Value>(response).GetMap();
-  auto map_iter = decoded_map.find(cbor::Value(1));
-  if (map_iter != decoded_map.end()) {
-    for (const auto& fido_version : map_iter->second.GetArray()) {
-      if (fido_version.GetString() == "FIDO_2_1") {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool SpecificationProcedure::GetInfoHasUvOption() {
-  absl::variant<cbor::Value, Status> response =
-      fido2_commands::GetInfoPositiveTest(device_);
-  AssertResponse(response, "correct GetInfo response");
-
-  const auto& decoded_map = absl::get<cbor::Value>(response).GetMap();
-  auto map_iter = decoded_map.find(cbor::Value(4));
-  if (map_iter != decoded_map.end()) {
-    for (const auto& option : map_iter->second.GetMap()) {
-      if (option.first.GetString() == "uv") {
-        return option.second.GetBool();
-      }
-    }
-  }
-  return false;
-}
-
-bool SpecificationProcedure::GetInfoIsHmacSecretSupported() {
-  absl::variant<cbor::Value, Status> response =
-      fido2_commands::GetInfoPositiveTest(device_);
-  AssertResponse(response, "correct GetInfo response");
-
-  const auto& decoded_map = absl::get<cbor::Value>(response).GetMap();
-  auto map_iter = decoded_map.find(cbor::Value(2));
-  if (map_iter != decoded_map.end()) {
-    for (const auto& extension_name : map_iter->second.GetArray()) {
-      if (extension_name.GetString() == "hmac-secret") {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 void SpecificationProcedure::ClientPinRequirementsTest() {
   Status returned_status;
 
@@ -1367,6 +1351,44 @@ void SpecificationProcedure::ClientPinRequirementsTest() {
     Reset();
   }
 
+  // The minimum length is 4, but the authenticator can enforce more, so only
+  // testing the maximum length here.
+  // TODO(kaczmarczyck) use minimum PIN length from GetInfo
+  cbor::Value::BinaryValue maximum_pin_utf8 =
+      cbor::Value::BinaryValue(63, 0x30);
+  SetPin(maximum_pin_utf8);
+  CheckPinByGetAuthToken();
+
+  returned_status = AttemptChangePin(too_short_padded_pin);
+  device_tracker_->CheckAndReport(Status::kErrPinPolicyViolation,
+                                  returned_status,
+                                  "reject to change to a PIN of length < 4");
+  CheckPinByGetAuthToken();
+  if (returned_status == Status::kErrNone) {
+    Reset();
+  }
+
+  returned_status = AttemptChangePin(too_long_padded_pin);
+  device_tracker_->CheckAndReport(Status::kErrPinPolicyViolation,
+                                  returned_status,
+                                  "reject to change to a PIN of length > 63");
+  CheckPinByGetAuthToken();
+  if (returned_status == Status::kErrNone) {
+    Reset();
+  }
+
+  // Again only testing maximum, not minimum PIN length.
+  ChangePin(maximum_pin_utf8);
+  CheckPinByGetAuthToken();
+}
+
+void SpecificationProcedure::ClientPinRequirements2Point1Test() {
+  if (!IsFido2Point1Complicant()) {
+    return;
+  }
+  Reset();
+  Status returned_status;
+
   cbor::Value::BinaryValue valid_pin_utf8 = {0x31, 0x32, 0x33, 0x34};
   cbor::Value::BinaryValue too_short_padding = cbor::Value::BinaryValue(32);
   for (size_t i = 0; i < valid_pin_utf8.size(); ++i) {
@@ -1394,31 +1416,6 @@ void SpecificationProcedure::ClientPinRequirementsTest() {
     Reset();
   }
 
-  // The minimum length is 4, but the authenticator can enforce more, so only
-  // testing the maximum length here.
-  cbor::Value::BinaryValue maximum_pin_utf8 =
-      cbor::Value::BinaryValue(63, 0x30);
-  SetPin(maximum_pin_utf8);
-  CheckPinByGetAuthToken();
-
-  returned_status = AttemptChangePin(too_short_padded_pin);
-  device_tracker_->CheckAndReport(Status::kErrPinPolicyViolation,
-                                  returned_status,
-                                  "reject to change to a PIN of length < 4");
-  CheckPinByGetAuthToken();
-  if (returned_status == Status::kErrNone) {
-    Reset();
-  }
-
-  returned_status = AttemptChangePin(too_long_padded_pin);
-  device_tracker_->CheckAndReport(Status::kErrPinPolicyViolation,
-                                  returned_status,
-                                  "reject to change to a PIN of length > 63");
-  CheckPinByGetAuthToken();
-  if (returned_status == Status::kErrNone) {
-    Reset();
-  }
-
   returned_status = AttemptChangePin(too_short_padding);
   device_tracker_->CheckAndReport(
       Status::kErrPinPolicyViolation, returned_status,
@@ -1433,17 +1430,11 @@ void SpecificationProcedure::ClientPinRequirementsTest() {
       Status::kErrPinPolicyViolation, returned_status,
       "reject to change to a PIN padding of length 128");
   CheckPinByGetAuthToken();
-  if (returned_status == Status::kErrNone) {
-    Reset();
-  }
-
-  // Again only testing maximum, not minimum PIN length.
-  ChangePin(maximum_pin_utf8);
-  CheckPinByGetAuthToken();
 }
 
 void SpecificationProcedure::ClientPinRetriesTest() {
   Status returned_status;
+  Reset();
 
   int initial_counter = GetPinRetries();
   device_tracker_->CheckAndReport(
@@ -1682,6 +1673,10 @@ void SpecificationProcedure::PromptReplugAndInit() {
   platform_cose_key_ = cbor::Value::MapValue();
   shared_secret_ = cbor::Value::BinaryValue();
   auth_token_ = cbor::Value::BinaryValue();
+}
+
+bool SpecificationProcedure::IsFido2Point1Complicant() {
+  return device_tracker_->HasVersion("FIDO_2_1_PRE");
 }
 
 cbor::Value SpecificationProcedure::MakeTestCredential(

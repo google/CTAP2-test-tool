@@ -475,7 +475,7 @@ absl::variant<cbor::Value, Status> GetNextAssertionPositiveTest(
 }
 
 absl::variant<cbor::Value, Status> GetInfoPositiveTest(
-    DeviceInterface* device) {
+    DeviceInterface* device, DeviceTracker* device_tracker) {
   ByteVector req_cbor;
   ByteVector resp_cbor;
   Status status = device->ExchangeCbor(Command::kAuthenticatorGetInfo, req_cbor,
@@ -503,6 +503,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
   }
   CHECK(versions_set.find("FIDO_2_0") != versions_set.end())
       << "versions does not contain \"FIDO_2_0\"";
+  const cbor::Value::ArrayValue& versions = map_iter->second.GetArray();
 
   map_iter = decoded_map.find(
       cbor::Value(static_cast<uint8_t>(InfoMember::kExtensions)));
@@ -516,6 +517,10 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
       extensions_set.insert(extension.GetString());
     }
   }
+  cbor::Value::ArrayValue empty_extensions;
+  const cbor::Value::ArrayValue& extensions = map_iter != decoded_map.end()
+                                                  ? map_iter->second.GetArray()
+                                                  : empty_extensions;
 
   map_iter =
       decoded_map.find(cbor::Value(static_cast<uint8_t>(InfoMember::kAaguid)));
@@ -532,6 +537,9 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
       CHECK(options_iter.second.is_bool()) << "option value is not a boolean";
     }
   }
+  cbor::Value::MapValue empty_options;
+  const cbor::Value::MapValue& options =
+      map_iter != decoded_map.end() ? map_iter->second.GetMap() : empty_options;
 
   map_iter = decoded_map.find(
       cbor::Value(static_cast<uint8_t>(InfoMember::kMaxMsgSize)));
@@ -545,8 +553,8 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_array())
         << "pinUvAuthProtocols entry is not an array";
-    for (const auto& extension : map_iter->second.GetArray()) {
-      CHECK(extension.is_unsigned())
+    for (const auto& protocol : map_iter->second.GetArray()) {
+      CHECK(protocol.is_unsigned())
           << "pinUvAuthProtocols elements are not unsigned";
     }
   }
@@ -666,6 +674,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
         << "there are unspecified map keys";
   }
 
+  device_tracker->Initialize(versions, extensions, options);
   return decoded_response->Clone();
 }
 
