@@ -24,8 +24,6 @@ namespace rsp {
 class RspPacket {
  public:
   enum PacketData { Continue, RequestSupported };
-  RspPacket() = default;
-  ~RspPacket() = default;
   RspPacket(PacketData data) : data_(data) {}
   // Allows switch and comparisons of RspPacket class as an enum.
   operator PacketData() const { return data_; }

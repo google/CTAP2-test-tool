@@ -15,6 +15,8 @@
 #ifndef GDB_RSP_H_
 #define GDB_RSP_H_
 
+#include <vector>
+
 #include "rsp_packet.h"
 
 namespace rsp {
@@ -31,8 +33,7 @@ namespace rsp {
 //  rsp.Terminate();
 class RemoteSerialProtocol {
  public:
-  RemoteSerialProtocol();
-  ~RemoteSerialProtocol();
+  RemoteSerialProtocol() : recv_buffer_(kReceiveBufferLength) {}
   // Initializes the socket for serial connection via TCP and
   // allocates memory for incoming packets.
   bool Initialize();
@@ -52,8 +53,11 @@ class RemoteSerialProtocol {
   // was acknowledged.
   bool ReadAcknowledgement();
 
+  // No specification found about max length,
+  // Using 4000 as nRF52840-dk supported packet size.
+  const int kReceiveBufferLength = 4000;
   int socket_;
-  char* recv_buffer_;
+  std::vector<char> recv_buffer_;
 };
 
 }  // namespace rsp
