@@ -21,15 +21,15 @@ namespace rsp {
 
 // Represents a RSP packet specified in
 // https://sourceware.org/gdb/current/onlinedocs/gdb/Overview.html#Overview.
-class RSPPacket {
+class RspPacket {
  public:
-  enum PacketData { Continue };
-  RSPPacket() = default;
-  ~RSPPacket() = default;
-  RSPPacket(PacketData data) : data_(data) {}
-  // Allows switch and comparisons of RSPPacket class as an enum.
+  enum PacketData { Continue, RequestSupported };
+  RspPacket() = default;
+  ~RspPacket() = default;
+  RspPacket(PacketData data) : data_(data) {}
+  // Allows switch and comparisons of RspPacket class as an enum.
   operator PacketData() const { return data_; }
-  bool operator==(RSPPacket other) const { return data_ == other.data_; }
+  bool operator==(RspPacket other) const { return data_ == other.data_; }
   // Returns the string representation of the packet data.
   std::string DataToString() const;
   // Returns the string representation of the packet.

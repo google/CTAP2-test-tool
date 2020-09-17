@@ -24,6 +24,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "rsp_packet.h"
 
@@ -31,38 +32,37 @@ namespace rsp {
 
 // Timeout = 0.5 seconds.
 const int kReceiveTimeoutMicroSec = 500000;
-// No specification found about max length, assuming 1024 is enough.
-const int kReceiveBufferLength = 1024;
+// No specification found about max length,
+// Using 4000 as nRF52840-dk supported packet size.
+const int kReceiveBufferLength = 4000;
 
-RSP::RSP() {}
+RemoteSerialProtocol::RemoteSerialProtocol() {}
 
-RSP::~RSP() {}
+RemoteSerialProtocol::~RemoteSerialProtocol() {}
 
-bool RSP::Initialize() {
-  recv_buffer_ = (char*)malloc(kReceiveBufferLength * sizeof(char));
+bool RemoteSerialProtocol::Initialize() {
+  std::vector<char> v(kReceiveBufferLength);
+  recv_buffer_ = v.data();
   return ((socket_ = socket(AF_INET, SOCK_STREAM, 0)) != -1);
 }
 
-bool RSP::Connect(int port) {
+bool RemoteSerialProtocol::Connect(int port) {
   if (socket_ < 0) {
     return false;
   }
-  struct sockaddr_in serv_addr;
-  serv_addr.sin_family = AF_INET;
-  serv_addr.sin_port = htons(port);
-  if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+  struct sockaddr_in server_address;
+  server_address.sin_family = AF_INET;
+  server_address.sin_port = htons(port);
+  if (inet_pton(AF_INET, "127.0.0.1", &server_address.sin_addr) <= 0) {
     return false;
   }
-  return (connect(socket_, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) !=
-          -1);
+  return (connect(socket_, (struct sockaddr*)&server_address,
+                  sizeof(server_address)) != -1);
 }
 
-bool RSP::Terminate() {
-  free(recv_buffer_);
-  return (close(socket_) != -1);
-}
+bool RemoteSerialProtocol::Terminate() { return (close(socket_) != -1); }
 
-bool RSP::SendPacket(RSPPacket packet) {
+bool RemoteSerialProtocol::SendPacket(RspPacket packet) {
   char const* buf = packet.ToString().c_str();
   if (send(socket_, buf, strlen(buf), 0) == -1) {
     return false;
@@ -72,14 +72,11 @@ bool RSP::SendPacket(RSPPacket packet) {
 
 // The possible reply packets are listed in:
 // https://sourceware.org/gdb/current/onlinedocs/gdb/Stop-Reply-Packets.html#Stop-Reply-Packets
-bool RSP::ReceivePacket() {
-  if (Receive(kReceiveBufferLength)) {
-    return true;
-  }
-  return false;
+bool RemoteSerialProtocol::ReceivePacket() {
+  return Receive(kReceiveBufferLength);
 }
 
-bool RSP::Receive(int receive_length) {
+bool RemoteSerialProtocol::Receive(int receive_length) {
   fd_set file_set;
   FD_ZERO(&file_set);
   FD_SET(socket_, &file_set);
@@ -95,7 +92,7 @@ bool RSP::Receive(int receive_length) {
 }
 
 // Acknowledgement is either '+' or '-'
-bool RSP::ReadAcknowledgement() {
+bool RemoteSerialProtocol::ReadAcknowledgement() {
   if (!Receive(1)) {
     return false;
   }

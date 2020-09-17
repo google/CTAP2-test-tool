@@ -19,11 +19,20 @@
 
 namespace rsp {
 
-// Implements a GDB RSP client through TCP socket connection.
-class RSP {
+// Implements a GDB Remote Serial Protocol (RSP) client through
+// TCP socket connection. The protocol documentation can be found here:
+// https://sourceware.org/gdb/current/onlinedocs/gdb/Remote-Protocol.html#Remote-Protocol
+// Example:
+//  rsp::RemoteSerialProtocol rsp;
+//  rsp.Initialize();
+//  rsp.Connect(port);
+//  if (!rsp.SendPacket(rsp::RspPacket::Continue)) { ... }
+//  if (rsp.ReceivePacket()) { ... }
+//  rsp.Terminate();
+class RemoteSerialProtocol {
  public:
-  RSP();
-  ~RSP();
+  RemoteSerialProtocol();
+  ~RemoteSerialProtocol();
   // Initializes the socket for serial connection via TCP and
   // allocates memory for incoming packets.
   bool Initialize();
@@ -32,7 +41,8 @@ class RSP {
   // Ends connection and cleans up allocated memory.
   bool Terminate();
   // Sends a RSP packet over the socket.
-  bool SendPacket(RSPPacket packet);
+  bool SendPacket(RspPacket packet);
+  // Receives a RSP reply packet over the socket.
   bool ReceivePacket();
 
  private:

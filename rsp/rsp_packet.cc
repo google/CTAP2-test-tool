@@ -17,25 +17,27 @@
 #include <sstream>
 #include <string>
 
+#include "absl/strings/str_cat.h"
+
 namespace rsp {
 
-std::string RSPPacket::DataToString() const {
+std::string RspPacket::DataToString() const {
   switch (data_) {
-    case RSPPacket::Continue:
+    case RspPacket::Continue:
       return "c";
+    case RspPacket::RequestSupported:
+      return "qSupported";
     default:
       return "";
   }
 }
 
-std::string RSPPacket::ToString() const {
-  std::stringstream ss;
-  ss << "$" << DataToString() << "#" << std::hex
-     << static_cast<int>(Checksum());
-  return ss.str();
+std::string RspPacket::ToString() const {
+  return absl::StrCat("$", DataToString(), "#",
+                      absl::Hex(Checksum(), absl::kZeroPad2));
 }
 
-uint8_t RSPPacket::Checksum() const {
+uint8_t RspPacket::Checksum() const {
   uint8_t sum = 0;
   std::string packet = DataToString();
   for (char c : packet) {
