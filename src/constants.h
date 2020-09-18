@@ -141,8 +141,8 @@ enum class ClientPinParameters : uint8_t {
   kPinUvAuthParam = 0x04,
   kNewPinEnc = 0x05,
   kPinHashEnc = 0x06,
-  kMinPINLength = 0x07,
-  kMinPinLengthRPIDs = 0x08,
+  kMinPinLength = 0x07,
+  kMinPinLengthRpIds = 0x08,
   kPermissions = 0x09,
   kPermissionsRpId = 0x0A,
 };
