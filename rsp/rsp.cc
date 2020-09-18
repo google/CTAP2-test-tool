@@ -31,7 +31,12 @@
 namespace rsp {
 
 // Timeout = 0.5 seconds.
-const int kReceiveTimeoutMicroSec = 500000;
+constexpr int kReceiveTimeoutMicroSec = 500000;
+// No specification found about max length,
+// Using 4000 as nRF52840-dk supported packet size.
+constexpr int kReceiveBufferLength = 4000;
+
+RemoteSerialProtocol::RemoteSerialProtocol() : recv_buffer_(kReceiveBufferLength) {}
 
 bool RemoteSerialProtocol::Initialize() {
   return ((socket_ = socket(AF_INET, SOCK_STREAM, 0)) != -1);
