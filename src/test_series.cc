@@ -793,8 +793,8 @@ void SpecificationProcedure::MakeCredentialOptionsTest() {
         device_, device_tracker_, options_builder.GetCbor());
     device_tracker_->CheckAndReport(
         response, "recognize user verification option (true)");
-    options_builder.RemoveMapEntry(8);
-    options_builder.RemoveMapEntry(9);
+    options_builder.RemoveMapEntry(static_cast<int>(MakeCredentialParameters::kPinUvAuthParam));
+    options_builder.RemoveMapEntry(static_cast<int>(MakeCredentialParameters::kPinUvAuthProtocol));
     Reset();
   } else {
     returned_status = fido2_commands::MakeCredentialNegativeTest(
@@ -1004,22 +1004,19 @@ void SpecificationProcedure::MakeCredentialDisplayNameEncodingTest() {
       3, cbor::Value(std::move(pub_key_cred_user_entity)));
 
   if (IsFido2Point1Complicant()) {
-    auto encoded_request =
-        cbor::Writer::Write(make_credential_builder.GetCbor());
-    CHECK(encoded_request.has_value())
-        << "encoding went wrong - TEST SUITE BUG";
-    cbor::Value::BinaryValue req_cbor = encoded_request.value();
+    auto req_cbor = cbor::Writer::Write(make_credential_builder.GetCbor());
+    CHECK(req_cbor.has_value()) << "encoding went wrong - TEST SUITE BUG";
 
     std::vector<uint8_t> display_name_bytes(display_name.begin(),
                                             display_name.end());
     auto iter =
-        std::search(req_cbor.begin(), req_cbor.end(),
+        std::search(req_cbor->begin(), req_cbor->end(),
                     display_name_bytes.begin(), display_name_bytes.end());
-    CHECK(iter != req_cbor.end()) << "encoding problem - TEST SUITE BUG";
+    CHECK(iter != req_cbor->end()) << "encoding problem - TEST SUITE BUG";
     // Generating an invalid UTF-8 encoding here.
     *iter = 0x80;
     returned_status = fido2_commands::NonCborNegativeTest(
-        device_, req_cbor, Command::kAuthenticatorMakeCredential, false);
+        device_, *req_cbor, Command::kAuthenticatorMakeCredential, false);
     if (returned_status != Status::kErrInvalidCbor) {
       device_tracker_->AddProblem("UTF-8 correctness is not checked.");
     }
@@ -1102,9 +1099,10 @@ void SpecificationProcedure::GetAssertionOptionsTest() {
         device_, device_tracker_, options_builder.GetCbor());
     device_tracker_->CheckAndReport(
         response, "recognize user verification option (true)");
-    options_builder.RemoveMapEntry(8);
-    options_builder.RemoveMapEntry(9);
+    options_builder.RemoveMapEntry(static_cast<int>(GetAssertionParameters::kPinUvAuthParam));
+    options_builder.RemoveMapEntry(static_cast<int>(GetAssertionParameters::kPinUvAuthProtocol));
     Reset();
+    MakeTestCredential(rp_id, true);
   } else {
     returned_status = fido2_commands::GetAssertionNegativeTest(
         device_, options_builder.GetCbor(), false);
