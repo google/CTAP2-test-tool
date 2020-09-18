@@ -793,8 +793,10 @@ void SpecificationProcedure::MakeCredentialOptionsTest() {
         device_, device_tracker_, options_builder.GetCbor());
     device_tracker_->CheckAndReport(
         response, "recognize user verification option (true)");
-    options_builder.RemoveMapEntry(static_cast<int>(MakeCredentialParameters::kPinUvAuthParam));
-    options_builder.RemoveMapEntry(static_cast<int>(MakeCredentialParameters::kPinUvAuthProtocol));
+    options_builder.RemoveMapEntry(
+        static_cast<int>(MakeCredentialParameters::kPinUvAuthParam));
+    options_builder.RemoveMapEntry(
+        static_cast<int>(MakeCredentialParameters::kPinUvAuthProtocol));
     Reset();
   } else {
     returned_status = fido2_commands::MakeCredentialNegativeTest(
@@ -1099,8 +1101,10 @@ void SpecificationProcedure::GetAssertionOptionsTest() {
         device_, device_tracker_, options_builder.GetCbor());
     device_tracker_->CheckAndReport(
         response, "recognize user verification option (true)");
-    options_builder.RemoveMapEntry(static_cast<int>(GetAssertionParameters::kPinUvAuthParam));
-    options_builder.RemoveMapEntry(static_cast<int>(GetAssertionParameters::kPinUvAuthProtocol));
+    options_builder.RemoveMapEntry(
+        static_cast<int>(GetAssertionParameters::kPinUvAuthParam));
+    options_builder.RemoveMapEntry(
+        static_cast<int>(GetAssertionParameters::kPinUvAuthProtocol));
     Reset();
     MakeTestCredential(rp_id, true);
   } else {
