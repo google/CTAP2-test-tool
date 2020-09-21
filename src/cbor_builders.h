@@ -27,16 +27,18 @@ class CborBuilder {
  public:
   CborBuilder();
   ~CborBuilder();
-  // Sets or overwrites the given key.
-  void SetMapEntry(int key, cbor::Value&& value);
+  // Sets or overwrites the given key. Please prefer the more specific
+  // SetMapEntry functions when possible.
+  void SetArbitraryMapEntry(int key, cbor::Value&& value);
   // Sets or overwrites the given key. This should only be used for the
   // construction of deliberately abnormal or invalid CBOR structures.
-  void SetMapEntry(cbor::Value&& key, cbor::Value&& value);
-  // Removes the map entry at given key, if existing.
-  void RemoveMapEntry(int key);
+  void SetArbitraryMapEntry(cbor::Value&& key, cbor::Value&& value);
+  // Removes the map entry at given key, if existing. Please prefer the more
+  // specific RemoveMapEntry functions when possible.
+  void RemoveArbitraryMapEntry(int key);
   // Removes the map entry at given key, if existing. Also works for
   // deliberately abnormal or invalid CBOR structures.
-  void RemoveMapEntry(cbor::Value&& key);
+  void RemoveArbitraryMapEntry(cbor::Value&& key);
   // Return a CBOR Value representation of the current internal state.
   cbor::Value GetCbor();
 
@@ -59,6 +61,10 @@ class CborBuilder {
 //    cbor::Value request_cbor = builder.GetCbor();
 class MakeCredentialCborBuilder : public CborBuilder {
  public:
+  // Sets or overwrites the given key.
+  void SetMapEntry(MakeCredentialParameters key, cbor::Value&& value);
+  // Removes the map entry at given key, if existing.
+  void RemoveMapEntry(MakeCredentialParameters key);
   // Sets or overwrites key 1 with a cbor::Value::BinaryValue.
   void SetDefaultClientDataHash();
   // Sets or overwrites key 2 with the cbor::Value::MapValue
@@ -102,6 +108,10 @@ class MakeCredentialCborBuilder : public CborBuilder {
 // See MakeCredentialCborBuilder, this is a similar class for GetAssertion.
 class GetAssertionCborBuilder : public CborBuilder {
  public:
+  // Sets or overwrites the given key.
+  void SetMapEntry(GetAssertionParameters key, cbor::Value&& value);
+  // Removes the map entry at given key, if existing.
+  void RemoveMapEntry(GetAssertionParameters key);
   // Sets or overwrites key 1 with the cbor::Value::String rp_id.
   void SetRelyingParty(const std::string& rp_id);
   // Sets or overwrites key 2 with a cbor::Value::BinaryValue.
@@ -131,6 +141,10 @@ class GetAssertionCborBuilder : public CborBuilder {
 // AuthenticatorClientPin.
 class AuthenticatorClientPinCborBuilder : public CborBuilder {
  public:
+  // Sets or overwrites the given key.
+  void SetMapEntry(ClientPinParameters key, cbor::Value&& value);
+  // Removes the map entry at given key, if existing.
+  void RemoveMapEntry(ClientPinParameters key);
   // Sets or overwrites key 1 with the unsigned value 1.
   void SetDefaultPinProtocol();
   // Sets or overwrites key 2 with the given integer.

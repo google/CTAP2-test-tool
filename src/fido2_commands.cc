@@ -140,9 +140,10 @@ size_t PubKeyDuplicateCheck(KeyChecker* key_checker,
 std::string ExtractRpIdFromMakeCredentialRequest(const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(cbor::Value(2));
-  CHECK(req_iter != request_map.end()) << "2 not in request - TEST SUITE BUG";
-  CHECK(req_iter->second.is_map()) << "entry 2 is not a map - TEST SUITE BUG";
+  auto req_iter = request_map.find(
+      cbor::Value(static_cast<int>(MakeCredentialParameters::kRp)));
+  CHECK(req_iter != request_map.end()) << "RP not in request - TEST SUITE BUG";
+  CHECK(req_iter->second.is_map()) << "RP is not a map - TEST SUITE BUG";
   const auto& inner_map = req_iter->second.GetMap();
   auto rp_entity_iter = inner_map.find(cbor::Value("id"));
   CHECK(rp_entity_iter != inner_map.end())
@@ -155,10 +156,12 @@ std::string ExtractRpIdFromMakeCredentialRequest(const cbor::Value& request) {
 std::string ExtractRpIdFromGetAssertionRequest(const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(cbor::Value(1));
-  CHECK(req_iter != request_map.end()) << "1 not in request - TEST SUITE BUG";
+  auto req_iter = request_map.find(
+      cbor::Value(static_cast<int>(GetAssertionParameters::kRpId)));
+  CHECK(req_iter != request_map.end())
+      << "RP ID not in request - TEST SUITE BUG";
   CHECK(req_iter->second.is_string())
-      << "entry 2 is not a string - TEST SUITE BUG";
+      << "RP ID is not a string - TEST SUITE BUG";
   return req_iter->second.GetString();
 }
 
@@ -166,10 +169,12 @@ PinSubCommand ExtractSubCommandFromClientPinRequest(
     const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(cbor::Value(2));
-  CHECK(req_iter != request_map.end()) << "2 not in request - TEST SUITE BUG";
+  auto req_iter = request_map.find(
+      cbor::Value(static_cast<int>(ClientPinParameters::kSubCommand)));
+  CHECK(req_iter != request_map.end())
+      << "subcommand not in request - TEST SUITE BUG";
   CHECK(req_iter->second.is_unsigned())
-      << "entry 2 is not an unsigned - TEST SUITE BUG";
+      << "subcommand is not an unsigned - TEST SUITE BUG";
   return static_cast<PinSubCommand>(req_iter->second.GetUnsigned());
 }
 
@@ -177,10 +182,12 @@ cbor::Value::BinaryValue ExtractUniqueCredentialFromAllowList(
     const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(cbor::Value(3));
-  CHECK(req_iter != request_map.end()) << "3 not in request - TEST SUITE BUG";
+  auto req_iter = request_map.find(
+      cbor::Value(static_cast<int>(GetAssertionParameters::kAllowList)));
+  CHECK(req_iter != request_map.end())
+      << "allow list not in request - TEST SUITE BUG";
   CHECK(req_iter->second.is_array())
-      << "entry 3 is not an array - TEST SUITE BUG";
+      << "allow list is not an array - TEST SUITE BUG";
   CHECK_EQ(req_iter->second.GetArray().size(), 1u)
       << "allow list length is not 1";
   const auto& cred_descriptor_entry = req_iter->second.GetArray()[0];
@@ -199,18 +206,19 @@ cbor::Value::BinaryValue ExtractUniqueCredentialFromAllowList(
 bool ExtractUpOptionFromGetAssertionRequest(const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(cbor::Value(5));
+  auto req_iter = request_map.find(
+      cbor::Value(static_cast<int>(GetAssertionParameters::kOptions)));
   if (req_iter == request_map.end()) {
     return true;
   }
-  CHECK(req_iter->second.is_map()) << "entry 5 is not a map - TEST SUITE BUG";
+  CHECK(req_iter->second.is_map()) << "options are not a map - TEST SUITE BUG";
   const auto& inner_map = req_iter->second.GetMap();
   auto options_iter = inner_map.find(cbor::Value("up"));
   if (options_iter == inner_map.end()) {
     return true;
   }
   CHECK(options_iter->second.is_bool())
-      << "\"up\" is not a boolean - TEST SUITE BUG";
+      << "option \"up\" is not a boolean - TEST SUITE BUG";
   return options_iter->second.GetBool();
 }
 }  // namespace
@@ -260,7 +268,8 @@ absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
   uint8_t flags = auth_data[32];
   // MakeCredential always checks user presence, regardless of verification.
   CHECK(flags & 0x01) << "user presence flag was not set";
-  if (IsKeyInRequest(request, 8)) {
+  if (IsKeyInRequest(request, static_cast<int>(
+                                  MakeCredentialParameters::kPinUvAuthParam))) {
     CHECK(flags & 0x04) << "no user verification flag despite auth token";
   }
 
@@ -292,7 +301,9 @@ absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
   CHECK(has_extension_flag == (cose_key_size < cose_key.size()))
       << "extension flag not matching response";
   ByteVector extension_data(cose_key.begin() + cose_key_size, cose_key.end());
-  CompareExtensions(request, 6, extension_data);
+  CompareExtensions(request,
+                    static_cast<int>(MakeCredentialParameters::kExtensions),
+                    extension_data);
 
   map_iter = decoded_map.find(cbor::Value(3));
   CHECK(map_iter != decoded_map.end())
@@ -393,7 +404,8 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
   // Contrary to MakeCredential, explicitly setting "up" to false is okay.
   CHECK(flags & 0x05 || !requires_up) << "silent assertion not requested";
   // GetAssertion does not need a user presence after verification.
-  if (IsKeyInRequest(request, 6)) {
+  if (IsKeyInRequest(
+          request, static_cast<int>(GetAssertionParameters::kPinUvAuthParam))) {
     CHECK(flags & 0x04) << "no user verification flag despite auth token";
   }
 
@@ -407,7 +419,9 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
   CHECK(has_extension_flag == (extension_data_size > 0))
       << "extension flag not matching response";
   ByteVector extension_data(auth_data.begin() + 37, auth_data.end());
-  CompareExtensions(request, 4, extension_data);
+  CompareExtensions(request,
+                    static_cast<int>(GetAssertionParameters::kExtensions),
+                    extension_data);
 
   map_iter = decoded_map.find(cbor::Value(3));
   CHECK(map_iter != decoded_map.end())

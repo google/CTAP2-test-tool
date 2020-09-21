@@ -50,6 +50,16 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "cbor_builders_test",
+    srcs = ["src/cbor_builders_test.cc"],
+    deps = [
+        ":cbor_builders",
+        "@com_google_googletest//:gtest_main",
+    ],
+    size = "small",
+)
+
 cc_library(
     name = "constants",
     srcs = ["src/constants.cc"],
