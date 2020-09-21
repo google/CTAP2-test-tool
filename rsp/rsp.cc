@@ -36,7 +36,8 @@ constexpr int kReceiveTimeoutMicroSec = 500000;
 // Using 4000 as nRF52840-dk supported packet size.
 constexpr int kReceiveBufferLength = 4000;
 
-RemoteSerialProtocol::RemoteSerialProtocol() : recv_buffer_(kReceiveBufferLength) {}
+RemoteSerialProtocol::RemoteSerialProtocol()
+    : recv_buffer_(kReceiveBufferLength) {}
 
 bool RemoteSerialProtocol::Initialize() {
   return ((socket_ = socket(AF_INET, SOCK_STREAM, 0)) != -1);
