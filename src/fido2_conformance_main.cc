@@ -60,8 +60,8 @@ int main(int argc, char** argv) {
       fido2_tests::SpecificationProcedure(device.get(), &tracker);
 
   specification_procedure_test_series.Reset();
-  bool is_fido_2_1_compliant =
-      specification_procedure_test_series.GetInfoIs2Point1Compliant();
+  // You need to execute GetInfo first to initialize the tracker.
+  specification_procedure_test_series.GetInfoTest();
 
   input_parameter_test_series.MakeCredentialBadParameterTypesTest();
   input_parameter_test_series.MakeCredentialMissingParameterTest();
@@ -78,10 +78,8 @@ int main(int argc, char** argv) {
   input_parameter_test_series.ClientPinSetPinTest();
   input_parameter_test_series.ClientPinChangePinTest();
   input_parameter_test_series.ClientPinGetPinUvAuthTokenUsingPinTest();
-  if (is_fido_2_1_compliant) {
-    input_parameter_test_series.ClientPinGetPinUvAuthTokenUsingUvTest();
-    input_parameter_test_series.ClientPinGetUVRetriesTest();
-  }
+  input_parameter_test_series.ClientPinGetPinUvAuthTokenUsingUvTest();
+  input_parameter_test_series.ClientPinGetUVRetriesTest();
 
   specification_procedure_test_series.ResetDeletionTest();
   specification_procedure_test_series.ResetPhysicalPresenceTest();
@@ -90,8 +88,7 @@ int main(int argc, char** argv) {
   specification_procedure_test_series.MakeCredentialExcludeListTest();
   specification_procedure_test_series.MakeCredentialCoseAlgorithmTest();
   specification_procedure_test_series.MakeCredentialOptionsTest();
-  specification_procedure_test_series.MakeCredentialPinAuthTest(
-      is_fido_2_1_compliant);
+  specification_procedure_test_series.MakeCredentialPinAuthTest();
   specification_procedure_test_series.MakeCredentialMultipleKeysTest(
       FLAGS_num_credentials);
   specification_procedure_test_series.MakeCredentialPhysicalPresenceTest();
@@ -99,16 +96,13 @@ int main(int argc, char** argv) {
 
   specification_procedure_test_series.GetAssertionOptionsTest();
   specification_procedure_test_series.GetAssertionResidentialKeyTest();
-  specification_procedure_test_series.GetAssertionPinAuthTest(
-      is_fido_2_1_compliant);
+  specification_procedure_test_series.GetAssertionPinAuthTest();
   specification_procedure_test_series.GetAssertionPhysicalPresenceTest();
 
-  specification_procedure_test_series.GetInfoTest();
   specification_procedure_test_series.ClientPinRequirementsTest();
+  specification_procedure_test_series.ClientPinRequirements2Point1Test();
   specification_procedure_test_series.ClientPinRetriesTest();
-  if (specification_procedure_test_series.GetInfoIsHmacSecretSupported()) {
-    specification_procedure_test_series.MakeCredentialHmacSecretTest();
-  }
+  specification_procedure_test_series.MakeCredentialHmacSecretTest();
 
   std::cout << "\nRESULTS" << std::endl;
   tracker.ReportFindings();

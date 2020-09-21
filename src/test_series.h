@@ -73,12 +73,15 @@ class InputParameterTestSeries {
   // getPinUvAuthTokenUsingPin.
   void ClientPinGetPinUvAuthTokenUsingPinTest();
   // Check the input parameters of the client PIN subcommand
-  // getPinUvAuthTokenUsingUv.
+  // getPinUvAuthTokenUsingUv. Requires CTAP 2.1, returns otherwise.
   void ClientPinGetPinUvAuthTokenUsingUvTest();
   // Check the input parameters of the client PIN subcommand getUVRetries.
+  // Requires CTAP 2.1, returns otherwise.
   void ClientPinGetUVRetriesTest();
 
  private:
+  // TODO(#16) replace version string with FIDO_2_1 when specification is final
+  bool IsFido2Point1Complicant();
   // Makes a credential for all tests that require one, for example assertions.
   cbor::Value MakeTestCredential(const std::string& rp_id,
                                  bool use_residential_key);
@@ -150,7 +153,7 @@ class SpecificationProcedure {
   // Tests correct behavior when setting rk, up and uv.
   void MakeCredentialOptionsTest();
   // Tests if the PIN is correctly enforced. Resets afterwards to unset the PIN.
-  void MakeCredentialPinAuthTest(bool is_fido_2_1_compliant);
+  void MakeCredentialPinAuthTest();
   // Tests correct behavior when creating multiple keys. This test attempts to
   // create num_credentials credentials, stopping before that if the internal
   // key store is full. It resets afterwards to clear the storage.
@@ -167,26 +170,25 @@ class SpecificationProcedure {
   // Tests correct differentiation between residential and non-residential.
   void GetAssertionResidentialKeyTest();
   // Tests if the PIN is correctly enforced. Resets afterwards to unset the PIN.
-  void GetAssertionPinAuthTest(bool is_fido_2_1_compliant);
+  void GetAssertionPinAuthTest();
   // Tests if the key hardware actually interacts with a user. This test can not
   // be performed automatically, but requires tester feedback.
   void GetAssertionPhysicalPresenceTest();
   // Checks if the GetInfo command has valid output implicitly. Also checks for
   // support of PIN protocol version 1, because it is used throughout all tests.
   void GetInfoTest();
-  // Check if FIDO version 2.1 is listed as a supported version.
-  bool GetInfoIs2Point1Compliant();
-  // Check if user verification is listed as a supported option.
-  bool GetInfoHasUvOption();
-  // Check if HMAC-secret is listed as a supported extension.
-  bool GetInfoIsHmacSecretSupported();
   // Tests if the PIN minimum and maximum length are enforced correctly for the
   // SetPin and ChangePin command. Resets the device on failed tests so that the
   // following test will still find a valid state. Might end with the device
   // having a PIN set.
   void ClientPinRequirementsTest();
+  // Tests PIN protocol requirements introduced in CTAP 2.1. This includes
+  // testing different padding lengths for SetPin and ChangePin. Resets the
+  // device before tests and on failed tests. Might end with the device having a
+  // PIN set.
+  void ClientPinRequirements2Point1Test();
   // Tests if retries decrement properly and respond with correct error codes.
-  // Creates a PIN if necessary. Resets the device at the end.
+  // Creates a PIN if necessary. Resets the device at the beginning and the end.
   void ClientPinRetriesTest();
   // Only tests the returned status code, just resets the authenticator.
   // Replugging the device before calling the function is necessary.
@@ -205,6 +207,9 @@ class SpecificationProcedure {
   // that need a power cycle (i.e. resetting). The Init will then handle device
   // initilalization, regardless of the current state of the device.
   void PromptReplugAndInit();
+  // Returns if the device supports CTAP 2.1. Currently looks for FIDO_2_1_PRE.
+  // TODO(#16) replace version string with FIDO_2_1 when specification is final
+  bool IsFido2Point1Complicant();
   // Makes a credential for all tests that require one, for example assertions.
   // Works with or without a PIN being set.
   cbor::Value MakeTestCredential(const std::string& rp_id,

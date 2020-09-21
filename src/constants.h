@@ -107,6 +107,45 @@ enum class KeepaliveStatus : uint8_t {
   kStatusUpNeeded = 0x02,
   kStatusError
 };
+
+// The command MakeCredential has a parameter map with the following keys.
+enum class MakeCredentialParameters : uint8_t {
+  kClientDataHash = 0x01,
+  kRp = 0x02,
+  kUser = 0x03,
+  kPubKeyCredParams = 0x04,
+  kExcludeList = 0x05,
+  kExtensions = 0x06,
+  kOptions = 0x07,
+  kPinUvAuthParam = 0x08,
+  kPinUvAuthProtocol = 0x09,
+  kEnterpriseAttestation = 0x0A,
+};
+
+// The command GetAssertion has a parameter map with the following keys.
+enum class GetAssertionParameters : uint8_t {
+  kRpId = 0x01,
+  kClientDataHash = 0x02,
+  kAllowList = 0x03,
+  kExtensions = 0x04,
+  kOptions = 0x05,
+  kPinUvAuthParam = 0x06,
+  kPinUvAuthProtocol = 0x07,
+};
+
+// The command ClientPin has a parameter map with the following keys.
+enum class ClientPinParameters : uint8_t {
+  kPinUvAuthProtocol = 0x01,
+  kSubCommand = 0x02,
+  kKeyAgreement = 0x03,
+  kPinUvAuthParam = 0x04,
+  kNewPinEnc = 0x05,
+  kPinHashEnc = 0x06,
+  kMinPinLength = 0x07,
+  kMinPinLengthRpIds = 0x08,
+  kPermissions = 0x09,
+  kPermissionsRpId = 0x0A,
+};
 }  // namespace fido2_tests
 
 #endif  // CONSTANTS_H_
