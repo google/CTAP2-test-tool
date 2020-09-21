@@ -155,3 +155,20 @@ cc_binary(
         "@com_google_glog//:glog",
     ],
 )
+
+cc_library(
+    name = "rsp_packet",
+    srcs = ["rsp/rsp_packet.cc"],
+    hdrs = ["rsp/rsp_packet.h"],
+    deps = ["@com_google_absl//absl/strings"]
+)
+
+cc_library(
+    name = "rsp",
+    srcs = ["rsp/rsp.cc"],
+    hdrs = ["rsp/rsp.h"],
+    deps = [
+        ":rsp_packet",
+        "@com_google_glog//:glog",
+    ]
+)
