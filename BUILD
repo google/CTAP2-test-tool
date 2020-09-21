@@ -163,6 +163,16 @@ cc_library(
     deps = ["@com_google_absl//absl/strings"]
 )
 
+cc_test(
+    name = "rsp_packet_test",
+    srcs = ["rsp/rsp_packet_test.cc"],
+    deps = [
+        ":rsp_packet",
+        "@com_google_googletest//:gtest_main",
+    ],
+    size = "small",
+)
+
 cc_library(
     name = "rsp",
     srcs = ["rsp/rsp.cc"],
