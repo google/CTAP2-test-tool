@@ -172,3 +172,13 @@ cc_library(
         "@com_google_glog//:glog",
     ]
 )
+
+cc_test(
+    name = "rsp_packet_test",
+    srcs = ["rsp/rsp_packet_test.cc"],
+    deps = [
+        ":rsp_packet",
+        "@com_google_googletest//:gtest_main",
+    ],
+    size = "small",
+)
