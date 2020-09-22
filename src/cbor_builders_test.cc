@@ -25,7 +25,7 @@ TEST(CborBuilders, TestBaseBuilderGetCbor) {
   CborBuilder cbor_builder = CborBuilder();
   cbor::Value blank_map = cbor_builder.GetCbor();
   ASSERT_EQ(blank_map.type(), cbor::Value::Type::MAP);
-  EXPECT_EQ(0, blank_map.GetMap().size());
+  EXPECT_EQ(blank_map.GetMap().size(), 0);
 }
 
 TEST(CborBuilders, TestBaseBuilderSetIntKey) {
@@ -33,7 +33,7 @@ TEST(CborBuilders, TestBaseBuilderSetIntKey) {
   cbor_builder.SetArbitraryMapEntry(1, cbor::Value(2));
   cbor::Value map_1_2 = cbor_builder.GetCbor();
   ASSERT_EQ(map_1_2.type(), cbor::Value::Type::MAP);
-  EXPECT_EQ(1, map_1_2.GetMap().size());
+  EXPECT_EQ(map_1_2.GetMap().size(), 1);
   cbor::Value key_1(1);
   ASSERT_EQ(map_1_2.GetMap().count(key_1), 1);
   ASSERT_TRUE(map_1_2.GetMap().find(key_1)->second.is_unsigned());
@@ -45,7 +45,7 @@ TEST(CborBuilders, TestBaseBuilderSetValueKey) {
   cbor_builder.SetArbitraryMapEntry(cbor::Value(1), cbor::Value(2));
   cbor::Value map_1_2 = cbor_builder.GetCbor();
   ASSERT_EQ(map_1_2.type(), cbor::Value::Type::MAP);
-  EXPECT_EQ(1, map_1_2.GetMap().size());
+  EXPECT_EQ(map_1_2.GetMap().size(), 1);
   cbor::Value key_1(1);
   ASSERT_EQ(map_1_2.GetMap().count(key_1), 1);
   ASSERT_TRUE(map_1_2.GetMap().find(key_1)->second.is_unsigned());
@@ -58,7 +58,7 @@ TEST(CborBuilders, TestBaseBuilderRemoveIntKey) {
   cbor_builder.RemoveArbitraryMapEntry(1);
   cbor::Value blank_map = cbor_builder.GetCbor();
   ASSERT_EQ(blank_map.type(), cbor::Value::Type::MAP);
-  EXPECT_EQ(0, blank_map.GetMap().size());
+  EXPECT_EQ(blank_map.GetMap().size(), 0);
 }
 
 TEST(CborBuilders, TestBaseBuilderRemoveValueKey) {
@@ -67,7 +67,7 @@ TEST(CborBuilders, TestBaseBuilderRemoveValueKey) {
   cbor_builder.RemoveArbitraryMapEntry(cbor::Value(1));
   cbor::Value blank_map = cbor_builder.GetCbor();
   ASSERT_EQ(blank_map.type(), cbor::Value::Type::MAP);
-  EXPECT_EQ(0, blank_map.GetMap().size());
+  EXPECT_EQ(blank_map.GetMap().size(), 0);
 }
 
 TEST(CborBuilders, TestMakeCredentialCborBuilder) {
@@ -77,7 +77,7 @@ TEST(CborBuilders, TestMakeCredentialCborBuilder) {
   cbor_builder.RemoveMapEntry(MakeCredentialParameters::kClientDataHash);
   cbor::Value blank_map = cbor_builder.GetCbor();
   ASSERT_EQ(blank_map.type(), cbor::Value::Type::MAP);
-  EXPECT_EQ(0, blank_map.GetMap().size());
+  EXPECT_EQ(blank_map.GetMap().size(), 0);
 }
 
 TEST(CborBuilders, TestGetAssertionCborBuilder) {
@@ -86,7 +86,7 @@ TEST(CborBuilders, TestGetAssertionCborBuilder) {
   cbor_builder.RemoveMapEntry(GetAssertionParameters::kRpId);
   cbor::Value blank_map = cbor_builder.GetCbor();
   ASSERT_EQ(blank_map.type(), cbor::Value::Type::MAP);
-  EXPECT_EQ(0, blank_map.GetMap().size());
+  EXPECT_EQ(blank_map.GetMap().size(), 0);
 }
 
 TEST(CborBuilders, TestClientPinCborBuilder) {
@@ -97,7 +97,7 @@ TEST(CborBuilders, TestClientPinCborBuilder) {
   cbor_builder.RemoveMapEntry(ClientPinParameters::kPinUvAuthProtocol);
   cbor::Value blank_map = cbor_builder.GetCbor();
   ASSERT_EQ(blank_map.type(), cbor::Value::Type::MAP);
-  EXPECT_EQ(0, blank_map.GetMap().size());
+  EXPECT_EQ(blank_map.GetMap().size(), 0);
 }
 
 }  // namespace
