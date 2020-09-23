@@ -16,106 +16,18 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "test_series",
-    srcs = ["test_series.cc"],
+    srcs = [
+        "test_client_pin.cc",
+        "test_series.cc",
+        "test_general.cc",
+        "test_get_assertion.cc",
+        "test_make_credential.cc",
+        "test_reset.cc",
+    ],
     hdrs = ["test_series.h"],
     copts = [
         "-Wno-return-type",
     ],
-    deps = [
-        "//:cbor_builders",
-        "//:crypto_utility",
-        "//:device_interface",
-        "//:device_tracker",
-        "//:fido2_commands",
-        "//src/tests:test_client_pin",
-        "//src/tests:test_general",
-        "//src/tests:test_get_assertion",
-        "//src/tests:test_make_credential",
-        "//src/tests:test_reset",
-        "//third_party/chromium_components_cbor:cbor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
-        "@com_google_absl//absl/types:variant",
-        "@com_google_glog//:glog",
-    ],
-)
-
-cc_library(
-    name = "test_client_pin",
-    srcs = ["test_client_pin.cc"],
-    hdrs = ["test_series.h"],
-    deps = [
-        "//:cbor_builders",
-        "//:crypto_utility",
-        "//:device_interface",
-        "//:device_tracker",
-        "//:fido2_commands",
-        "//third_party/chromium_components_cbor:cbor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
-        "@com_google_absl//absl/types:variant",
-        "@com_google_glog//:glog",
-    ],
-)
-
-cc_library(
-    name = "test_general",
-    srcs = ["test_general.cc"],
-    hdrs = ["test_series.h"],
-    deps = [
-        "//:cbor_builders",
-        "//:crypto_utility",
-        "//:device_interface",
-        "//:device_tracker",
-        "//:fido2_commands",
-        "//third_party/chromium_components_cbor:cbor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
-        "@com_google_absl//absl/types:variant",
-        "@com_google_glog//:glog",
-    ],
-)
-
-cc_library(
-    name = "test_get_assertion",
-    srcs = ["test_get_assertion.cc"],
-    hdrs = ["test_series.h"],
-    deps = [
-        "//:cbor_builders",
-        "//:crypto_utility",
-        "//:device_interface",
-        "//:device_tracker",
-        "//:fido2_commands",
-        "//third_party/chromium_components_cbor:cbor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
-        "@com_google_absl//absl/types:variant",
-        "@com_google_glog//:glog",
-    ],
-)
-
-cc_library(
-    name = "test_make_credential",
-    srcs = ["test_make_credential.cc"],
-    hdrs = ["test_series.h"],
-    deps = [
-        "//:cbor_builders",
-        "//:crypto_utility",
-        "//:device_interface",
-        "//:device_tracker",
-        "//:fido2_commands",
-        "//third_party/chromium_components_cbor:cbor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
-        "@com_google_absl//absl/types:variant",
-        "@com_google_glog//:glog",
-    ],
-)
-
-cc_library(
-    name = "test_reset",
-    srcs = ["test_reset.cc"],
-    hdrs = ["test_series.h"],
     deps = [
         "//:cbor_builders",
         "//:crypto_utility",
