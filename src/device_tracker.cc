@@ -194,12 +194,12 @@ nlohmann::json DeviceTracker::GenerateResultsJson() {
   int test_count = successful_test_count + failed_test_count;
 
   nlohmann::json results = {
-      {"Passed tests", successful_test_count},
-      {"Total tests", test_count},
-      {"Failed tests", failed_tests_},
-      {"Reported problems", problems_},
-      {"Reported observations", observations_},
-      {"Counter", counter_checker_.ReportFindings()},
+      {"passed_test_count", successful_test_count},
+      {"total_test_count", test_count},
+      {"failed_tests", failed_tests_},
+      {"problems", problems_},
+      {"observations", observations_},
+      {"counter", counter_checker_.ReportFindings()},
   };
   return results;
 }

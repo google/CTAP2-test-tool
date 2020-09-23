@@ -1,7 +1,7 @@
 {
-  "Date": "2020-02-03",
-  "Counter": "All counters were strictly increasing, but not necessarily incremented by 1.",
-  "Failed tests": [
+  "date": "2020-02-03",
+  "counter": "All counters were strictly increasing, but not necessarily incremented by 1.",
+  "failed_tests": [
     "missing key 1 for command client PIN command - expected CTAP2_ERR_MISSING_PARAMETER, got CTAP2_OK",
     "missing key 2 for command client PIN command - expected CTAP2_ERR_MISSING_PARAMETER, got CTAP2_OK",
     "key was not touched for reset - expected CTAP2_ERR_USER_ACTION_TIMEOUT, got CTAP2_OK",
@@ -16,7 +16,7 @@
     "key was not touched for get assertion - expected CTAP2_ERR_USER_ACTION_TIMEOUT, got CTAP2_OK",
     "reject even the correct PIN if shared secrets do not match - expected CTAP2_ERR_PIN_INVALID, got CTAP2_OK"
   ],
-  "Reported observations": [
+  "observations": [
     " Vendor ID: ",
     "Product ID: ",
     "The CBOR capability was set.",
@@ -24,7 +24,7 @@
     "The optional command WINK worked.",
     "no LED"
   ],
-  "Reported problems": [
+  "problems": [
     "often does NOT require user presence",
     "unspecified status bytes 0x10 and 0x13 returned",
     "Expected error code ,CTAP2_ERR_CBOR_UNEXPECTED_TYPE got CTAP2_ERR_INVALID_OPTION",

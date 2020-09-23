@@ -1,8 +1,8 @@
 {
-  "Date": "2020-02-03",
-  "Counter": "All counters were strictly increasing, but not necessarily incremented by 1.",
-  "Failed tests": [],
-  "Reported observations": [
+  "date": "2020-02-03",
+  "counter": "All counters were strictly increasing, but not necessarily incremented by 1.",
+  "failed_tests": [],
+  "observations": [
     " Vendor ID: 0x311f",
     "Product ID: 0x5c2f",
     "The CBOR capability was set.",
@@ -10,7 +10,7 @@
     "The optional command WINK worked.",
     "UTF-8 correctness is not checked."
   ],
-  "Reported problems": [
+  "problems": [
     "1 random CTAP1_ERR_INVALID_SEQ failure",
     "Expected error code CTAP2_ERR_CBOR_UNEXPECTED_TYPE, got CTAP2_ERR_UNSUPPORTED_ALGORITHM",
     "Expected error code CTAP2_ERR_CBOR_UNEXPECTED_TYPE, got CTAP2_ERR_PIN_AUTH_BLOCKED",

@@ -1,13 +1,13 @@
 {
-  "Date": "2020-01-28",
-  "Counter": "All counters were strictly increasing, but not necessarily incremented by 1.",
-  "Failed tests": [
+  "date": "2020-01-28",
+  "counter": "All counters were strictly increasing, but not necessarily incremented by 1.",
+  "failed_tests": [
     "reset not allowed more than 10 seconds after plugging in - expected CTAP2_ERR_NOT_ALLOWED, got CTAP2_OK",
     "recognize user verification option (false) - expected CTAP2_OK, got CTAP2_ERR_NO_CREDENTIALS",
     "get assertion using PIN token - expected CTAP2_OK, got CTAP2_ERR_NO_CREDENTIALS",
     "get assertion with a PIN set, but without a token - expected CTAP2_OK, got CTAP2_ERR_NO_CREDENTIALS"
   ],
-  "Reported observations": [
+  "observations": [
     " Vendor ID: 0x0483",
     "Product ID: 0xa2ca",
     "The CBOR capability was set.",
@@ -16,7 +16,7 @@
     "flaky when tests are performed too quickly, so some tests failed on HID level",
     "The maximum CBOR nesting depth is not checked."
   ],
-  "Reported problems": [
+  "problems": [
     "unspecified status byte 0x13 returned (CTAP2_ERR_INVALID_CBOR_TYPE?)",
     "Expected error code CTAP2_ERR_USER_ACTION_TIMEOUT, got CTAP2_ERR_ACTION_TIMEOUT",
     "Expected error code CTAP2_ERR_PIN_BLOCKED, got CTAP2_ERR_PIN_AUTH_BLOCKED"

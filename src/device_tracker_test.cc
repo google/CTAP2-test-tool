@@ -115,12 +115,12 @@ TEST(DeviceTracker, TestGenerateResultsJson) {
 
   nlohmann::json output = device_tracker.GenerateResultsJson();
   nlohmann::json expected_output = {
-      {"Passed tests", 1},
-      {"Total tests", 2},
-      {"Failed tests", {"FALSE_TEST"}},
-      {"Reported problems", {"PROBLEM"}},
-      {"Reported observations", {"OBSERVATION"}},
-      {"Counter", "All counters were constant zero."},
+      {"passed_test_count", 1},
+      {"total_test_count", 2},
+      {"failed_tests", {"FALSE_TEST"}},
+      {"problems", {"PROBLEM"}},
+      {"observations", {"OBSERVATION"}},
+      {"counter", "All counters were constant zero."},
   };
   EXPECT_EQ(output, expected_output);
 }

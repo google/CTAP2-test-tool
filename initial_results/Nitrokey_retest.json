@@ -1,6 +1,6 @@
 {
-  "Date": "2020-07-31",
-  "Reported problems": [
+  "date": "2020-07-31",
+  "problems": [
     "The touch is extremely hard to trigger, full test tool not run yet.",
     "Allows Reset after more than 10 seconds.",
     "unspecified status byte 0x13 returned",

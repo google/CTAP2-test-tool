@@ -1,14 +1,14 @@
 {
-  "Date": "2020-01-28",
-  "Counter": "All counters were strictly increasing, but not necessarily incremented by 1.",
-  "Failed tests": [
+  "date": "2020-01-28",
+  "counter": "All counters were strictly increasing, but not necessarily incremented by 1.",
+  "failed_tests": [
     "missing key 3 for command make credential command - expected CTAP2_ERR_MISSING_PARAMETER, got CTAP2_OK",
     "recognize optional icon in user entity - expected CTAP2_OK, got CTAP2_ERR_MISSING_PARAMETER",
     "recognize optional displayName in user entity - expected CTAP2_OK, got CTAP2_ERR_MISSING_PARAMETER",
     "maximum CBOR nesting depth exceeded with array in credential descriptor transport list item in make credential command for key 5 - expected CTAP2_ERR_INVALID_CBOR, got CTAP2_OK",
     "maximum CBOR nesting depth exceeded with map in credential descriptor transport list item in make credential command for key 5 - expected CTAP2_ERR_INVALID_CBOR, got CTAP2_OK"
   ],
-  "Reported observations": [
+  "observations": [
     " Vendor ID: 0x1050",
     "Product ID: 0x0120",
     "The CBOR capability was set.",
@@ -18,7 +18,7 @@
     "The maximum CBOR nesting depth is not checked.",
     "Can’t perform key agreement on blocked PIN."
   ],
-  "Reported problems": [
+  "problems": [
     "The reported WINK capability did NOT match the observed response.",
     "Expected error code CTAP2_ERR_PIN_NOT_SET, got CTAP2_ERR_CBOR_UNEXPECTED_TYPE",
     "Expected error code CTAP2_ERR_USER_ACTION_TIMEOUT, got CTAP2_ERR_ACTION_TIMEOUT",
