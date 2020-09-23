@@ -20,7 +20,7 @@
 #include "src/device_tracker.h"
 #include "src/hid/hid_device.h"
 #include "src/parameter_check.h"
-#include "src/test_series.h"
+#include "src/tests/test_series.h"
 
 DEFINE_string(
     token_path, "",
