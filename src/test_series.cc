@@ -134,11 +134,11 @@ void PrintNoTouchPrompt() {
 }
 }  // namespace
 
-InputParameterTestSeries::InputParameterTestSeries(
-    DeviceInterface* device, DeviceTracker* device_tracker)
+TestSeries::TestSeries(DeviceInterface* device, DeviceTracker* device_tracker)
     : device_(device),
       device_tracker_(device_tracker),
-      cose_key_example_(crypto_utility::GenerateExampleEcdhCoseKey()) {
+      cose_key_example_(crypto_utility::GenerateExampleEcdhCoseKey()),
+      bad_pin_({0x66, 0x61, 0x6B, 0x65}) {
   cbor::Value::ArrayValue array_example;
   array_example.push_back(cbor::Value(42));
   cbor::Value::MapValue map_example;
@@ -161,7 +161,7 @@ InputParameterTestSeries::InputParameterTestSeries(
   map_key_examples_[cbor::Value::Type::STRING] = cbor::Value("42");
 }
 
-void InputParameterTestSeries::MakeCredentialBadParameterTypesTest() {
+void TestSeries::MakeCredentialBadParameterTypesTest() {
   std::string rp_id = "make_bad_types.example.com";
   MakeCredentialCborBuilder full_builder;
 
@@ -202,7 +202,7 @@ void InputParameterTestSeries::MakeCredentialBadParameterTypesTest() {
   TestBadParameterTypes(Command::kAuthenticatorMakeCredential, &full_builder);
 }
 
-void InputParameterTestSeries::MakeCredentialMissingParameterTest() {
+void TestSeries::MakeCredentialMissingParameterTest() {
   std::string rp_id = "make_missing.example.com";
   MakeCredentialCborBuilder missing_required_builder;
   missing_required_builder.AddDefaultsForRequiredFields(rp_id);
@@ -215,7 +215,7 @@ void InputParameterTestSeries::MakeCredentialMissingParameterTest() {
   // the list is missing entirely.
 }
 
-void InputParameterTestSeries::MakeCredentialRelyingPartyEntityTest() {
+void TestSeries::MakeCredentialRelyingPartyEntityTest() {
   constexpr MakeCredentialParameters kKey = MakeCredentialParameters::kRp;
   std::string rp_id = absl::StrCat("make_parameter_rp.example.com");
   absl::variant<cbor::Value, Status> response;
@@ -242,7 +242,7 @@ void InputParameterTestSeries::MakeCredentialRelyingPartyEntityTest() {
       response, "recognize optional icon in relying party entity");
 }
 
-void InputParameterTestSeries::MakeCredentialUserEntityTest() {
+void TestSeries::MakeCredentialUserEntityTest() {
   constexpr MakeCredentialParameters kKey = MakeCredentialParameters::kUser;
   std::string rp_id = absl::StrCat("make_parameter_user.example.com");
   absl::variant<cbor::Value, Status> response;
@@ -280,7 +280,7 @@ void InputParameterTestSeries::MakeCredentialUserEntityTest() {
       response, "recognize optional displayName in user entity");
 }
 
-void InputParameterTestSeries::MakeCredentialExcludeListTest() {
+void TestSeries::MakeCredentialExcludeListCredentialDescriptorTest() {
   constexpr MakeCredentialParameters kKey =
       MakeCredentialParameters::kExcludeList;
   std::string rp_id = absl::StrCat("make_parameter_exclude_list.example.com");
@@ -306,7 +306,7 @@ void InputParameterTestSeries::MakeCredentialExcludeListTest() {
                                   "accept a valid credential descriptor");
 }
 
-void InputParameterTestSeries::MakeCredentialExtensionsTest() {
+void TestSeries::MakeCredentialExtensionsTest() {
   constexpr MakeCredentialParameters kKey =
       MakeCredentialParameters::kExtensions;
   std::string rp_id = absl::StrCat("make_parameter_extensions.example.com");
@@ -322,7 +322,7 @@ void InputParameterTestSeries::MakeCredentialExtensionsTest() {
   device_tracker_->CheckAndReport(response, "accept valid extension");
 }
 
-void InputParameterTestSeries::GetAssertionBadParameterTypesTest() {
+void TestSeries::GetAssertionBadParameterTypesTest() {
   std::string rp_id = "get_bad_types.example.com";
   cbor::Value credential_response = MakeTestCredential(rp_id, false);
   cbor::Value::BinaryValue credential_id =
@@ -346,7 +346,7 @@ void InputParameterTestSeries::GetAssertionBadParameterTypesTest() {
   TestBadParameterTypes(Command::kAuthenticatorGetAssertion, &full_builder);
 }
 
-void InputParameterTestSeries::GetAssertionMissingParameterTest() {
+void TestSeries::GetAssertionMissingParameterTest() {
   std::string rp_id = "get_missing.example.com";
   MakeTestCredential(rp_id, true);
 
@@ -356,7 +356,7 @@ void InputParameterTestSeries::GetAssertionMissingParameterTest() {
                         &missing_required_builder);
 }
 
-void InputParameterTestSeries::GetAssertionAllowListTest() {
+void TestSeries::GetAssertionAllowListCredentialDescriptorTest() {
   constexpr GetAssertionParameters kKey = GetAssertionParameters::kAllowList;
   std::string rp_id = absl::StrCat("get_parameter_allow_list.example.com");
   absl::variant<cbor::Value, Status> response;
@@ -388,7 +388,7 @@ void InputParameterTestSeries::GetAssertionAllowListTest() {
                                   "accept a valid credential descriptor");
 }
 
-void InputParameterTestSeries::GetAssertionExtensionsTest() {
+void TestSeries::GetAssertionExtensionsTest() {
   constexpr GetAssertionParameters kKey = GetAssertionParameters::kExtensions;
   std::string rp_id = absl::StrCat("get_parameter", kKey, ".example.com");
   absl::variant<cbor::Value, Status> response;
@@ -407,14 +407,14 @@ void InputParameterTestSeries::GetAssertionExtensionsTest() {
   device_tracker_->CheckAndReport(response, "accept a valid extension");
 }
 
-void InputParameterTestSeries::ClientPinGetPinRetriesTest() {
+void TestSeries::ClientPinGetPinRetriesTest() {
   AuthenticatorClientPinCborBuilder pin1_builder;
   pin1_builder.AddDefaultsForGetPinRetries();
   TestBadParameterTypes(Command::kAuthenticatorClientPIN, &pin1_builder);
   TestMissingParameters(Command::kAuthenticatorClientPIN, &pin1_builder);
 }
 
-void InputParameterTestSeries::ClientPinGetKeyAgreementTest() {
+void TestSeries::ClientPinGetKeyAgreementTest() {
   // crypto_utility enforces that the COSE key map only has the correct entries.
   AuthenticatorClientPinCborBuilder pin2_builder;
   pin2_builder.AddDefaultsForGetKeyAgreement();
@@ -422,7 +422,7 @@ void InputParameterTestSeries::ClientPinGetKeyAgreementTest() {
   TestMissingParameters(Command::kAuthenticatorClientPIN, &pin2_builder);
 }
 
-void InputParameterTestSeries::ClientPinSetPinTest() {
+void TestSeries::ClientPinSetPinTest() {
   AuthenticatorClientPinCborBuilder pin3_builder;
   pin3_builder.AddDefaultsForSetPin(cose_key_example_,
                                     cbor::Value::BinaryValue(),
@@ -431,7 +431,7 @@ void InputParameterTestSeries::ClientPinSetPinTest() {
   TestMissingParameters(Command::kAuthenticatorClientPIN, &pin3_builder);
 }
 
-void InputParameterTestSeries::ClientPinChangePinTest() {
+void TestSeries::ClientPinChangePinTest() {
   AuthenticatorClientPinCborBuilder pin4_builder;
   pin4_builder.AddDefaultsForChangePin(
       cose_key_example_, cbor::Value::BinaryValue(), cbor::Value::BinaryValue(),
@@ -440,7 +440,7 @@ void InputParameterTestSeries::ClientPinChangePinTest() {
   TestMissingParameters(Command::kAuthenticatorClientPIN, &pin4_builder);
 }
 
-void InputParameterTestSeries::ClientPinGetPinUvAuthTokenUsingPinTest() {
+void TestSeries::ClientPinGetPinUvAuthTokenUsingPinTest() {
   AuthenticatorClientPinCborBuilder pin5_builder;
   pin5_builder.AddDefaultsForGetPinUvAuthTokenUsingPin(
       cose_key_example_, cbor::Value::BinaryValue());
@@ -448,7 +448,7 @@ void InputParameterTestSeries::ClientPinGetPinUvAuthTokenUsingPinTest() {
   TestMissingParameters(Command::kAuthenticatorClientPIN, &pin5_builder);
 }
 
-void InputParameterTestSeries::ClientPinGetPinUvAuthTokenUsingUvTest() {
+void TestSeries::ClientPinGetPinUvAuthTokenUsingUvTest() {
   if (!IsFido2Point1Complicant()) {
     return;
   }
@@ -458,7 +458,7 @@ void InputParameterTestSeries::ClientPinGetPinUvAuthTokenUsingUvTest() {
   TestMissingParameters(Command::kAuthenticatorClientPIN, &pin6_builder);
 }
 
-void InputParameterTestSeries::ClientPinGetUVRetriesTest() {
+void TestSeries::ClientPinGetUVRetriesTest() {
   if (!IsFido2Point1Complicant()) {
     return;
   }
@@ -468,201 +468,7 @@ void InputParameterTestSeries::ClientPinGetUVRetriesTest() {
   TestMissingParameters(Command::kAuthenticatorClientPIN, &pin7_builder);
 }
 
-bool InputParameterTestSeries::IsFido2Point1Complicant() {
-  return device_tracker_->HasVersion("FIDO_2_1_PRE");
-}
-
-cbor::Value InputParameterTestSeries::MakeTestCredential(
-    const std::string& rp_id, bool use_residential_key) {
-  MakeCredentialCborBuilder test_builder;
-  test_builder.AddDefaultsForRequiredFields(rp_id);
-  test_builder.SetResidentialKeyOptions(use_residential_key);
-
-  absl::variant<cbor::Value, Status> response =
-      fido2_commands::MakeCredentialPositiveTest(device_, device_tracker_,
-                                                 test_builder.GetCbor());
-  AssertResponse(response, "make credential for further tests");
-  return std::move(absl::get<cbor::Value>(response));
-}
-
-void InputParameterTestSeries::TestBadParameterTypes(Command command,
-                                                     CborBuilder* builder) {
-  for (const auto& item : type_examples_) {
-    if (item.first != cbor::Value::Type::MAP) {
-      Status returned_status = fido2_commands::GenericNegativeTest(
-          device_, item.second, command, false);
-      device_tracker_->CheckAndReport(
-          Status::kErrCborUnexpectedType, returned_status,
-          absl::StrCat("bad type ", CborTypeToString(item.first), " in ",
-                       CommandToString(command), " for the request"));
-    }
-  }
-
-  const cbor::Value map_cbor = builder->GetCbor();
-  for (const auto& map_entry : map_cbor.GetMap()) {
-    auto map_key = map_entry.first.Clone();
-    CHECK(map_key.is_unsigned()) << "map key not integer - TEST SUITE BUG";
-    auto map_value = map_entry.second.Clone();
-
-    // Replace the map value with another of wrong type. Maps and arrays get
-    // additional tests.
-    for (const auto& item : type_examples_) {
-      if (item.second.is_integer() && map_value.is_integer()) {
-        continue;
-      }
-      if (!map_value.is_type(item.first)) {
-        builder->SetArbitraryMapEntry(map_key.GetInteger(),
-                                      item.second.Clone());
-        Status returned_status = fido2_commands::GenericNegativeTest(
-            device_, builder->GetCbor(), command, false);
-        device_tracker_->CheckAndReport(
-            Status::kErrCborUnexpectedType, returned_status,
-            absl::StrCat("bad type ", CborTypeToString(item.first), " in ",
-                         CommandToString(command), " for key ",
-                         map_key.GetInteger()));
-      }
-    }
-
-    if (map_value.is_map()) {
-      TestBadParametersInInnerMap(command, builder, map_key.GetInteger(),
-                                  map_value.GetMap(), false);
-    }
-
-    // Checking types for the first element (assuming all have the same type).
-    if (map_value.is_array()) {
-      const cbor::Value& element = map_value.GetArray()[0];
-      TestBadParametersInInnerArray(command, builder, map_key.GetInteger(),
-                                    element);
-
-      if (element.is_map()) {
-        TestBadParametersInInnerMap(command, builder, map_key.GetInteger(),
-                                    element.GetMap(), true);
-      }
-    }
-
-    // Undo calls to builder->SetArbitraryMapEntry (including sub-functions).
-    builder->SetArbitraryMapEntry(std::move(map_key), std::move(map_value));
-  }
-}
-
-void InputParameterTestSeries::TestMissingParameters(Command command,
-                                                     CborBuilder* builder) {
-  const cbor::Value map_cbor = builder->GetCbor();
-  for (const auto& parameter : map_cbor.GetMap()) {
-    auto map_key = parameter.first.Clone();
-    auto map_value = parameter.second.Clone();
-    builder->RemoveArbitraryMapEntry(map_key.Clone());
-    Status returned_status = fido2_commands::GenericNegativeTest(
-        device_, builder->GetCbor(), command, false);
-    device_tracker_->CheckAndReport(
-        Status::kErrMissingParameter, returned_status,
-        absl::StrCat("missing ", CborToString("key", map_key), " for command ",
-                     CommandToString(command)));
-    builder->SetArbitraryMapEntry(std::move(map_key), std::move(map_value));
-  }
-}
-
-void InputParameterTestSeries::TestBadParametersInInnerMap(
-    Command command, CborBuilder* builder, int outer_map_key,
-    const cbor::Value::MapValue& inner_map, bool has_wrapping_array) {
-  cbor::Value::MapValue test_map;
-  for (const auto& inner_entry : inner_map) {
-    test_map[inner_entry.first.Clone()] = inner_entry.second.Clone();
-  }
-  for (const auto& inner_entry : inner_map) {
-    auto inner_key = inner_entry.first.Clone();
-    auto inner_value = inner_entry.second.Clone();
-
-    for (const auto& item : type_examples_) {
-      if (item.second.is_integer() && inner_value.is_integer()) {
-        continue;
-      }
-      if (!inner_value.is_type(item.first)) {
-        test_map[inner_key.Clone()] = item.second.Clone();
-        if (has_wrapping_array) {
-          cbor::Value::ArrayValue test_array;
-          test_array.push_back(cbor::Value(test_map));
-          builder->SetArbitraryMapEntry(outer_map_key, cbor::Value(test_array));
-        } else {
-          builder->SetArbitraryMapEntry(outer_map_key, cbor::Value(test_map));
-        }
-        Status returned_status = fido2_commands::GenericNegativeTest(
-            device_, builder->GetCbor(), command, false);
-        device_tracker_->CheckAndReport(
-            Status::kErrCborUnexpectedType, returned_status,
-            absl::StrCat("bad type ", CborTypeToString(item.first), " in ",
-                         CommandToString(command), " in ",
-                         CborToString("inner key", inner_key),
-                         " in array at map key ", outer_map_key));
-      }
-    }
-    test_map[std::move(inner_key)] = std::move(inner_value);
-  }
-}
-
-void InputParameterTestSeries::TestBadParametersInInnerArray(
-    Command command, CborBuilder* builder, int outer_map_key,
-    const cbor::Value& array_element) {
-  for (const auto& item : type_examples_) {
-    if (item.second.is_integer() && array_element.is_integer()) {
-      continue;
-    }
-    if (!array_element.is_type(item.first)) {
-      cbor::Value::ArrayValue test_array;
-      test_array.push_back(array_element.Clone());
-      test_array.push_back(item.second.Clone());
-      builder->SetArbitraryMapEntry(outer_map_key, cbor::Value(test_array));
-      Status returned_status = fido2_commands::GenericNegativeTest(
-          device_, builder->GetCbor(), command, false);
-      device_tracker_->CheckAndReport(
-          Status::kErrCborUnexpectedType, returned_status,
-          absl::StrCat("bad type ", CborTypeToString(item.first), " in ",
-                       CommandToString(command),
-                       " in array element at map key ", outer_map_key));
-    }
-  }
-}
-
-void InputParameterTestSeries::TestCredentialDescriptorsArrayForCborDepth(
-    Command command, CborBuilder* builder, int map_key,
-    const std::string& rp_id) {
-  Status returned_status;
-  absl::variant<cbor::Value, Status> response;
-
-  cbor::Value::BinaryValue cred_descriptor_id(32, 0xce);
-  for (const auto& item : type_examples_) {
-    if (item.first == cbor::Value::Type::ARRAY ||
-        item.first == cbor::Value::Type::MAP) {
-      cbor::Value::ArrayValue credential_descriptor_list;
-      cbor::Value::MapValue test_cred_descriptor;
-      test_cred_descriptor[cbor::Value("type")] = cbor::Value("public-key");
-      test_cred_descriptor[cbor::Value("id")] = cbor::Value(cred_descriptor_id);
-      cbor::Value::ArrayValue transports;
-      transports.push_back(cbor::Value("usb"));
-      transports.push_back(item.second.Clone());
-      test_cred_descriptor[cbor::Value("transports")] = cbor::Value(transports);
-      credential_descriptor_list.push_back(cbor::Value(test_cred_descriptor));
-      builder->SetArbitraryMapEntry(map_key,
-                                    cbor::Value(credential_descriptor_list));
-      returned_status = fido2_commands::GenericNegativeTest(
-          device_, builder->GetCbor(), command, false);
-      device_tracker_->CheckAndReport(
-          Status::kErrInvalidCbor, returned_status,
-          absl::StrCat("maximum CBOR nesting depth exceeded with ",
-                       CborTypeToString(item.first),
-                       " in credential descriptor transport list item in ",
-                       CommandToString(command), " for key ", map_key));
-    }
-  }
-}
-
-SpecificationProcedure::SpecificationProcedure(DeviceInterface* device,
-                                               DeviceTracker* device_tracker)
-    : device_(device),
-      device_tracker_(device_tracker),
-      bad_pin_({0x66, 0x61, 0x6B, 0x65}) {}
-
-void SpecificationProcedure::MakeCredentialExcludeListTest() {
+void TestSeries::MakeCredentialExcludeListTest() {
   std::string rp_id = "exclude.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
@@ -698,7 +504,7 @@ void SpecificationProcedure::MakeCredentialExcludeListTest() {
       response, "make a credential for an unrelated relying party");
 }
 
-void SpecificationProcedure::MakeCredentialCoseAlgorithmTest() {
+void TestSeries::MakeCredentialCoseAlgorithmTest() {
   std::string rp_id = "algorithm.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
@@ -759,7 +565,7 @@ void SpecificationProcedure::MakeCredentialCoseAlgorithmTest() {
       response, "accept credential parameter list with 1 good and 1 bad item");
 }
 
-void SpecificationProcedure::MakeCredentialOptionsTest() {
+void TestSeries::MakeCredentialOptionsTest() {
   std::string rp_id = "options.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
@@ -832,7 +638,7 @@ void SpecificationProcedure::MakeCredentialOptionsTest() {
   device_tracker_->CheckAndReport(response, "ignore unknown options");
 }
 
-void SpecificationProcedure::MakeCredentialPinAuthTest() {
+void TestSeries::MakeCredentialPinAuthTest() {
   std::string rp_id = "pinauth.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
@@ -917,8 +723,7 @@ void SpecificationProcedure::MakeCredentialPinAuthTest() {
   Reset();
 }
 
-void SpecificationProcedure::MakeCredentialMultipleKeysTest(
-    int num_credentials) {
+void TestSeries::MakeCredentialMultipleKeysTest(int num_credentials) {
   std::string rp_id = "multiple_keys.example.com";
   Status returned_status;
 
@@ -957,7 +762,7 @@ void SpecificationProcedure::MakeCredentialMultipleKeysTest(
   Reset();
 }
 
-void SpecificationProcedure::MakeCredentialPhysicalPresenceTest() {
+void TestSeries::MakeCredentialPhysicalPresenceTest() {
   // Currently, devices with displays are not supported.
   std::string rp_id = "presence.example.com";
   Status returned_status;
@@ -984,7 +789,7 @@ void SpecificationProcedure::MakeCredentialPhysicalPresenceTest() {
                                   "the asserted credential shouldn't exist");
 }
 
-void SpecificationProcedure::MakeCredentialDisplayNameEncodingTest() {
+void TestSeries::MakeCredentialDisplayNameEncodingTest() {
   std::string rp_id = "displayname.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
@@ -1046,7 +851,7 @@ void SpecificationProcedure::MakeCredentialDisplayNameEncodingTest() {
   }
 }
 
-void SpecificationProcedure::MakeCredentialHmacSecretTest() {
+void TestSeries::MakeCredentialHmacSecretTest() {
   if (!device_tracker_->HasExtension("hmac-secret")) {
     return;
   }
@@ -1068,7 +873,7 @@ void SpecificationProcedure::MakeCredentialHmacSecretTest() {
                                   "make credential with HMAC-secret extension");
 }
 
-void SpecificationProcedure::GetAssertionOptionsTest() {
+void TestSeries::GetAssertionOptionsTest() {
   std::string rp_id = "options.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
@@ -1146,7 +951,7 @@ void SpecificationProcedure::GetAssertionOptionsTest() {
   device_tracker_->CheckAndReport(response, "ignore unknown options");
 }
 
-void SpecificationProcedure::GetAssertionResidentialKeyTest() {
+void TestSeries::GetAssertionResidentialKeyTest() {
   std::string rp_id = "residential.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
@@ -1193,7 +998,7 @@ void SpecificationProcedure::GetAssertionResidentialKeyTest() {
                                   "this credential ID is fake");
 }
 
-void SpecificationProcedure::GetAssertionPinAuthTest() {
+void TestSeries::GetAssertionPinAuthTest() {
   std::string rp_id = "pinauth.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
@@ -1271,7 +1076,7 @@ void SpecificationProcedure::GetAssertionPinAuthTest() {
   Reset();
 }
 
-void SpecificationProcedure::GetAssertionPhysicalPresenceTest() {
+void TestSeries::GetAssertionPhysicalPresenceTest() {
   // Currently, devices with displays are not supported.
   std::string rp_id = "presence.example.com";
   Status returned_status;
@@ -1295,7 +1100,7 @@ void SpecificationProcedure::GetAssertionPhysicalPresenceTest() {
 
 // TODO(kaczmarczyck) check returned signature crypto
 
-void SpecificationProcedure::GetInfoTest() {
+void TestSeries::GetInfoTest() {
   absl::variant<cbor::Value, Status> response =
       fido2_commands::GetInfoPositiveTest(device_, device_tracker_);
   AssertResponse(response, "correct GetInfo response");
@@ -1348,7 +1153,7 @@ void SpecificationProcedure::GetInfoTest() {
       "support of PIN protocol version 1 is expected in this test suite");
 }
 
-void SpecificationProcedure::ClientPinRequirementsTest() {
+void TestSeries::ClientPinRequirementsTest() {
   Status returned_status;
 
   cbor::Value::BinaryValue too_short_pin_utf8 = {0x31, 0x32, 0x33};
@@ -1408,7 +1213,7 @@ void SpecificationProcedure::ClientPinRequirementsTest() {
   CheckPinByGetAuthToken();
 }
 
-void SpecificationProcedure::ClientPinRequirements2Point1Test() {
+void TestSeries::ClientPinRequirements2Point1Test() {
   if (!IsFido2Point1Complicant()) {
     return;
   }
@@ -1458,7 +1263,7 @@ void SpecificationProcedure::ClientPinRequirements2Point1Test() {
   CheckPinByGetAuthToken();
 }
 
-void SpecificationProcedure::ClientPinRetriesTest() {
+void TestSeries::ClientPinRetriesTest() {
   Status returned_status;
   Reset();
 
@@ -1555,7 +1360,7 @@ void SpecificationProcedure::ClientPinRetriesTest() {
   // TODO(kaczmarczyck) check optional powerCycleState
 }
 
-void SpecificationProcedure::Reset() {
+void TestSeries::Reset() {
   std::cout << "You have 10 seconds for the next touch after pressing enter.\n";
   PromptReplugAndInit();
   absl::variant<cbor::Value, Status> response =
@@ -1568,7 +1373,7 @@ void SpecificationProcedure::Reset() {
   auth_token_ = cbor::Value::BinaryValue();
 }
 
-void SpecificationProcedure::ResetDeletionTest() {
+void TestSeries::ResetDeletionTest() {
   std::string rp_id = "reset.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
@@ -1623,7 +1428,7 @@ void SpecificationProcedure::ResetDeletionTest() {
   Reset();
 }
 
-void SpecificationProcedure::ResetPhysicalPresenceTest() {
+void TestSeries::ResetPhysicalPresenceTest() {
   // Currently, devices with displays are not supported.
   std::string rp_id = "presence.example.com";
   Status returned_status;
@@ -1654,7 +1459,7 @@ void SpecificationProcedure::ResetPhysicalPresenceTest() {
       "reset not allowed more than 10 seconds after plugging in");
 }
 
-void SpecificationProcedure::PersistenceTest() {
+void TestSeries::PersistenceTest() {
   std::string rp_id = "persistence.example.com";
   absl::variant<cbor::Value, Status> response;
 
@@ -1690,7 +1495,7 @@ void SpecificationProcedure::PersistenceTest() {
   Reset();
 }
 
-void SpecificationProcedure::PromptReplugAndInit() {
+void TestSeries::PromptReplugAndInit() {
   std::cout << "Please replug the device, then hit enter." << std::endl;
   std::cin.ignore();
   CHECK(fido2_tests::Status::kErrNone == device_->Init())
@@ -1701,12 +1506,12 @@ void SpecificationProcedure::PromptReplugAndInit() {
   auth_token_ = cbor::Value::BinaryValue();
 }
 
-bool SpecificationProcedure::IsFido2Point1Complicant() {
+bool TestSeries::IsFido2Point1Complicant() {
   return device_tracker_->HasVersion("FIDO_2_1_PRE");
 }
 
-cbor::Value SpecificationProcedure::MakeTestCredential(
-    const std::string& rp_id, bool use_residential_key) {
+cbor::Value TestSeries::MakeTestCredential(const std::string& rp_id,
+                                           bool use_residential_key) {
   MakeCredentialCborBuilder test_builder;
   test_builder.AddDefaultsForRequiredFields(rp_id);
   test_builder.SetResidentialKeyOptions(use_residential_key);
@@ -1722,7 +1527,176 @@ cbor::Value SpecificationProcedure::MakeTestCredential(
   return std::move(absl::get<cbor::Value>(response));
 }
 
-int SpecificationProcedure::GetPinRetries() {
+void TestSeries::TestBadParameterTypes(Command command, CborBuilder* builder) {
+  for (const auto& item : type_examples_) {
+    if (item.first != cbor::Value::Type::MAP) {
+      Status returned_status = fido2_commands::GenericNegativeTest(
+          device_, item.second, command, false);
+      device_tracker_->CheckAndReport(
+          Status::kErrCborUnexpectedType, returned_status,
+          absl::StrCat("bad type ", CborTypeToString(item.first), " in ",
+                       CommandToString(command), " for the request"));
+    }
+  }
+
+  const cbor::Value map_cbor = builder->GetCbor();
+  for (const auto& map_entry : map_cbor.GetMap()) {
+    auto map_key = map_entry.first.Clone();
+    CHECK(map_key.is_unsigned()) << "map key not integer - TEST SUITE BUG";
+    auto map_value = map_entry.second.Clone();
+
+    // Replace the map value with another of wrong type. Maps and arrays get
+    // additional tests.
+    for (const auto& item : type_examples_) {
+      if (item.second.is_integer() && map_value.is_integer()) {
+        continue;
+      }
+      if (!map_value.is_type(item.first)) {
+        builder->SetArbitraryMapEntry(map_key.GetInteger(),
+                                      item.second.Clone());
+        Status returned_status = fido2_commands::GenericNegativeTest(
+            device_, builder->GetCbor(), command, false);
+        device_tracker_->CheckAndReport(
+            Status::kErrCborUnexpectedType, returned_status,
+            absl::StrCat("bad type ", CborTypeToString(item.first), " in ",
+                         CommandToString(command), " for key ",
+                         map_key.GetInteger()));
+      }
+    }
+
+    if (map_value.is_map()) {
+      TestBadParametersInInnerMap(command, builder, map_key.GetInteger(),
+                                  map_value.GetMap(), false);
+    }
+
+    // Checking types for the first element (assuming all have the same type).
+    if (map_value.is_array()) {
+      const cbor::Value& element = map_value.GetArray()[0];
+      TestBadParametersInInnerArray(command, builder, map_key.GetInteger(),
+                                    element);
+
+      if (element.is_map()) {
+        TestBadParametersInInnerMap(command, builder, map_key.GetInteger(),
+                                    element.GetMap(), true);
+      }
+    }
+
+    // Undo calls to builder->SetArbitraryMapEntry (including sub-functions).
+    builder->SetArbitraryMapEntry(std::move(map_key), std::move(map_value));
+  }
+}
+
+void TestSeries::TestMissingParameters(Command command, CborBuilder* builder) {
+  const cbor::Value map_cbor = builder->GetCbor();
+  for (const auto& parameter : map_cbor.GetMap()) {
+    auto map_key = parameter.first.Clone();
+    auto map_value = parameter.second.Clone();
+    builder->RemoveArbitraryMapEntry(map_key.Clone());
+    Status returned_status = fido2_commands::GenericNegativeTest(
+        device_, builder->GetCbor(), command, false);
+    device_tracker_->CheckAndReport(
+        Status::kErrMissingParameter, returned_status,
+        absl::StrCat("missing ", CborToString("key", map_key), " for command ",
+                     CommandToString(command)));
+    builder->SetArbitraryMapEntry(std::move(map_key), std::move(map_value));
+  }
+}
+
+void TestSeries::TestBadParametersInInnerMap(
+    Command command, CborBuilder* builder, int outer_map_key,
+    const cbor::Value::MapValue& inner_map, bool has_wrapping_array) {
+  cbor::Value::MapValue test_map;
+  for (const auto& inner_entry : inner_map) {
+    test_map[inner_entry.first.Clone()] = inner_entry.second.Clone();
+  }
+  for (const auto& inner_entry : inner_map) {
+    auto inner_key = inner_entry.first.Clone();
+    auto inner_value = inner_entry.second.Clone();
+
+    for (const auto& item : type_examples_) {
+      if (item.second.is_integer() && inner_value.is_integer()) {
+        continue;
+      }
+      if (!inner_value.is_type(item.first)) {
+        test_map[inner_key.Clone()] = item.second.Clone();
+        if (has_wrapping_array) {
+          cbor::Value::ArrayValue test_array;
+          test_array.push_back(cbor::Value(test_map));
+          builder->SetArbitraryMapEntry(outer_map_key, cbor::Value(test_array));
+        } else {
+          builder->SetArbitraryMapEntry(outer_map_key, cbor::Value(test_map));
+        }
+        Status returned_status = fido2_commands::GenericNegativeTest(
+            device_, builder->GetCbor(), command, false);
+        device_tracker_->CheckAndReport(
+            Status::kErrCborUnexpectedType, returned_status,
+            absl::StrCat("bad type ", CborTypeToString(item.first), " in ",
+                         CommandToString(command), " in ",
+                         CborToString("inner key", inner_key),
+                         " in array at map key ", outer_map_key));
+      }
+    }
+    test_map[std::move(inner_key)] = std::move(inner_value);
+  }
+}
+
+void TestSeries::TestBadParametersInInnerArray(
+    Command command, CborBuilder* builder, int outer_map_key,
+    const cbor::Value& array_element) {
+  for (const auto& item : type_examples_) {
+    if (item.second.is_integer() && array_element.is_integer()) {
+      continue;
+    }
+    if (!array_element.is_type(item.first)) {
+      cbor::Value::ArrayValue test_array;
+      test_array.push_back(array_element.Clone());
+      test_array.push_back(item.second.Clone());
+      builder->SetArbitraryMapEntry(outer_map_key, cbor::Value(test_array));
+      Status returned_status = fido2_commands::GenericNegativeTest(
+          device_, builder->GetCbor(), command, false);
+      device_tracker_->CheckAndReport(
+          Status::kErrCborUnexpectedType, returned_status,
+          absl::StrCat("bad type ", CborTypeToString(item.first), " in ",
+                       CommandToString(command),
+                       " in array element at map key ", outer_map_key));
+    }
+  }
+}
+
+void TestSeries::TestCredentialDescriptorsArrayForCborDepth(
+    Command command, CborBuilder* builder, int map_key,
+    const std::string& rp_id) {
+  Status returned_status;
+  absl::variant<cbor::Value, Status> response;
+
+  cbor::Value::BinaryValue cred_descriptor_id(32, 0xce);
+  for (const auto& item : type_examples_) {
+    if (item.first == cbor::Value::Type::ARRAY ||
+        item.first == cbor::Value::Type::MAP) {
+      cbor::Value::ArrayValue credential_descriptor_list;
+      cbor::Value::MapValue test_cred_descriptor;
+      test_cred_descriptor[cbor::Value("type")] = cbor::Value("public-key");
+      test_cred_descriptor[cbor::Value("id")] = cbor::Value(cred_descriptor_id);
+      cbor::Value::ArrayValue transports;
+      transports.push_back(cbor::Value("usb"));
+      transports.push_back(item.second.Clone());
+      test_cred_descriptor[cbor::Value("transports")] = cbor::Value(transports);
+      credential_descriptor_list.push_back(cbor::Value(test_cred_descriptor));
+      builder->SetArbitraryMapEntry(map_key,
+                                    cbor::Value(credential_descriptor_list));
+      returned_status = fido2_commands::GenericNegativeTest(
+          device_, builder->GetCbor(), command, false);
+      device_tracker_->CheckAndReport(
+          Status::kErrInvalidCbor, returned_status,
+          absl::StrCat("maximum CBOR nesting depth exceeded with ",
+                       CborTypeToString(item.first),
+                       " in credential descriptor transport list item in ",
+                       CommandToString(command), " for key ", map_key));
+    }
+  }
+}
+
+int TestSeries::GetPinRetries() {
   AuthenticatorClientPinCborBuilder get_retries_builder;
   get_retries_builder.AddDefaultsForGetPinRetries();
   absl::variant<cbor::Value, Status> response =
@@ -1739,7 +1713,7 @@ int SpecificationProcedure::GetPinRetries() {
   return ExtractPinRetries(absl::get<cbor::Value>(response));
 }
 
-void SpecificationProcedure::ComputeSharedSecret() {
+void TestSeries::ComputeSharedSecret() {
   AuthenticatorClientPinCborBuilder key_agreement_builder;
   key_agreement_builder.AddDefaultsForGetKeyAgreement();
   absl::variant<cbor::Value, Status> key_response =
@@ -1758,8 +1732,7 @@ void SpecificationProcedure::ComputeSharedSecret() {
       map_iter->second.GetMap(), &platform_cose_key_);
 }
 
-void SpecificationProcedure::SetPin(
-    const cbor::Value::BinaryValue& new_pin_utf8) {
+void TestSeries::SetPin(const cbor::Value::BinaryValue& new_pin_utf8) {
   if (platform_cose_key_.empty() || shared_secret_.empty()) {
     ComputeSharedSecret();
   }
@@ -1790,7 +1763,7 @@ void SpecificationProcedure::SetPin(
   PrintByteVector(new_pin_utf8);
 }
 
-Status SpecificationProcedure::AttemptSetPin(
+Status TestSeries::AttemptSetPin(
     const cbor::Value::BinaryValue& new_padded_pin) {
   if (platform_cose_key_.empty() || shared_secret_.empty()) {
     ComputeSharedSecret();
@@ -1808,8 +1781,7 @@ Status SpecificationProcedure::AttemptSetPin(
       device_, set_pin_builder.GetCbor(), false);
 }
 
-void SpecificationProcedure::ChangePin(
-    const cbor::Value::BinaryValue& new_pin_utf8) {
+void TestSeries::ChangePin(const cbor::Value::BinaryValue& new_pin_utf8) {
   SetPin();
   CHECK(new_pin_utf8.size() >= 4 && new_pin_utf8.size() <= 63)
       << "PIN requirements not fulfilled - TEST SUITE BUG";
@@ -1839,7 +1811,7 @@ void SpecificationProcedure::ChangePin(
   PrintByteVector(new_pin_utf8);
 }
 
-Status SpecificationProcedure::AttemptChangePin(
+Status TestSeries::AttemptChangePin(
     const cbor::Value::BinaryValue& new_padded_pin) {
   SetPin();
 
@@ -1862,7 +1834,7 @@ Status SpecificationProcedure::AttemptChangePin(
   return returned_status;
 }
 
-void SpecificationProcedure::GetAuthToken() {
+void TestSeries::GetAuthToken() {
   SetPin();
 
   AuthenticatorClientPinCborBuilder pin_token_builder;
@@ -1883,8 +1855,8 @@ void SpecificationProcedure::GetAuthToken() {
       crypto_utility::Aes256CbcDecrypt(shared_secret_, encrypted_token);
 }
 
-Status SpecificationProcedure::AttemptGetAuthToken(
-    const cbor::Value::BinaryValue& pin_utf8, bool redo_key_agreement) {
+Status TestSeries::AttemptGetAuthToken(const cbor::Value::BinaryValue& pin_utf8,
+                                       bool redo_key_agreement) {
   SetPin();
 
   AuthenticatorClientPinCborBuilder pin_token_builder;
@@ -1902,7 +1874,7 @@ Status SpecificationProcedure::AttemptGetAuthToken(
   return returned_status;
 }
 
-void SpecificationProcedure::CheckPinByGetAuthToken() {
+void TestSeries::CheckPinByGetAuthToken() {
   AuthenticatorClientPinCborBuilder pin_token_builder;
   cbor::Value::BinaryValue pin_hash_enc = crypto_utility::Aes256CbcEncrypt(
       shared_secret_, crypto_utility::LeftSha256Hash(pin_utf8_));
@@ -1918,7 +1890,7 @@ void SpecificationProcedure::CheckPinByGetAuthToken() {
   ComputeSharedSecret();
 }
 
-void SpecificationProcedure::CheckPinAbsenceByMakeCredential() {
+void TestSeries::CheckPinAbsenceByMakeCredential() {
   MakeCredentialCborBuilder pin_test_builder;
   pin_test_builder.AddDefaultsForRequiredFields("pin_absence.example.com");
 
