@@ -190,7 +190,7 @@ void DeviceTracker::ReportFindings() const {
 }
 
 nlohmann::json DeviceTracker::GenerateResultsJson(
-    std::string_view time_string) {
+    std::string_view commit_hash, std::string_view time_string) {
   int successful_test_count = successful_tests_.size();
   int failed_test_count = failed_tests_.size();
   int test_count = successful_test_count + failed_test_count;
@@ -203,11 +203,12 @@ nlohmann::json DeviceTracker::GenerateResultsJson(
       {"observations", observations_},
       {"counter", counter_checker_.ReportFindings()},
       {"date", time_string},
+      {"commit", commit_hash},
   };
   return results;
 }
 
-void DeviceTracker::SaveResultsToFile() {
+void DeviceTracker::SaveResultsToFile(std::string_view commit_hash) {
   absl::Time now = absl::Now();
   absl::TimeZone local = absl::LocalTimeZone();
   std::string time_string = absl::FormatTime("%Y-%m-%d", now, local);
@@ -218,7 +219,8 @@ void DeviceTracker::SaveResultsToFile() {
   results_file.open(results_path);
   CHECK(results_file.is_open()) << "Unable to open file: " << results_path;
 
-  results_file << std::setw(2) << GenerateResultsJson(time_string) << std::endl;
+  results_file << std::setw(2) << GenerateResultsJson(commit_hash, time_string)
+               << std::endl;
 }
 
 }  // namespace fido2_tests

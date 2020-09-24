@@ -78,12 +78,13 @@ class DeviceTracker {
   // observations, problems and tests.
   void ReportFindings() const;
   // Generates a JSON object with test results.
-  nlohmann::json GenerateResultsJson(std::string_view time_string);
+  nlohmann::json GenerateResultsJson(std::string_view commit_hash,
+                                     std::string_view time_string);
   // Saves the results to a JSON file. Creates a "results" directory, if
   // necessary. The file name will be derived from the product name as listed
   // through HID, or a default if none is found. Overwrites existing files of
   // the same name.
-  void SaveResultsToFile();
+  void SaveResultsToFile(std::string_view commit_hash);
 
  private:
   KeyChecker key_checker_;

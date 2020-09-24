@@ -26,6 +26,9 @@ DEFINE_string(
     token_path, "",
     "The path to the device on your operating system, usually /dev/hidraw*.");
 
+DEFINE_string(commit_hash, "",
+              "The reported commit hash, logged in the JSON output.");
+
 DEFINE_bool(verbose, false, "Printing debug logs, i.e. transmitted packets.");
 
 DEFINE_int32(num_credentials, 50,
@@ -44,6 +47,17 @@ int main(int argc, char** argv) {
               << std::endl;
     fido2_tests::hid::PrintFidoDevices();
     exit(0);
+  }
+
+  if (FLAGS_token_path == "_") {
+    // This magic value is used by the run script for comfort.
+    FLAGS_token_path = fido2_tests::hid::FindFidoDevicePath();
+    std::cout << "Testing device at path: " << FLAGS_token_path << std::endl;
+  }
+
+  if (FLAGS_commit_hash.empty()) {
+    std::cout << "No commit hash passed, please add the --commit_hash flag or "
+              << "manually add the commit to your report." << std::endl;
   }
 
   fido2_tests::DeviceTracker tracker;
@@ -112,5 +126,5 @@ int main(int argc, char** argv) {
 
   std::cout << "\nRESULTS" << std::endl;
   tracker.ReportFindings();
-  tracker.SaveResultsToFile();
+  tracker.SaveResultsToFile(FLAGS_commit_hash);
 }
