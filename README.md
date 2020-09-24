@@ -23,9 +23,8 @@ using git.
 ### How to run
 
 Running the tool without comments lists all avaiable devices. Select the device
-you want to test by passing `--token_path`. To document the test tool version
-you ran, pass `--commit_hash`. If you only have one CTAP2 compatible device
-plugged in, you can simply run:
+you want to test by passing `--token_path`. If only one CTAP2 compatible device
+is plugged in, you can simply run:
 
 ```shell
 ./run.sh
@@ -35,8 +34,7 @@ For more control, try i.e.:
 
 ```shell
 bazel run //:fido2_conformance
-bazel run //:fido2_conformance -- --token_path=/dev/hidraw0 \
-    --commit_hash="$(git rev-parse HEAD)"
+bazel run //:fido2_conformance -- --token_path=/dev/hidraw0
 ```
 
 :warning: Please do not plug in other security keys with the same product ID, or

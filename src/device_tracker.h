@@ -83,8 +83,8 @@ class DeviceTracker {
   // Saves the results to a JSON file. Creates a "results" directory, if
   // necessary. The file name will be derived from the product name as listed
   // through HID, or a default if none is found. Overwrites existing files of
-  // the same name.
-  void SaveResultsToFile(std::string_view commit_hash);
+  // the same name. The commit is stamped into the binary and read here.
+  void SaveResultsToFile();
 
  private:
   KeyChecker key_checker_;

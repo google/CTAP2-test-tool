@@ -15,6 +15,6 @@
 
 # The underscore is the magic path that uses the first device found. You can
 # also pass the desired path as a command line argument.
-path=${1:-_}
-bazel run //:fido2_conformance -- --token_path="$path"
+
+echo BUILD_SCM_REVISION  $(git rev-parse HEAD)
 

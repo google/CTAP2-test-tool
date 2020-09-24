@@ -26,9 +26,6 @@ DEFINE_string(
     token_path, "",
     "The path to the device on your operating system, usually /dev/hidraw*.");
 
-DEFINE_string(commit_hash, "",
-              "The reported commit hash, logged in the JSON output.");
-
 DEFINE_bool(verbose, false, "Printing debug logs, i.e. transmitted packets.");
 
 DEFINE_int32(num_credentials, 50,
@@ -42,6 +39,7 @@ DEFINE_int32(num_credentials, 50,
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
+
   if (FLAGS_token_path.empty()) {
     std::cout << "Please add the --token_path flag for one of these devices:"
               << std::endl;
@@ -53,11 +51,6 @@ int main(int argc, char** argv) {
     // This magic value is used by the run script for comfort.
     FLAGS_token_path = fido2_tests::hid::FindFidoDevicePath();
     std::cout << "Testing device at path: " << FLAGS_token_path << std::endl;
-  }
-
-  if (FLAGS_commit_hash.empty()) {
-    std::cout << "No commit hash passed, please add the --commit_hash flag or "
-              << "manually add the commit to your report." << std::endl;
   }
 
   fido2_tests::DeviceTracker tracker;
@@ -126,5 +119,5 @@ int main(int argc, char** argv) {
 
   std::cout << "\nRESULTS" << std::endl;
   tracker.ReportFindings();
-  tracker.SaveResultsToFile(FLAGS_commit_hash);
+  tracker.SaveResultsToFile();
 }
