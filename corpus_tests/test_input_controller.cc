@@ -23,50 +23,79 @@
 
 namespace corpus_tests {
 
-TestInputController::TestInputController(std::string corpus_path)
-    : TestInputController(/* fuzzing = */ false, corpus_path) {}
-
-TestInputController::TestInputController(bool fuzzing, std::string corpus_path)
-    : fuzzing_(fuzzing), current_input_(corpus_path) {}
-
-bool TestInputController::InputAvailable() {
-  if (!fuzzing_) {
-    std::filesystem::directory_iterator end;
-    return current_input_ != end;
+void TestInputIterator::FindNextInput() {
+  std::filesystem::directory_iterator end;
+  while (current_input_ == end) {
+    ++current_subdirectory_;
+    if (current_subdirectory_ != end && current_subdirectory_->is_directory()) {
+      current_input_ = std::filesystem::directory_iterator(
+          current_subdirectory_->path().string());
+    } else if (current_subdirectory_ == end) {
+      // End of iterator.
+      break;
+    }
   }
-  return true;  // In fuzzing case, there is always input available.
 }
 
-void TestInputController::GetNextInput() { ++current_input_; }
-
-fido2_tests::Status TestInputController::RunCurrentInput(
-    fido2_tests::DeviceInterface* device) {
-  // Corpus testing.
-  if (!fuzzing_) {
-    std::ifstream file(current_input_->path(), std::ios::in | std::ios::binary);
-    std::vector<uint8_t> data((std::istreambuf_iterator<char>(file)),
-                              std::istreambuf_iterator<char>());
-
+InputType TestInputIterator::GetInputType() {
+  if (current_subdirectory_ != std::filesystem::directory_iterator()) {
     std::vector<absl::string_view> path_splits =
-        absl::StrSplit(current_input_->path().string(), '/');
-    std::vector<absl::string_view> current_input_name =
+        absl::StrSplit(current_subdirectory_->path().string(), '/');
+    std::vector<absl::string_view> current_subdirectory_name =
         absl::StrSplit(path_splits.back(), '_');
-    if (current_input_name.size() > 0 && current_input_name[0] == "cbor") {
-      std::vector<uint8_t> response;
-      // TODO(mingxguo): Complete cases. Replace default command with
-      // a random choice?
-      fido2_tests::Command command =
-          fido2_tests::Command::kAuthenticatorGetInfo;
-      if (current_input_name[1] == "makecredential") {
-        command = fido2_tests::Command::kAuthenticatorMakeCredential;
-      } else if (current_input_name[1] == "getassertion") {
-        command = fido2_tests::Command::kAuthenticatorGetAssertion;
+    if (current_subdirectory_name.size() > 0 &&
+        current_subdirectory_name[0] == "Cbor") {
+      if (current_subdirectory_name.size() > 1 &&
+          current_subdirectory_name[1] == "MakeCredentialParameters") {
+        return InputType::kCborMakeCredentialParameter;
+      } else if (current_subdirectory_name.size() > 1 &&
+                 current_subdirectory_name[1] == "GetAssertionParameters") {
+        return InputType::kCborGetAssertionParameter;
       }
-      return device->ExchangeCbor(command, data, false, &response);
     }
-    // TODO(mingxguo): other cases.
   }
-  // TODO(mingxguo): Fuzzing case
+  return InputType::kNotRecognized;
+}
+
+TestInputIterator::TestInputIterator(std::string_view corpus_path) {
+  current_subdirectory_ = std::filesystem::directory_iterator(corpus_path);
+  if (current_subdirectory_ != std::filesystem::directory_iterator() &&
+      current_subdirectory_->is_directory()) {
+    current_input_ = std::filesystem::directory_iterator(
+        current_subdirectory_->path().string());
+    FindNextInput();
+  }
+}
+
+bool TestInputIterator::HasNextInput() {
+  return current_input_ != std::filesystem::directory_iterator();
+}
+
+InputType TestInputIterator::GetNextInput(std::vector<uint8_t>& input_data) {
+  std::ifstream file(current_input_->path(), std::ios::in | std::ios::binary);
+  input_data = std::vector<uint8_t>((std::istreambuf_iterator<char>(file)),
+                                    std::istreambuf_iterator<char>());
+  InputType input_type = GetInputType();
+  ++current_input_;
+  FindNextInput();
+  return input_type;
+}
+
+fido2_tests::Status SendInput(fido2_tests::DeviceInterface* device,
+                              InputType input_type,
+                              std::vector<uint8_t> const& input) {
+  std::vector<uint8_t> response;
+  switch (input_type) {
+    case InputType::kCborMakeCredentialParameter:
+      return device->ExchangeCbor(fido2_tests::Command::kAuthenticatorGetInfo,
+                                  input, false, &response);
+    case InputType::kCborGetAssertionParameter:
+      return device->ExchangeCbor(
+          fido2_tests::Command::kAuthenticatorGetAssertion, input, false,
+          &response);
+    default:
+      return fido2_tests::Status::kErrOther;
+  }
 }
 
 }  // namespace corpus_tests

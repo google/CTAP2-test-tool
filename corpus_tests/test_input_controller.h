@@ -16,25 +16,48 @@
 #define TEST_INPUT_CONTROLLER_H_
 
 #include <filesystem>
+#include <vector>
 
 #include "src/device_interface.h"
 
 namespace corpus_tests {
 
-class TestInputController {
+// Possible input types.
+enum InputType {
+  kCborMakeCredentialParameter,
+  kCborGetAssertionParameter,
+  kNotRecognized,
+};
+
+// Sends input to the given device and returns the status code.
+fido2_tests::Status SendInput(fido2_tests::DeviceInterface* device,
+                              InputType input_type,
+                              std::vector<uint8_t> const& input);
+
+// Iterates input files from a given corpus.
+// We assume the corpus directory to contain subdirectories for
+// each type of inputs. For example, given directory /corpus,
+// all possible subdirectories are:
+//  /corpus/Cbor_MakeCredentialParameters/
+//  /corpus/Cbor_GetAssertionParameters/
+// (to be extended)
+// All files that are not a directory in the given corpus are ignored.
+class TestInputIterator {
  public:
-  TestInputController(std::string corpus_path);
-  TestInputController(bool fuzzing, std::string corpus_path);
-  // Returns whether there is an input available.
-  bool InputAvailable();
-  // Updates current input iterator.
-  void GetNextInput();
-  // Sends current input to the given device.
-  fido2_tests::Status RunCurrentInput(fido2_tests::DeviceInterface* device);
+  TestInputIterator(std::string_view corpus_path);
+  // Returns whether there is a next input available.
+  bool HasNextInput();
+  // Returns next input available and its type.
+  InputType GetNextInput(std::vector<uint8_t>& input_data);
 
  private:
-  // By default, when no corpus is given, enable fuzzing from zero.
-  bool fuzzing_ = true;
+  // Increments the current input pointer to the next non empty one
+  // (potentially skipping all empty subdirectories).
+  void FindNextInput();
+  // Returns current input's type depending on the current
+  // subdirectory it is contained in.
+  InputType GetInputType();
+  std::filesystem::directory_iterator current_subdirectory_;
   std::filesystem::directory_iterator current_input_;
 };
 
