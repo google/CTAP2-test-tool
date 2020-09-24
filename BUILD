@@ -80,6 +80,7 @@ cc_library(
         ":parameter_check",
         "//third_party/chromium_components_cbor:cbor",
         "@com_github_nlohmann_json//:json",
+        "@com_google_absl//absl/time",
     ],
 )
 
