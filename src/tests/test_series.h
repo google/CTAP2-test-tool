@@ -25,22 +25,25 @@
 
 namespace fido2_tests {
 
-// Systematically check all input parameters, if they follow the specification.
-// That includes enforcing the correct type of parameters, including members of
-// maps and arrays. It is very strict at checking unexpected additional
-// parameters, whenever the specification does not explicitly allow them. In
-// that case, it does not fail, but just prints a red message. The same goes for
-// checking optional parameters.
+// Contains tests for commands and input parameters. Commands tests usually
+// check all specified steps, and how the device acts then deviating from these
+// steps.
+// Input parameter tests strictly enforce correct type of parameters, including
+// members of maps and arrays. It is strict at checking unexpected additional
+// parameters, whenever the specification does not explicitly allow them.
+// In general, tests can also report observations or problems as side effects.
 // Example:
-//    fido2_tests::InputParameterTestSeries input_parameter_test_series =
-//        fido2_tests::InputParameterTestSeries(device, key_checker);
-//    input_parameter_test_series.MakeCredentialBadParameterTypesTest();
-class InputParameterTestSeries {
+//    fido2_tests::TestSeries test_series =
+//        fido2_tests::TestSeries(device, key_checker);
+//    test_series.MakeCredentialBadParameterTypesTest();
+class TestSeries {
  public:
-  // The ownership for device_tracker stays with the caller and must outlive
-  // the InputParameterTestSeries instance.
-  InputParameterTestSeries(DeviceInterface* device,
-                           DeviceTracker* device_tracker);
+  // The ownership for device and device_tracker stays with the caller and must
+  // outlive the TestSeries instance.
+  TestSeries(DeviceInterface* device, DeviceTracker* device_tracker);
+
+  // Tests for MakeCredential.
+
   // Check if MakeCredential accepts different CBOR types for its parameters.
   void MakeCredentialBadParameterTypesTest();
   // Check if MakeCredential accepts leaving out one of the required parameters.
@@ -50,17 +53,60 @@ class InputParameterTestSeries {
   // Check the optional map entries of the user entity.
   void MakeCredentialUserEntityTest();
   // Check the inner array transport elements of the exclude list.
-  void MakeCredentialExcludeListTest();
+  void MakeCredentialExcludeListCredentialDescriptorTest();
   // Check if unknown extensions are accepted.
   void MakeCredentialExtensionsTest();
+  // Tests if the authenticator checks the exclude list properly.
+  void MakeCredentialExcludeListTest();
+  // Tests correct behavior with different COSE algorithms. Tests non-existing
+  // algorithm identifier and type.
+  void MakeCredentialCoseAlgorithmTest();
+  // Tests correct behavior when setting rk, up and uv.
+  void MakeCredentialOptionsTest();
+  // Tests if the PIN is correctly enforced. Resets afterwards to unset the PIN.
+  void MakeCredentialPinAuthTest();
+  // Tests correct behavior when creating multiple keys. This test attempts to
+  // create num_credentials credentials, stopping before that if the internal
+  // key store is full. It resets afterwards to clear the storage.
+  void MakeCredentialMultipleKeysTest(int num_credentials);
+  // Tests if the key hardware actually interacts with a user. This test can not
+  // be performed automatically, but requires tester feedback.
+  void MakeCredentialPhysicalPresenceTest();
+  // Tests if the user name is resistent to long inputs and bad UTF8.
+  void MakeCredentialDisplayNameEncodingTest();
+  // Tests if the HMAC-secret extension works properly.
+  void MakeCredentialHmacSecretTest();
+
+  // Tests for GetAssertion.
+
   // Check if GetAssertion accepts different CBOR types for its parameters.
   void GetAssertionBadParameterTypesTest();
   // Check if GetAssertion accepts leaving out one of the required parameters.
   void GetAssertionMissingParameterTest();
   // Check the inner array transport elements of the allow list.
-  void GetAssertionAllowListTest();
+  void GetAssertionAllowListCredentialDescriptorTest();
   // Check if unknown extensions are accepted.
   void GetAssertionExtensionsTest();
+  // Tests correct behavior when setting rk, up and uv.
+  void GetAssertionOptionsTest();
+  // Tests correct differentiation between residential and non-residential.
+  void GetAssertionResidentialKeyTest();
+  // Tests if the PIN is correctly enforced. Resets afterwards to unset the PIN.
+  void GetAssertionPinAuthTest();
+  // Tests if the key hardware actually interacts with a user. This test can not
+  // be performed automatically, but requires tester feedback.
+  void GetAssertionPhysicalPresenceTest();
+
+  // TODO(kaczmarczyck) Tests for GetNextAssertion.
+
+  // Tests for GetInfo.
+
+  // Checks if the GetInfo command has valid output implicitly. Also checks for
+  // support of PIN protocol version 1, because it is used throughout all tests.
+  void GetInfoTest();
+
+  // Tests for ClientPin.
+
   // Check the input parameters of the client PIN subcommand getPinRetries.
   void ClientPinGetPinRetriesTest();
   // Check the input parameters of the client PIN subcommand getKeyAgreement.
@@ -73,15 +119,52 @@ class InputParameterTestSeries {
   // getPinUvAuthTokenUsingPin.
   void ClientPinGetPinUvAuthTokenUsingPinTest();
   // Check the input parameters of the client PIN subcommand
-  // getPinUvAuthTokenUsingUv.
+  // getPinUvAuthTokenUsingUv. Requires CTAP 2.1, returns otherwise.
   void ClientPinGetPinUvAuthTokenUsingUvTest();
   // Check the input parameters of the client PIN subcommand getUVRetries.
+  // Requires CTAP 2.1, returns otherwise.
   void ClientPinGetUVRetriesTest();
+  // Tests if the PIN minimum and maximum length are enforced correctly for the
+  // SetPin and ChangePin command. Resets the device on failed tests so that the
+  // following test will still find a valid state. Might end with the device
+  // having a PIN set.
+  void ClientPinRequirementsTest();
+  // Tests PIN protocol requirements introduced in CTAP 2.1. This includes
+  // testing different padding lengths for SetPin and ChangePin. Resets the
+  // device before tests and on failed tests. Might end with the device having a
+  // PIN set.
+  void ClientPinRequirements2Point1Test();
+  // Tests if retries decrement properly and respond with correct error codes.
+  // Creates a PIN if necessary. Resets the device at the beginning and the end.
+  void ClientPinRetriesTest();
+
+  // Tests for Reset.
+
+  // Only tests the returned status code, just resets the authenticator.
+  // Replugging the device before calling the function is necessary.
+  void Reset();
+  // Tests if the state on the device is wiped out.
+  // Replugging the device before calling the function is necessary.
+  void ResetDeletionTest();
+  // Tests if requirements for resetting are enforced.
+  void ResetPhysicalPresenceTest();
+  // Tests if the state is persistent when being replugged. This includes
+  // credentials and the PIN retries.
+  void PersistenceTest();
 
  private:
+  // Prompts the user to replug the device which is required before operations
+  // that need a power cycle (i.e. resetting). The Init will then handle device
+  // initilalization, regardless of the current state of the device.
+  void PromptReplugAndInit();
+  // TODO(#16) replace version string with FIDO_2_1 when specification is final
+  bool IsFido2Point1Complicant();
   // Makes a credential for all tests that require one, for example assertions.
   cbor::Value MakeTestCredential(const std::string& rp_id,
                                  bool use_residential_key);
+
+  // The following helper functions are used to test input parameters.
+
   // Tries to insert types other than the correct one into the CBOR builder.
   // Make sure to pass the appropriate CborBuilder for your command. The correct
   // types are inferred through the currently present builder entries. The tests
@@ -119,96 +202,8 @@ class InputParameterTestSeries {
                                                   CborBuilder* builder,
                                                   int map_key,
                                                   const std::string& rp_id);
-  DeviceInterface* device_;
-  DeviceTracker* device_tracker_;
-  // These are arbitrary example values for each CBOR type.
-  std::map<cbor::Value::Type, cbor::Value> type_examples_;
-  // This map is a subset of the type_examples_. Since CBOR implementations do
-  // not need to allow all CBOR types as map keys, testing on all of them for
-  // map keys might produce different error codes. Since we currently enforce
-  // a specific error code, use this subset of CBOR types for all tests on map
-  // keys. Allowed map keys might depend on the CBOR parser implementation.
-  // The specification only states: "Note that this rule allows maps that have
-  // keys of different types, even though that is probably a bad practice that
-  // could lead to errors in some canonicalization implementations."
-  std::map<cbor::Value::Type, cbor::Value> map_key_examples_;
-  // This is an example of an EC cose key map for client PIN operations.
-  cbor::Value::MapValue cose_key_example_;
-};
 
-class SpecificationProcedure {
- public:
-  // The ownership for device_tracker stays with the caller and must outlive
-  // the SpecificationProcedure instance.
-  SpecificationProcedure(DeviceInterface* device,
-                         DeviceTracker* device_tracker);
-  // Tests if the authenticator checks the exclude list properly.
-  void MakeCredentialExcludeListTest();
-  // Tests correct behavior with different COSE algorithms. Tests non-existing
-  // algorithm identifier and type.
-  void MakeCredentialCoseAlgorithmTest();
-  // Tests correct behavior when setting rk, up and uv.
-  void MakeCredentialOptionsTest();
-  // Tests if the PIN is correctly enforced. Resets afterwards to unset the PIN.
-  void MakeCredentialPinAuthTest(bool is_fido_2_1_compliant);
-  // Tests correct behavior when creating multiple keys. This test attempts to
-  // create num_credentials credentials, stopping before that if the internal
-  // key store is full. It resets afterwards to clear the storage.
-  void MakeCredentialMultipleKeysTest(int num_credentials);
-  // Tests if the key hardware actually interacts with a user. This test can not
-  // be performed automatically, but requires tester feedback.
-  void MakeCredentialPhysicalPresenceTest();
-  // Tests if the user name is resistent to long inputs and bad UTF8.
-  void MakeCredentialDisplayNameEncodingTest();
-  // Tests if the HMAC-secret extension works properly.
-  void MakeCredentialHmacSecretTest();
-  // Tests correct behavior when setting rk, up and uv.
-  void GetAssertionOptionsTest();
-  // Tests correct differentiation between residential and non-residential.
-  void GetAssertionResidentialKeyTest();
-  // Tests if the PIN is correctly enforced. Resets afterwards to unset the PIN.
-  void GetAssertionPinAuthTest(bool is_fido_2_1_compliant);
-  // Tests if the key hardware actually interacts with a user. This test can not
-  // be performed automatically, but requires tester feedback.
-  void GetAssertionPhysicalPresenceTest();
-  // Checks if the GetInfo command has valid output implicitly. Also checks for
-  // support of PIN protocol version 1, because it is used throughout all tests.
-  void GetInfoTest();
-  // Check if FIDO version 2.1 is listed as a supported version.
-  bool GetInfoIs2Point1Compliant();
-  // Check if user verification is listed as a supported option.
-  bool GetInfoHasUvOption();
-  // Check if HMAC-secret is listed as a supported extension.
-  bool GetInfoIsHmacSecretSupported();
-  // Tests if the PIN minimum and maximum length are enforced correctly for the
-  // SetPin and ChangePin command. Resets the device on failed tests so that the
-  // following test will still find a valid state. Might end with the device
-  // having a PIN set.
-  void ClientPinRequirementsTest();
-  // Tests if retries decrement properly and respond with correct error codes.
-  // Creates a PIN if necessary. Resets the device at the end.
-  void ClientPinRetriesTest();
-  // Only tests the returned status code, just resets the authenticator.
-  // Replugging the device before calling the function is necessary.
-  void Reset();
-  // Tests if the state on the device is wiped out.
-  // Replugging the device before calling the function is necessary.
-  void ResetDeletionTest();
-  // Tests if requirements for resetting are enforced.
-  void ResetPhysicalPresenceTest();
-  // Tests if the state is persistent when being replugged. This includes
-  // credentials and the PIN retries.
-  void PersistenceTest();
-
- private:
-  // Prompts the user to replug the device which is required before operations
-  // that need a power cycle (i.e. resetting). The Init will then handle device
-  // initilalization, regardless of the current state of the device.
-  void PromptReplugAndInit();
-  // Makes a credential for all tests that require one, for example assertions.
-  // Works with or without a PIN being set.
-  cbor::Value MakeTestCredential(const std::string& rp_id,
-                                 bool use_residential_key);
+  // The following helper functions are used to test command behaviour.
 
   // Gets and checks the PIN retry counter response from the authenticator.
   int GetPinRetries();
@@ -254,16 +249,52 @@ class SpecificationProcedure {
   // of Make Credential, this kind of misbehavior would be caught in another
   // test.
   void CheckPinAbsenceByMakeCredential();
+
   DeviceInterface* device_;
   DeviceTracker* device_tracker_;
+  // These are arbitrary example values for each CBOR type.
+  std::map<cbor::Value::Type, cbor::Value> type_examples_;
+  // This map is a subset of the type_examples_. Since CBOR implementations do
+  // not need to allow all CBOR types as map keys, testing on all of them for
+  // map keys might produce different error codes. Since we currently enforce
+  // a specific error code, use this subset of CBOR types for all tests on map
+  // keys. Allowed map keys might depend on the CBOR parser implementation.
+  // The specification only states: "Note that this rule allows maps that have
+  // keys of different types, even though that is probably a bad practice that
+  // could lead to errors in some canonicalization implementations."
+  std::map<cbor::Value::Type, cbor::Value> map_key_examples_;
+  // This is an example of an EC cose key map for client PIN operations.
+  cbor::Value::MapValue cose_key_example_;
+  // This is an example PIN that should be different from the real PIN.
+  const cbor::Value::BinaryValue bad_pin_;
   // The PIN is persistent, the other state is kept for a power cycle.
   cbor::Value::MapValue platform_cose_key_;
   cbor::Value::BinaryValue shared_secret_;
   cbor::Value::BinaryValue pin_utf8_;
   cbor::Value::BinaryValue auth_token_;
-  // This is an example PIN that should be different from the real PIN.
-  const cbor::Value::BinaryValue bad_pin_;
 };
+
+namespace test_helpers {
+
+// Asserts a general condition, exits on failure.
+void AssertCondition(bool condition, const std::string& test_name);
+
+// As above, but asserts the success of an executed command.
+void AssertResponse(const absl::variant<cbor::Value, Status>& returned_variant,
+                    const std::string& test_name);
+
+// Extracts the credential ID from an authenticator data structure[1].
+// [1] https://www.w3.org/TR/webauthn/#sec-authenticator-data
+cbor::Value::BinaryValue ExtractCredentialId(const cbor::Value& response);
+
+// Extracts the PIN retries from an authenticator client PIN response.
+int ExtractPinRetries(const cbor::Value& response);
+
+void PrintByteVector(const cbor::Value::BinaryValue& vec);
+
+void PrintNoTouchPrompt();
+
+}  // namespace test_helpers
 
 }  // namespace fido2_tests
 

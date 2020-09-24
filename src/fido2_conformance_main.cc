@@ -20,7 +20,7 @@
 #include "src/device_tracker.h"
 #include "src/hid/hid_device.h"
 #include "src/parameter_check.h"
-#include "src/test_series.h"
+#include "src/tests/test_series.h"
 
 DEFINE_string(
     token_path, "",
@@ -61,61 +61,52 @@ int main(int argc, char** argv) {
       << "CTAPHID initialization failed";
   device->Wink();
 
-  fido2_tests::InputParameterTestSeries input_parameter_test_series =
-      fido2_tests::InputParameterTestSeries(device.get(), &tracker);
-  fido2_tests::SpecificationProcedure specification_procedure_test_series =
-      fido2_tests::SpecificationProcedure(device.get(), &tracker);
+  fido2_tests::TestSeries test_series =
+      fido2_tests::TestSeries(device.get(), &tracker);
 
-  specification_procedure_test_series.Reset();
-  bool is_fido_2_1_compliant =
-      specification_procedure_test_series.GetInfoIs2Point1Compliant();
+  test_series.Reset();
+  // You need to execute GetInfo first to initialize the tracker.
+  test_series.GetInfoTest();
 
-  input_parameter_test_series.MakeCredentialBadParameterTypesTest();
-  input_parameter_test_series.MakeCredentialMissingParameterTest();
-  input_parameter_test_series.MakeCredentialRelyingPartyEntityTest();
-  input_parameter_test_series.MakeCredentialUserEntityTest();
-  input_parameter_test_series.MakeCredentialExcludeListTest();
-  input_parameter_test_series.MakeCredentialExtensionsTest();
-  input_parameter_test_series.GetAssertionBadParameterTypesTest();
-  input_parameter_test_series.GetAssertionMissingParameterTest();
-  input_parameter_test_series.GetAssertionAllowListTest();
-  input_parameter_test_series.GetAssertionExtensionsTest();
-  input_parameter_test_series.ClientPinGetPinRetriesTest();
-  input_parameter_test_series.ClientPinGetKeyAgreementTest();
-  input_parameter_test_series.ClientPinSetPinTest();
-  input_parameter_test_series.ClientPinChangePinTest();
-  input_parameter_test_series.ClientPinGetPinUvAuthTokenUsingPinTest();
-  if (is_fido_2_1_compliant) {
-    input_parameter_test_series.ClientPinGetPinUvAuthTokenUsingUvTest();
-    input_parameter_test_series.ClientPinGetUVRetriesTest();
-  }
+  test_series.MakeCredentialBadParameterTypesTest();
+  test_series.MakeCredentialMissingParameterTest();
+  test_series.MakeCredentialRelyingPartyEntityTest();
+  test_series.MakeCredentialUserEntityTest();
+  test_series.MakeCredentialExcludeListCredentialDescriptorTest();
+  test_series.MakeCredentialExtensionsTest();
+  test_series.GetAssertionBadParameterTypesTest();
+  test_series.GetAssertionMissingParameterTest();
+  test_series.GetAssertionAllowListCredentialDescriptorTest();
+  test_series.GetAssertionExtensionsTest();
+  test_series.ClientPinGetPinRetriesTest();
+  test_series.ClientPinGetKeyAgreementTest();
+  test_series.ClientPinSetPinTest();
+  test_series.ClientPinChangePinTest();
+  test_series.ClientPinGetPinUvAuthTokenUsingPinTest();
+  test_series.ClientPinGetPinUvAuthTokenUsingUvTest();
+  test_series.ClientPinGetUVRetriesTest();
 
-  specification_procedure_test_series.ResetDeletionTest();
-  specification_procedure_test_series.ResetPhysicalPresenceTest();
-  specification_procedure_test_series.PersistenceTest();
+  test_series.ResetDeletionTest();
+  test_series.ResetPhysicalPresenceTest();
+  test_series.PersistenceTest();
 
-  specification_procedure_test_series.MakeCredentialExcludeListTest();
-  specification_procedure_test_series.MakeCredentialCoseAlgorithmTest();
-  specification_procedure_test_series.MakeCredentialOptionsTest();
-  specification_procedure_test_series.MakeCredentialPinAuthTest(
-      is_fido_2_1_compliant);
-  specification_procedure_test_series.MakeCredentialMultipleKeysTest(
-      FLAGS_num_credentials);
-  specification_procedure_test_series.MakeCredentialPhysicalPresenceTest();
-  specification_procedure_test_series.MakeCredentialDisplayNameEncodingTest();
+  test_series.MakeCredentialExcludeListTest();
+  test_series.MakeCredentialCoseAlgorithmTest();
+  test_series.MakeCredentialOptionsTest();
+  test_series.MakeCredentialPinAuthTest();
+  test_series.MakeCredentialMultipleKeysTest(FLAGS_num_credentials);
+  test_series.MakeCredentialPhysicalPresenceTest();
+  test_series.MakeCredentialDisplayNameEncodingTest();
 
-  specification_procedure_test_series.GetAssertionOptionsTest();
-  specification_procedure_test_series.GetAssertionResidentialKeyTest();
-  specification_procedure_test_series.GetAssertionPinAuthTest(
-      is_fido_2_1_compliant);
-  specification_procedure_test_series.GetAssertionPhysicalPresenceTest();
+  test_series.GetAssertionOptionsTest();
+  test_series.GetAssertionResidentialKeyTest();
+  test_series.GetAssertionPinAuthTest();
+  test_series.GetAssertionPhysicalPresenceTest();
 
-  specification_procedure_test_series.GetInfoTest();
-  specification_procedure_test_series.ClientPinRequirementsTest();
-  specification_procedure_test_series.ClientPinRetriesTest();
-  if (specification_procedure_test_series.GetInfoIsHmacSecretSupported()) {
-    specification_procedure_test_series.MakeCredentialHmacSecretTest();
-  }
+  test_series.ClientPinRequirementsTest();
+  test_series.ClientPinRequirements2Point1Test();
+  test_series.ClientPinRetriesTest();
+  test_series.MakeCredentialHmacSecretTest();
 
   std::cout << "\nRESULTS" << std::endl;
   tracker.ReportFindings();
