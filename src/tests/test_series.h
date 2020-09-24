@@ -97,6 +97,8 @@ class TestSeries {
   // be performed automatically, but requires tester feedback.
   void GetAssertionPhysicalPresenceTest();
 
+  // TODO(kaczmarczyck) Tests for GetNextAssertion.
+
   // Tests for GetInfo.
 
   // Checks if the GetInfo command has valid output implicitly. Also checks for
@@ -271,6 +273,28 @@ class TestSeries {
   cbor::Value::BinaryValue pin_utf8_;
   cbor::Value::BinaryValue auth_token_;
 };
+
+namespace test_helpers {
+
+// Asserts a general condition, exits on failure.
+void AssertCondition(bool condition, const std::string& test_name);
+
+// As above, but asserts the success of an executed command.
+void AssertResponse(const absl::variant<cbor::Value, Status>& returned_variant,
+                    const std::string& test_name);
+
+// Extracts the credential ID from an authenticator data structure[1].
+// [1] https://www.w3.org/TR/webauthn/#sec-authenticator-data
+cbor::Value::BinaryValue ExtractCredentialId(const cbor::Value& response);
+
+// Extracts the PIN retries from an authenticator client PIN response.
+int ExtractPinRetries(const cbor::Value& response);
+
+void PrintByteVector(const cbor::Value::BinaryValue& vec);
+
+void PrintNoTouchPrompt();
+
+}  // namespace test_helpers
 
 }  // namespace fido2_tests
 

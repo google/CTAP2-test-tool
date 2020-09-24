@@ -14,6 +14,8 @@
 
 # Test suite for FIDO 2 authenticators
 
+package(default_visibility = ["//visibility:public"])
+
 # Windows is untested so far.
 cc_library(
     name = "hid_device",
@@ -132,27 +134,6 @@ cc_library(
     ],
 )
 
-cc_library(
-    name = "test_series",
-    srcs = ["src/test_series.cc"],
-    hdrs = ["src/test_series.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
-    deps = [
-        ":cbor_builders",
-        ":crypto_utility",
-        ":device_interface",
-        ":device_tracker",
-        ":fido2_commands",
-        "//third_party/chromium_components_cbor:cbor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
-        "@com_google_absl//absl/types:variant",
-        "@com_google_glog//:glog",
-    ],
-)
-
 cc_binary(
     name = "fido2_conformance",
     srcs = ["src/fido2_conformance_main.cc"],
@@ -160,7 +141,7 @@ cc_binary(
         ":device_tracker",
         ":hid_device",
         ":parameter_check",
-        ":test_series",
+        "//src/tests:test_series",
         "@com_github_gflags_gflags//:gflags",
         "@com_google_glog//:glog",
     ],
