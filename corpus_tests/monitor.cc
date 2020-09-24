@@ -24,13 +24,10 @@ bool Monitor::Attach(fido2_tests::DeviceInterface* device, int port) {
   return rsp_client_.Connect(port);
 }
 
-// Sends "continue" command to the target. This will
-// execute the program until a crash triggers a breakpoint.
 bool Monitor::Start() {
   return rsp_client_.SendPacket(rsp::RspPacket(rsp::RspPacket::Continue));
 }
 
-// Attempts to receive data from the socket.
 bool Monitor::DeviceCrashed() { return rsp_client_.ReceivePacket(); }
 
 }  // namespace corpus_tests

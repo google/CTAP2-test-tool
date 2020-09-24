@@ -25,9 +25,12 @@ class Monitor {
   // Attaches the monitor to a device and connects to the port
   // device's GDB server is listening to.
   bool Attach(fido2_tests::DeviceInterface* device, int port);
-  // Starts monitoring the attached device.
+  // Starts monitoring the attached device by sending "continue"
+  // command to the target. This will execute the program until a
+  // crash triggers a breakpoint.
   bool Start();
-  // Checks for an occured failure in the device.
+  // Checks for an occured failure in the device by attempting to
+  // receive data from the RSP server.
   bool DeviceCrashed();
 
  private:

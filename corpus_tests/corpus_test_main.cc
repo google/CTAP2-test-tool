@@ -22,10 +22,11 @@
 #include "src/hid/hid_device.h"
 
 static bool ValidatePort(const char* flagname, gflags::int32 value) {
-  if (value > 0 && value < 32768)  // value is ok
+  if (value > 0 && value < 65535) {
     return true;
-  std::cout << "Invalid value for --" << flagname << ": " << (int)value
-            << std::endl;
+  }
+  std::cout << "Invalid value for --" << flagname << ": "
+            << static_cast<int>(value) << std::endl;
   return false;
 }
 
@@ -44,7 +45,7 @@ DEFINE_validator(port, &ValidatePort);
 // Tests the device through all inputs contained in the given corpus.
 // Usage example:
 //   ./corpus_test --token_path=/dev/hidraw4 --port=2331
-//   --corpus_path=/Documents/corpus
+//   --corpus_path=/home/user/Documents/corpus
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
@@ -76,18 +77,17 @@ int main(int argc, char** argv) {
     exit(0);
   }
 
-  corpus_tests::TestInputController input_controller(FLAGS_corpus_path);
-  while (input_controller.InputAvailable()) {
-    fido2_tests::Status status = input_controller.RunCurrentInput(device.get());
-    if (status != fido2_tests::Status::kErrNone) {
-      std::cout << "Error occured:" << unsigned(status) << std::endl;
-    }
+  corpus_tests::TestInputIterator input_iterator(FLAGS_corpus_path);
+  while (input_iterator.HasNextInput()) {
+    std::vector<uint8_t> input_data;
+    corpus_tests::InputType input_type =
+        input_iterator.GetNextInput(input_data);
+    corpus_tests::SendInput(device.get(), input_type, input_data);
     // TODO(mingxguo): proper crash report
     if (monitor.DeviceCrashed()) {
       std::cout << "DEVICE CRASHED!" << std::endl;
       break;
     }
-    input_controller.GetNextInput();
   }
   return 0;
 }
