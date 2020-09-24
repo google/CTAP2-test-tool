@@ -189,7 +189,8 @@ void DeviceTracker::ReportFindings() const {
             << " tests." << std::endl;
 }
 
-nlohmann::json DeviceTracker::GenerateResultsJson(std::string_view time_string) {
+nlohmann::json DeviceTracker::GenerateResultsJson(
+    std::string_view time_string) {
   int successful_test_count = successful_tests_.size();
   int failed_test_count = failed_tests_.size();
   int test_count = successful_test_count + failed_test_count;
@@ -211,8 +212,8 @@ void DeviceTracker::SaveResultsToFile() {
   absl::TimeZone local = absl::LocalTimeZone();
   std::string time_string = absl::FormatTime("%Y-%m-%d", now, local);
 
-  std::filesystem::path results_path =
-      absl::StrCat(CreateSaveFileDirectory(), product_name_, "_", time_string, kFileType);
+  std::filesystem::path results_path = absl::StrCat(
+      CreateSaveFileDirectory(), product_name_, "_", time_string, kFileType);
   std::ofstream results_file;
   results_file.open(results_path);
   CHECK(results_file.is_open()) << "Unable to open file: " << results_path;
