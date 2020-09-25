@@ -68,24 +68,19 @@ int main(int argc, char** argv) {
       << "CTAPHID initialization failed";
 
   corpus_tests::Monitor monitor;
-  if (!monitor.Attach(device.get(), FLAGS_port)) {
-    std::cout << "Monitor failed to attach!\n";
-    exit(0);
-  }
-  if (!monitor.Start()) {
-    std::cout << "Monitor failed to start\n";
-    exit(0);
-  }
+  CHECK(monitor.Attach(device.get(), FLAGS_port))
+      << "Monitor failed to attach!";
+  CHECK(monitor.Start()) << "Monitor failed to start!";
 
-  corpus_tests::TestInputIterator input_iterator(FLAGS_corpus_path);
-  while (input_iterator.HasNextInput()) {
+  corpus_tests::CorpusIterator corpus_iterator(FLAGS_corpus_path);
+  while (corpus_iterator.HasNextInput()) {
     std::vector<uint8_t> input_data;
     corpus_tests::InputType input_type =
-        input_iterator.GetNextInput(input_data);
+        corpus_iterator.GetNextInput(input_data);
     corpus_tests::SendInput(device.get(), input_type, input_data);
-    // TODO(mingxguo): proper crash report
+    // TODO(mingxguo) issue #28: proper crash report
     if (monitor.DeviceCrashed()) {
-      std::cout << "DEVICE CRASHED!" << std::endl;
+      LOG(ERROR) << "DEVICE CRASHED!";
       break;
     }
   }

@@ -26,7 +26,8 @@ namespace corpus_tests {
 enum InputType {
   kCborMakeCredentialParameter,
   kCborGetAssertionParameter,
-  kNotRecognized,
+  kCborRaw,
+  kRawBytes
 };
 
 // Sends input to the given device and returns the status code.
@@ -40,11 +41,11 @@ fido2_tests::Status SendInput(fido2_tests::DeviceInterface* device,
 // all possible subdirectories are:
 //  /corpus/Cbor_MakeCredentialParameters/
 //  /corpus/Cbor_GetAssertionParameters/
-// (to be extended)
+// TODO (mingxguo) issue #27
 // All files that are not a directory in the given corpus are ignored.
-class TestInputIterator {
+class CorpusIterator {
  public:
-  TestInputIterator(std::string_view corpus_path);
+  CorpusIterator(std::string_view corpus_path);
   // Returns whether there is a next input available.
   bool HasNextInput();
   // Returns next input available and its type.
@@ -53,10 +54,7 @@ class TestInputIterator {
  private:
   // Increments the current input pointer to the next non empty one
   // (potentially skipping all empty subdirectories).
-  void FindNextInput();
-  // Returns current input's type depending on the current
-  // subdirectory it is contained in.
-  InputType GetInputType();
+  void IncrementInputPointer();
   std::filesystem::directory_iterator current_subdirectory_;
   std::filesystem::directory_iterator current_input_;
 };

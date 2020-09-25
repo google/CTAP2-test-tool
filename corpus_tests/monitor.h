@@ -20,6 +20,13 @@
 
 namespace corpus_tests {
 
+// Monitors and reports crash on a given device by communicating with
+// it's GDB remote serial protocol server.
+// Example:
+//   corpus_tests::Monitor monitor;
+//   monitor.Attach(device, port);
+//   monitor.Start();
+//   if (monitor.DeviceCrashed()) { ... }
 class Monitor {
  public:
   // Attaches the monitor to a device and connects to the port

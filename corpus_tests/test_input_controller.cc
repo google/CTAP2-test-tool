@@ -22,62 +22,72 @@
 #include "absl/strings/str_split.h"
 
 namespace corpus_tests {
+namespace {
 
-void TestInputIterator::FindNextInput() {
+// Helper function that returns the specific type of cbor parameter inputs.
+InputType GetCborInputType(std::vector<absl::string_view> subdirectory_name) {
+  if (subdirectory_name.size() > 1 &&
+      subdirectory_name[1] == "MakeCredentialParameters") {
+    return InputType::kCborMakeCredentialParameter;
+  } else if (subdirectory_name.size() > 1 &&
+             subdirectory_name[1] == "GetAssertionParameters") {
+    return InputType::kCborGetAssertionParameter;
+  }
+  // TODO (mingxguo) issue #27: support more types.
+  return InputType::kCborRaw;
+}
+
+// Helper function that returns the type of contained inputs based on the
+// subdirectory name.
+InputType GetInputType(std::string_view subdirectory_name) {
+  std::vector<absl::string_view> name_splits =
+      absl::StrSplit(subdirectory_name, '_');
+  if (name_splits.size() > 0 && name_splits[0] == "Cbor") {
+    return GetCborInputType(name_splits);
+  }
+  // TODO (mingxguo) issue #27: support more types.
+  return InputType::kRawBytes;
+}
+
+}  // namespace
+
+void CorpusIterator::IncrementInputPointer() {
   std::filesystem::directory_iterator end;
   while (current_input_ == end) {
     ++current_subdirectory_;
-    if (current_subdirectory_ != end && current_subdirectory_->is_directory()) {
+    if (current_subdirectory_ == end) {
+      break;
+    } else if (current_subdirectory_ != end &&
+               current_subdirectory_->is_directory()) {
       current_input_ = std::filesystem::directory_iterator(
           current_subdirectory_->path().string());
-    } else if (current_subdirectory_ == end) {
-      // End of iterator.
-      break;
     }
   }
 }
 
-InputType TestInputIterator::GetInputType() {
-  if (current_subdirectory_ != std::filesystem::directory_iterator()) {
-    std::vector<absl::string_view> path_splits =
-        absl::StrSplit(current_subdirectory_->path().string(), '/');
-    std::vector<absl::string_view> current_subdirectory_name =
-        absl::StrSplit(path_splits.back(), '_');
-    if (current_subdirectory_name.size() > 0 &&
-        current_subdirectory_name[0] == "Cbor") {
-      if (current_subdirectory_name.size() > 1 &&
-          current_subdirectory_name[1] == "MakeCredentialParameters") {
-        return InputType::kCborMakeCredentialParameter;
-      } else if (current_subdirectory_name.size() > 1 &&
-                 current_subdirectory_name[1] == "GetAssertionParameters") {
-        return InputType::kCborGetAssertionParameter;
-      }
-    }
-  }
-  return InputType::kNotRecognized;
-}
-
-TestInputIterator::TestInputIterator(std::string_view corpus_path) {
+CorpusIterator::CorpusIterator(std::string_view corpus_path) {
   current_subdirectory_ = std::filesystem::directory_iterator(corpus_path);
   if (current_subdirectory_ != std::filesystem::directory_iterator() &&
       current_subdirectory_->is_directory()) {
     current_input_ = std::filesystem::directory_iterator(
         current_subdirectory_->path().string());
-    FindNextInput();
+    IncrementInputPointer();
   }
 }
 
-bool TestInputIterator::HasNextInput() {
+bool CorpusIterator::HasNextInput() {
   return current_input_ != std::filesystem::directory_iterator();
 }
 
-InputType TestInputIterator::GetNextInput(std::vector<uint8_t>& input_data) {
+InputType CorpusIterator::GetNextInput(std::vector<uint8_t>& input_data) {
   std::ifstream file(current_input_->path(), std::ios::in | std::ios::binary);
   input_data = std::vector<uint8_t>((std::istreambuf_iterator<char>(file)),
                                     std::istreambuf_iterator<char>());
-  InputType input_type = GetInputType();
+  std::vector<absl::string_view> path_splits =
+      absl::StrSplit(current_subdirectory_->path().string(), '/');
+  InputType input_type = GetInputType(path_splits.back());
   ++current_input_;
-  FindNextInput();
+  IncrementInputPointer();
   return input_type;
 }
 
@@ -85,10 +95,12 @@ fido2_tests::Status SendInput(fido2_tests::DeviceInterface* device,
                               InputType input_type,
                               std::vector<uint8_t> const& input) {
   std::vector<uint8_t> response;
+  // TODO(mingxguo) issue #27: Extend when more input types are supported.
   switch (input_type) {
     case InputType::kCborMakeCredentialParameter:
-      return device->ExchangeCbor(fido2_tests::Command::kAuthenticatorGetInfo,
-                                  input, false, &response);
+      return device->ExchangeCbor(
+          fido2_tests::Command::kAuthenticatorMakeCredential, input, false,
+          &response);
     case InputType::kCborGetAssertionParameter:
       return device->ExchangeCbor(
           fido2_tests::Command::kAuthenticatorGetAssertion, input, false,
