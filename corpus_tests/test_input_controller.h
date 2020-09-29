@@ -49,12 +49,12 @@ class CorpusIterator {
   // Returns whether there is a next input available.
   bool HasNextInput();
   // Returns next input available and its type.
-  InputType GetNextInput(std::vector<uint8_t>& input_data);
+  std::tuple<InputType, std::vector<uint8_t>> GetNextInput();
 
  private:
   // Increments the current input pointer to the next non empty one
   // (potentially skipping all empty subdirectories).
-  void IncrementInputPointer();
+  void UpdateInputPointer();
   std::filesystem::directory_iterator current_subdirectory_;
   std::filesystem::directory_iterator current_input_;
 };

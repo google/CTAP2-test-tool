@@ -21,7 +21,7 @@
 namespace corpus_tests {
 
 // Monitors and reports crash on a given device by communicating with
-// it's GDB remote serial protocol server.
+// its GDB remote serial protocol server.
 // Example:
 //   corpus_tests::Monitor monitor;
 //   monitor.Attach(device, port);

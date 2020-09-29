@@ -35,7 +35,7 @@ DEFINE_string(
     "The path to the device on your operating system, usually /dev/hidraw*.");
 
 DEFINE_string(
-    corpus_path, "",
+    corpus_path, "corpus_tests/test_corpus/",
     "The path to the corpus containing seed files to test the device.");
 
 DEFINE_int32(port, 0, "Port to listen on for GDB remote connection.");
@@ -55,10 +55,6 @@ int main(int argc, char** argv) {
     fido2_tests::hid::PrintFidoDevices();
     exit(0);
   }
-  if (FLAGS_corpus_path.empty()) {
-    std::cout << "Please add the --corpus_path flag." << std::endl;
-    exit(0);
-  }
 
   fido2_tests::DeviceTracker tracker;
   std::unique_ptr<fido2_tests::DeviceInterface> device =
@@ -72,13 +68,18 @@ int main(int argc, char** argv) {
       << "Monitor failed to attach!";
   CHECK(monitor.Start()) << "Monitor failed to start!";
 
-  corpus_tests::CorpusIterator corpus_iterator(FLAGS_corpus_path);
+  const char* env_dir;
+  if ((env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) == nullptr) {
+    LOG(ERROR) << "Error getting workspace.";
+    exit(0);
+  }
+  std::string corpus_dir = absl::StrCat(env_dir, "/", FLAGS_corpus_path);
+
+  corpus_tests::CorpusIterator corpus_iterator(corpus_dir);
   while (corpus_iterator.HasNextInput()) {
-    std::vector<uint8_t> input_data;
-    corpus_tests::InputType input_type =
-        corpus_iterator.GetNextInput(input_data);
+    auto [input_type, input_data] = corpus_iterator.GetNextInput();
     corpus_tests::SendInput(device.get(), input_type, input_data);
-    // TODO(mingxguo) issue #28: proper crash report
+    // TODO (#28): proper crash report
     if (monitor.DeviceCrashed()) {
       LOG(ERROR) << "DEVICE CRASHED!";
       break;
