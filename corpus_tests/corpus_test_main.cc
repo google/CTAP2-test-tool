@@ -68,13 +68,10 @@ int main(int argc, char** argv) {
       << "Monitor failed to attach!";
   CHECK(monitor.Start()) << "Monitor failed to start!";
 
-  const char* env_dir;
-  if ((env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) == nullptr) {
-    LOG(ERROR) << "Error getting workspace.";
-    exit(0);
+  std::string corpus_dir = FLAGS_corpus_path;
+  if (const char* env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) {
+    corpus_dir = absl::StrCat(env_dir, "/", FLAGS_corpus_path);
   }
-  std::string corpus_dir = absl::StrCat(env_dir, "/", FLAGS_corpus_path);
-
   corpus_tests::CorpusIterator corpus_iterator(corpus_dir);
   while (corpus_iterator.HasNextInput()) {
     auto [input_type, input_data] = corpus_iterator.GetNextInput();
