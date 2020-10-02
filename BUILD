@@ -37,6 +37,7 @@ cc_library(
 cc_library(
     name = "device_interface",
     hdrs = ["src/device_interface.h"],
+    deps = [":constants"],
 )
 
 cc_library(
@@ -181,4 +182,37 @@ cc_library(
         ":rsp_packet",
         "@com_google_glog//:glog",
     ]
+)
+
+cc_library(
+    name = "monitor",
+    srcs = ["corpus_tests/monitor.cc"],
+    hdrs = ["corpus_tests/monitor.h"],
+    deps = [
+        ":device_interface",
+        ":rsp",
+    ],
+)
+
+cc_library(
+    name = "test_input_controller",
+    srcs = ["corpus_tests/test_input_controller.cc"],
+    hdrs = ["corpus_tests/test_input_controller.h"],
+    deps = [
+        ":device_interface",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_binary(
+    name = "corpus_test",
+    srcs = ["corpus_tests/corpus_test_main.cc"],
+    deps = [
+        ":monitor",
+        ":test_input_controller",
+        ":hid_device",
+        ":constants",
+        "@com_github_gflags_gflags//:gflags",
+        "@com_google_glog//:glog",
+    ],
 )

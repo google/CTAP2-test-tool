@@ -15,6 +15,8 @@
 #ifndef DEVICE_INTERFACE_H_
 #define DEVICE_INTERFACE_H_
 
+#include <vector>
+
 #include "src/constants.h"
 
 namespace fido2_tests {
