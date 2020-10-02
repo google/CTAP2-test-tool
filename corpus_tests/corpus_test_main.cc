@@ -1,4 +1,4 @@
-// Copyright 2019 Google LLC
+// Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ static bool ValidatePort(const char* flagname, gflags::int32 value) {
   if (value > 0 && value < 65535) {
     return true;
   }
-  std::cout << "Invalid value for --" << flagname << ": "
-            << static_cast<int>(value) << std::endl;
+  LOG(ERROR) << "Invalid value for --" << flagname << ": "
+             << static_cast<int>(value);
   return false;
 }
 
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
     std::cout << "Please add the --token_path flag for one of these devices:"
               << std::endl;
     fido2_tests::hid::PrintFidoDevices();
-    exit(0);
+    return 0;
   }
 
   fido2_tests::DeviceTracker tracker;
