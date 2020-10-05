@@ -41,14 +41,18 @@ class RemoteSerialProtocol {
   bool Connect(int port);
   // Ends connection and cleans up allocated memory.
   bool Terminate();
-  // Sends a RSP packet over the socket.
-  bool SendPacket(RspPacket packet);
-  // Receives a RSP reply packet over the socket.
-  bool ReceivePacket();
+  // Sends a RSP packet over the socket with a number of retries.
+  bool SendPacket(RspPacket packet, int retries = 1);
+  // Receives and returns a RSP reply packet over the socket.
+  std::tuple<bool, std::string> ReceivePacket();
+  // Sends a RSP packet with retry and returns the received reply if any.
+  std::tuple<bool, std::string> SendRecvPacket(RspPacket packet,
+                                               int retries = 1);
 
  private:
   // Non-blockingly receives at most receive_length bytes of data.
-  bool Receive(int receive_length);
+  // Returns whether there was data available and the actual content received.
+  std::tuple<bool, std::string> Receive(int receive_length);
   // Reads acknowledgement packet and returns whether the packet
   // was acknowledged.
   bool ReadAcknowledgement();

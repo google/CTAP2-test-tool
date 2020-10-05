@@ -19,24 +19,34 @@
 
 namespace rsp {
 
-// Represents a RSP packet specified in
+// Represents a subset of RSP packets specified in
 // https://sourceware.org/gdb/current/onlinedocs/gdb/Overview.html#Overview.
 class RspPacket {
  public:
-  enum PacketData { Continue, RequestSupported };
-  RspPacket(PacketData data) : data_(data) {}
+  enum PacketData {
+    Continue,
+    RequestSupported,
+    ReadGeneralRegisters,
+    ReadFromMemory
+  };
+  // Constructor for a single packet.
+  RspPacket(PacketData data);
+  // Constructor for a RSP packet which requires an address and a third integer
+  // parameter. Depending on the specific packet, the parameter can be
+  // interpreted as length, number or cycles, etc.
+  RspPacket(PacketData data, std::string_view address, int param);
   // Allows switch and comparisons of RspPacket class as an enum.
   operator PacketData() const { return data_; }
   bool operator==(RspPacket other) const { return data_ == other.data_; }
   // Returns the string representation of the packet data.
   std::string DataToString() const;
-  // Returns the string representation of the packet.
+  // Returns the string representation of the entire packet.
   std::string ToString() const;
 
  private:
-  // Returns the checksum of the packet data.
-  uint8_t Checksum() const;
   PacketData data_;
+  std::string_view address_;
+  int param_;
 };
 
 }  // namespace rsp
