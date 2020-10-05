@@ -16,15 +16,16 @@
 
 #include <arpa/inet.h>
 
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_split.h"
 
 namespace corpus_tests {
-
 namespace {
-
+constexpr std::string_view kRelativeDir = "corpus_tests/artifacts";
 // Memory addresses of the status registers for fault exceptions.
 constexpr std::string_view kConfigurableFaultStatusRegister = "e000ed28";
 constexpr std::string_view kHardFaultStatusRegister = "e000ed2c";
@@ -34,6 +35,21 @@ constexpr std::string_view kMemManageFaultAddressRegister = "e000ed34";
 constexpr int kRegisterLength = 4;
 // Default number of retries.
 constexpr int kRetries = 10;
+
+// Creates a directory for files that caused a crash and a subdirectory
+// of the given name. Also returns the path.
+// Just return the path if that directory already exists. Fails if the
+// directory wasn't created successfully.
+std::string CreateArtifactsSubdirectory(std::string_view subdirectory) {
+  std::string results_dir = std::string(kRelativeDir);
+  if (const char* env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) {
+    results_dir = absl::StrCat(env_dir, "/", results_dir);
+  }
+  std::filesystem::create_directory(results_dir);  // creates artifact directory
+  results_dir = absl::StrCat(results_dir, "/", subdirectory);
+  std::filesystem::create_directory(results_dir);  // creates subdirectory
+  return results_dir;
+}
 
 // Prints the details of the stop reply according to
 // https://sourceware.org/gdb/current/onlinedocs/gdb/Stop-Reply-Packets.html#Stop-Reply-Packets
@@ -301,6 +317,18 @@ void Monitor::PrintCrashReport() {
               << std::endl;
   } else {
     std::cout << "Error reading Bus Fault Address." << std::endl;
+  }
+}
+
+void Monitor::SaveCrashFile(InputType input_type, std::string_view input_path) {
+  std::string_view input_name = static_cast<std::vector<std::string_view>>(
+                                    absl::StrSplit(input_path, '/'))
+                                    .back();
+  std::filesystem::path save_path = absl::StrCat(
+      CreateArtifactsSubdirectory(InputTypeToDirectoryName(input_type)), "/",
+      input_name);
+  if (!std::filesystem::copy_file(input_path, save_path)) {
+    std::cout << "Unable to save file!" << std::endl;
   }
 }
 

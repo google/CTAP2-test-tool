@@ -191,6 +191,7 @@ cc_library(
     deps = [
         ":device_interface",
         ":rsp",
+        ":test_input_controller"
     ],
 )
 

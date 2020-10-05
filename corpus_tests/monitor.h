@@ -15,6 +15,7 @@
 #ifndef MONITOR_H_
 #define MONITOR_H_
 
+#include "corpus_tests/test_input_controller.h"
 #include "rsp/rsp.h"
 #include "src/device_interface.h"
 
@@ -42,6 +43,8 @@ class Monitor {
   // Prints some information about the produced crash on the device
   // and/or the state of the device.
   void PrintCrashReport();
+  // Saves the given file crashing the device in the artifacts directory.
+  void SaveCrashFile(InputType input_type, std::string_view input_path);
 
  private:
   fido2_tests::DeviceInterface* device_;

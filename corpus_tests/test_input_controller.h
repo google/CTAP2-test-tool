@@ -30,6 +30,9 @@ enum InputType {
   kRawBytes
 };
 
+// Converts an InputType to the corresponding directory name.
+std::string InputTypeToDirectoryName(InputType input_type);
+
 // Sends input to the given device and returns the status code.
 fido2_tests::Status SendInput(fido2_tests::DeviceInterface* device,
                               InputType input_type,
