@@ -16,6 +16,7 @@
 #define TEST_INPUT_CONTROLLER_H_
 
 #include <filesystem>
+#include <tuple>
 #include <vector>
 
 #include "src/device_interface.h"

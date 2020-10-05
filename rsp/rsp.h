@@ -15,6 +15,7 @@
 #ifndef GDB_RSP_H_
 #define GDB_RSP_H_
 
+#include <tuple>
 #include <vector>
 
 #include "rsp_packet.h"
