@@ -39,7 +39,7 @@ constexpr int kReceiveTimeoutSec = 1;
 // Using 4000 as nRF52840-dk supported packet size.
 constexpr int kReceiveBufferLength = 4000;
 
-// Returns the data wrapped in the given packet. 
+// Returns the data wrapped in the given packet.
 // Format: $ data # 2-bytes checksum
 std::string GetPacketdata(std::string_view packet) {
   if (packet.size() < 4) {

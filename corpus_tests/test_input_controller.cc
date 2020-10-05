@@ -80,7 +80,9 @@ bool CorpusIterator::HasNextInput() {
   return current_input_ != std::filesystem::directory_iterator();
 }
 
-std::tuple<InputType, std::vector<uint8_t>> CorpusIterator::GetNextInput() {
+std::tuple<InputType, std::vector<uint8_t>, std::string>
+CorpusIterator::GetNextInput() {
+  std::string input_file_name = current_input_->path();
   std::ifstream file(current_input_->path(), std::ios::in | std::ios::binary);
   std::vector<uint8_t> input_data = std::vector<uint8_t>(
       (std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -89,7 +91,7 @@ std::tuple<InputType, std::vector<uint8_t>> CorpusIterator::GetNextInput() {
   InputType input_type = GetInputType(path_splits.back());
   ++current_input_;
   UpdateInputPointer();
-  return {input_type, input_data};
+  return {input_type, input_data, input_file_name};
 }
 
 fido2_tests::Status SendInput(fido2_tests::DeviceInterface* device,

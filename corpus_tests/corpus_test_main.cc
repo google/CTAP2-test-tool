@@ -45,7 +45,7 @@ DEFINE_validator(port, &ValidatePort);
 // Tests the device through all inputs contained in the given corpus.
 // Usage example:
 //   ./corpus_test --token_path=/dev/hidraw4 --port=2331
-//   --corpus_path=/home/user/Documents/corpus
+//   --corpus_path=corpus_tests/test_corpus/
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
@@ -74,11 +74,12 @@ int main(int argc, char** argv) {
   }
   corpus_tests::CorpusIterator corpus_iterator(corpus_dir);
   while (corpus_iterator.HasNextInput()) {
-    auto [input_type, input_data] = corpus_iterator.GetNextInput();
+    auto [input_type, input_data, input_name] = corpus_iterator.GetNextInput();
+    std::cout << "Running file " << input_name << std::endl;
     corpus_tests::SendInput(device.get(), input_type, input_data);
-    // TODO (#28): proper crash report
     if (monitor.DeviceCrashed()) {
       LOG(ERROR) << "DEVICE CRASHED!";
+      monitor.PrintCrashReport();
       break;
     }
   }

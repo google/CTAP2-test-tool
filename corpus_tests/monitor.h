@@ -39,10 +39,14 @@ class Monitor {
   // Checks for an occured failure in the device by attempting to
   // receive data from the RSP server.
   bool DeviceCrashed();
+  // Prints some information about the produced crash on the device
+  // and/or the state of the device.
+  void PrintCrashReport();
 
  private:
-  rsp::RemoteSerialProtocol rsp_client_;
   fido2_tests::DeviceInterface* device_;
+  rsp::RemoteSerialProtocol rsp_client_;
+  std::string stop_message_;
 };
 
 }  // namespace corpus_tests
