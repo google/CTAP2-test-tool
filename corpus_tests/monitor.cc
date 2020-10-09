@@ -31,8 +31,10 @@ constexpr std::string_view kConfigurableFaultStatusRegister = "e000ed28";
 constexpr std::string_view kHardFaultStatusRegister = "e000ed2c";
 constexpr std::string_view kBusFaultAddressRegister = "e000ed38";
 constexpr std::string_view kMemManageFaultAddressRegister = "e000ed34";
-// Architecture specific register length in bytes.
+// Architecture specific register related information.
 constexpr int kRegisterLength = 4;
+constexpr int kRegisterHexLength = 2 * kRegisterLength;
+constexpr int kNumRegisters = 17;
 // Default number of retries.
 constexpr int kRetries = 10;
 
@@ -40,7 +42,7 @@ constexpr int kRetries = 10;
 // of the given name. Also returns the path.
 // Just return the path if that directory already exists. Fails if the
 // directory wasn't created successfully.
-std::string CreateArtifactsSubdirectory(std::string_view subdirectory) {
+std::string CreateArtifactsSubdirectory(std::string_view const& subdirectory) {
   std::string results_dir = std::string(kRelativeDir);
   if (const char* env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) {
     results_dir = absl::StrCat(env_dir, "/", results_dir);
@@ -53,7 +55,7 @@ std::string CreateArtifactsSubdirectory(std::string_view subdirectory) {
 
 // Prints the details of the stop reply according to
 // https://sourceware.org/gdb/current/onlinedocs/gdb/Stop-Reply-Packets.html#Stop-Reply-Packets
-void PrintStopReply(std::string_view response) {
+void PrintStopReply(std::string_view const& response) {
   if (response[0] == 'N') {
     std::cout << "There are no resumed threads left in the target."
               << std::endl;
@@ -88,37 +90,37 @@ void PrintStopReply(std::string_view response) {
 // Prints all general registers of the architecture.
 // Processor general registers summary can be found in:
 // https://developer.arm.com/documentation/ddi0439/b/Programmers-Model/Processor-core-register-summary
-void PrintGeneralRegisters(std::string_view register_packet) {
-  if (register_packet.length() != 17 * 2 * kRegisterLength) {
+void PrintGeneralRegisters(std::string_view const& register_packet) {
+  if (register_packet.length() != kNumRegisters * kRegisterHexLength) {
     std::cout << "Error reading general registers. Got unexpected response: "
               << register_packet << std::endl;
     return;
   }
   for (int i = 0; i < 13; ++i) {
     std::cout << std::left << std::setw(10) << "R" + std::to_string(i) << "0x"
-              << register_packet.substr(i * 2 * kRegisterLength,
-                                        2 * kRegisterLength)
+              << register_packet.substr(i * kRegisterHexLength,
+                                        kRegisterHexLength)
               << std::endl;
   }
   std::cout << std::left << std::setw(10) << "SP"
             << "0x"
-            << register_packet.substr(13 * 2 * kRegisterLength,
-                                      2 * kRegisterLength)
+            << register_packet.substr(13 * kRegisterHexLength,
+                                      kRegisterHexLength)
             << std::endl;
   std::cout << std::left << std::setw(10) << "LR"
             << "0x"
-            << register_packet.substr(14 * 2 * kRegisterLength,
-                                      2 * kRegisterLength)
+            << register_packet.substr(14 * kRegisterHexLength,
+                                      kRegisterHexLength)
             << std::endl;
   std::cout << std::left << std::setw(10) << "PC"
             << "0x"
-            << register_packet.substr(15 * 2 * kRegisterLength,
-                                      2 * kRegisterLength)
+            << register_packet.substr(15 * kRegisterHexLength,
+                                      kRegisterHexLength)
             << std::endl;
   std::cout << std::left << std::setw(10) << "PRS"
             << "0x"
-            << register_packet.substr(16 * 2 * kRegisterLength,
-                                      2 * kRegisterLength)
+            << register_packet.substr(16 * kRegisterHexLength,
+                                      kRegisterHexLength)
             << std::endl;
 }
 
@@ -320,14 +322,17 @@ void Monitor::PrintCrashReport() {
   }
 }
 
-void Monitor::SaveCrashFile(InputType input_type, std::string_view input_path) {
+void Monitor::SaveCrashFile(InputType input_type,
+                            std::string_view const& input_path) {
   std::string_view input_name = static_cast<std::vector<std::string_view>>(
                                     absl::StrSplit(input_path, '/'))
                                     .back();
   std::filesystem::path save_path = absl::StrCat(
       CreateArtifactsSubdirectory(InputTypeToDirectoryName(input_type)), "/",
       input_name);
-  if (!std::filesystem::copy_file(input_path, save_path)) {
+  if (!std::filesystem::copy_file(
+          input_path, save_path,
+          std::filesystem::copy_options::skip_existing)) {
     std::cout << "Unable to save file!" << std::endl;
   }
 }

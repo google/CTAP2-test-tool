@@ -44,7 +44,7 @@ class Monitor {
   // and/or the state of the device.
   void PrintCrashReport();
   // Saves the given file crashing the device in the artifacts directory.
-  void SaveCrashFile(InputType input_type, std::string_view input_path);
+  void SaveCrashFile(InputType input_type, std::string_view const& input_path);
 
  private:
   fido2_tests::DeviceInterface* device_;
