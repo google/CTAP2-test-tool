@@ -90,8 +90,10 @@ cc_library(
     deps = [
         ":constants",
         ":parameter_check",
+        ":stamp",
         "//third_party/chromium_components_cbor:cbor",
         "@com_github_nlohmann_json//:json",
+        "@com_google_absl//absl/time",
     ],
 )
 
@@ -134,6 +136,11 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "stamp",
+    linkstamp = "src/stamp.cc"
+)
+
 cc_binary(
     name = "fido2_conformance",
     srcs = ["src/fido2_conformance_main.cc"],
@@ -146,3 +153,4 @@ cc_binary(
         "@com_google_glog//:glog",
     ],
 )
+

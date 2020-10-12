@@ -61,6 +61,9 @@ struct __attribute__((__packed__)) Frame {
 // FIDO HID usage page (i.e. 0xf1d0) and prints their details on stdout.
 void PrintFidoDevices();
 
+// Utility function that returns the first suitable device path found.
+std::string FindFidoDevicePath();
+
 class HidDevice : public DeviceInterface {
  public:
   // The constructor without the third parameter implicitly assumes false.

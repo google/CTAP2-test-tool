@@ -39,11 +39,18 @@ DEFINE_int32(num_credentials, 50,
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
+
   if (FLAGS_token_path.empty()) {
     std::cout << "Please add the --token_path flag for one of these devices:"
               << std::endl;
     fido2_tests::hid::PrintFidoDevices();
     exit(0);
+  }
+
+  if (FLAGS_token_path == "_") {
+    // This magic value is used by the run script for comfort.
+    FLAGS_token_path = fido2_tests::hid::FindFidoDevicePath();
+    std::cout << "Testing device at path: " << FLAGS_token_path << std::endl;
   }
 
   fido2_tests::DeviceTracker tracker;
