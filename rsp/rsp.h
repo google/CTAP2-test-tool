@@ -15,7 +15,7 @@
 #ifndef GDB_RSP_H_
 #define GDB_RSP_H_
 
-#include <tuple>
+#include <optional>
 #include <vector>
 
 #include "rsp_packet.h"
@@ -45,15 +45,14 @@ class RemoteSerialProtocol {
   // Sends a RSP packet over the socket with a number of retries.
   bool SendPacket(RspPacket packet, int retries = 1);
   // Receives and returns a RSP reply packet over the socket.
-  std::tuple<bool, std::string> ReceivePacket();
+  std::optional<std::string> ReceivePacket();
   // Sends a RSP packet with retry and returns the received reply if any.
-  std::tuple<bool, std::string> SendRecvPacket(RspPacket packet,
-                                               int retries = 1);
+  std::optional<std::string> SendRecvPacket(RspPacket packet, int retries = 1);
 
  private:
   // Non-blockingly receives at most receive_length bytes of data.
   // Returns whether there was data available and the actual content received.
-  std::tuple<bool, std::string> Receive(int receive_length);
+  std::optional<std::string> Receive(int receive_length);
   // Reads acknowledgement packet and returns whether the packet
   // was acknowledged.
   bool ReadAcknowledgement();

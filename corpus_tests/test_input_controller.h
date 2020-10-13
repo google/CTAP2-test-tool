@@ -52,7 +52,8 @@ class CorpusIterator {
   CorpusIterator(std::string_view corpus_path);
   // Returns whether there is a next input available.
   bool HasNextInput();
-  // Returns next input available as well as its file name and its type.
+  // Returns the type, the content and the file name of the next available
+  // input.
   std::tuple<InputType, std::vector<uint8_t>, std::string> GetNextInput();
 
  private:

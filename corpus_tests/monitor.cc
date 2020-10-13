@@ -22,6 +22,7 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
+#include "glog/logging.h"
 
 namespace corpus_tests {
 namespace {
@@ -34,15 +35,18 @@ constexpr std::string_view kMemManageFaultAddressRegister = "e000ed34";
 // Architecture specific register related information.
 constexpr int kRegisterLength = 4;
 constexpr int kRegisterHexLength = 2 * kRegisterLength;
-constexpr int kNumRegisters = 17;
+constexpr int kNumTotalRegisters = 17;
+constexpr int kNumNumberedRegisters = 13;
 // Default number of retries.
 constexpr int kRetries = 10;
+// Default field width used for printing registers.
+constexpr int kFieldWidth = 40;
 
 // Creates a directory for files that caused a crash and a subdirectory
 // of the given name. Also returns the path.
 // Just return the path if that directory already exists. Fails if the
 // directory wasn't created successfully.
-std::string CreateArtifactsSubdirectory(std::string_view const& subdirectory) {
+std::string CreateArtifactsSubdirectory(const std::string_view& subdirectory) {
   std::string results_dir = std::string(kRelativeDir);
   if (const char* env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) {
     results_dir = absl::StrCat(env_dir, "/", results_dir);
@@ -55,7 +59,7 @@ std::string CreateArtifactsSubdirectory(std::string_view const& subdirectory) {
 
 // Prints the details of the stop reply according to
 // https://sourceware.org/gdb/current/onlinedocs/gdb/Stop-Reply-Packets.html#Stop-Reply-Packets
-void PrintStopReply(std::string_view const& response) {
+void PrintStopReply(const std::string_view& response) {
   if (response[0] == 'N') {
     std::cout << "There are no resumed threads left in the target."
               << std::endl;
@@ -87,41 +91,38 @@ void PrintStopReply(std::string_view const& response) {
   }
 }
 
+void PrintOneRegister(const std::string_view& register_packet,
+                      const std::string_view& register_name,
+                      int register_number) {
+  std::cout << std::left << std::setw(kFieldWidth) << register_name << "0x"
+            << register_packet.substr(register_number * kRegisterHexLength,
+                                      kRegisterHexLength)
+            << std::endl;
+}
+
 // Prints all general registers of the architecture.
 // Processor general registers summary can be found in:
 // https://developer.arm.com/documentation/ddi0439/b/Programmers-Model/Processor-core-register-summary
-void PrintGeneralRegisters(std::string_view const& register_packet) {
-  if (register_packet.length() != kNumRegisters * kRegisterHexLength) {
+void PrintGeneralRegisters(const std::string_view& register_packet) {
+  if (register_packet.length() != kNumTotalRegisters * kRegisterHexLength) {
     std::cout << "Error reading general registers. Got unexpected response: "
               << register_packet << std::endl;
     return;
   }
-  for (int i = 0; i < 13; ++i) {
-    std::cout << std::left << std::setw(10) << "R" + std::to_string(i) << "0x"
-              << register_packet.substr(i * kRegisterHexLength,
-                                        kRegisterHexLength)
-              << std::endl;
+  for (int i = 0; i < kNumNumberedRegisters; ++i) {
+    PrintOneRegister(register_packet, "R" + std::to_string(i), i);
   }
-  std::cout << std::left << std::setw(10) << "SP"
-            << "0x"
-            << register_packet.substr(13 * kRegisterHexLength,
-                                      kRegisterHexLength)
-            << std::endl;
-  std::cout << std::left << std::setw(10) << "LR"
-            << "0x"
-            << register_packet.substr(14 * kRegisterHexLength,
-                                      kRegisterHexLength)
-            << std::endl;
-  std::cout << std::left << std::setw(10) << "PC"
-            << "0x"
-            << register_packet.substr(15 * kRegisterHexLength,
-                                      kRegisterHexLength)
-            << std::endl;
-  std::cout << std::left << std::setw(10) << "PRS"
-            << "0x"
-            << register_packet.substr(16 * kRegisterHexLength,
-                                      kRegisterHexLength)
-            << std::endl;
+  PrintOneRegister(register_packet, "SP", 13);
+  PrintOneRegister(register_packet, "LR", 14);
+  PrintOneRegister(register_packet, "PC", 15);
+  PrintOneRegister(register_packet, "PSR", 16);
+}
+
+void PrintOneFlag(uint32_t register_value, const std::string_view& flag_info,
+                  int flag_bit) {
+  std::cout << std::left << std::setw(kFieldWidth) << flag_info
+            << std::boolalpha
+            << static_cast<bool>(register_value & (1 << flag_bit)) << std::endl;
 }
 
 // Prints the information contained in the configurable fault status register.
@@ -130,86 +131,49 @@ void PrintGeneralRegisters(std::string_view const& register_packet) {
 void PrintCfsrRegister(uint32_t register_value) {
   // Memory Management Status Register
   // IACCVIOL: Instruction access violation flag
-  std::cout << std::left << std::setw(40)
-            << "Instruction Access Violation:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 0)) << std::endl;
+  PrintOneFlag(register_value, "Instruction Access Violation:", 0);
   // DACCVIOL: Data access violation flag
-  std::cout << std::left << std::setw(40)
-            << "Data Access Violation:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 1)) << std::endl;
+  PrintOneFlag(register_value, "Data Access Violation:", 1);
   // MUNSTKERR: MemManage fault on unstacking for a return from exception
-  std::cout << std::left << std::setw(40)
-            << "Memory Management Unstacking Fault:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 3)) << std::endl;
+  PrintOneFlag(register_value, "Memory Management Unstacking Fault:", 3);
   // MSTKERR: MemManage fault on stacking for exception entry
-  std::cout << std::left << std::setw(40)
-            << "Memory Management Stacking Fault:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 4)) << std::endl;
+  PrintOneFlag(register_value, "Memory Management Stacking Fault:", 4);
   // MLSPERR: MemManage fault during floating point lazy state preservation
   // (only Cortex-M4 with FPU)
-  std::cout << std::left << std::setw(40)
-            << "Memory Management Lazy FP Fault:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 5)) << std::endl;
+  PrintOneFlag(register_value, "Memory Management Lazy FP Fault:", 5);
   // MMARVALID: MemManage Fault Address Register (MMFAR) valid flag
-  std::cout << std::left << std::setw(40)
-            << "Valid Memory Fault Address:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 7)) << std::endl;
+  PrintOneFlag(register_value, "Valid Memory Fault Address:", 7);
 
   // Bus Fault Status Register
   // IBUSERR: Instruction bus error
-  std::cout << std::left << std::setw(40)
-            << "Instruction Bus Error:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 8)) << std::endl;
+  PrintOneFlag(register_value, "Instruction Bus Error:", 8);
   // PRECISERR: Precise data bus error
-  std::cout << std::left << std::setw(40)
-            << "Precise Data Bus Error:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 9)) << std::endl;
+  PrintOneFlag(register_value, "Precise Data Bus Error:", 9);
   // IMPRECISERR: Imprecise data bus error
-  std::cout << std::left << std::setw(40)
-            << "Imprecise Data Bus Error:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 10)) << std::endl;
+  PrintOneFlag(register_value, "Imprecise Data Bus Error:", 10);
   // UNSTKERR: BusFault on unstacking for a return from exception
-  std::cout << std::left << std::setw(40)
-            << "Bus Unstacking Fault:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 11)) << std::endl;
+  PrintOneFlag(register_value, "Bus Unstacking Fault:", 11);
   // STKERR: BusFault on stacking for exception entry
-  std::cout << std::left << std::setw(40)
-            << "Bus Stacking Fault:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 12)) << std::endl;
+  PrintOneFlag(register_value, "Bus Stacking Fault:", 12);
   // LSPERR: BusFault during floating point lazy state preservation (only when
   // FPU present)
-  std::cout << std::left << std::setw(40)
-            << "Bus Lazy FP Fault:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 13)) << std::endl;
+  PrintOneFlag(register_value, "Bus Lazy FP Fault:", 13);
   // BFARVALID: BusFault Address Register (BFAR) valid flag
-  std::cout << std::left << std::setw(40)
-            << "Valid Bus Fault Address:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 15)) << std::endl;
+  PrintOneFlag(register_value, "Valid Bus Fault Address:", 15);
 
   // Usage Fault Status Register
   // UNDEFINSTR: Undefined instruction
-  std::cout << std::left << std::setw(40)
-            << "Undefined Instruction Usage Fault:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 16)) << std::endl;
+  PrintOneFlag(register_value, "Undefined Instruction Usage Fault:", 16);
   // INVSTATE: Invalid state
-  std::cout << std::left << std::setw(40)
-            << "Invalid State Usage Fault:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 17)) << std::endl;
+  PrintOneFlag(register_value, "Invalid State Usage Fault:", 17);
   // INVPC: Invalid PC load UsageFault
-  std::cout << std::left << std::setw(40)
-            << "Invalid PC Load Usage Fault:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 18)) << std::endl;
+  PrintOneFlag(register_value, "Invalid PC Load Usage Fault:", 18);
   // NOCP: No coprocessor
-  std::cout << std::left << std::setw(40)
-            << "No Coprocessor Usage Fault:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 19)) << std::endl;
+  PrintOneFlag(register_value, "No Coprocessor Usage Fault:", 19);
   // UNALIGNED: Unaligned access UsageFault
-  std::cout << std::left << std::setw(40)
-            << "Unaligned Access Usage Fault:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 24)) << std::endl;
+  PrintOneFlag(register_value, "Unaligned Access Usage Fault:", 24);
   // DIVBYZERO: Divide by zero UsageFault
-  std::cout << std::left << std::setw(40) << "Divide By Zero:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 25)) << std::endl;
+  PrintOneFlag(register_value, "Divide By Zero:", 25);
 }
 
 // Prints the information contained in the hard fault status register.
@@ -218,13 +182,9 @@ void PrintCfsrRegister(uint32_t register_value) {
 void PrintHfsrRegister(uint32_t register_value) {
   // VECTTBL: Indicates a Bus Fault on a vector table read during exception
   // processing
-  std::cout << std::left << std::setw(40)
-            << "Bus Fault on Vector Table Read:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 1)) << std::endl;
+  PrintOneFlag(register_value, "Bus Fault on Vector Table Read:", 1);
   // FORCED: Indicates a forced Hard Fault
-  std::cout << std::left << std::setw(40)
-            << "Forced Hard Fault:" << std::boolalpha
-            << static_cast<bool>(register_value & (1 << 30)) << std::endl;
+  PrintOneFlag(register_value, "Forced Hard Fault:", 30);
 }
 
 }  // namespace
@@ -242,33 +202,36 @@ bool Monitor::Start() {
 }
 
 bool Monitor::DeviceCrashed() {
-  bool ok;
-  std::tie(ok, stop_message_) = rsp_client_.ReceivePacket();
-  return ok;
+  auto response = rsp_client_.ReceivePacket();
+  if (!response.has_value()) {
+    return false;
+  }
+  stop_message_ = response.value();
+  return true;
 }
 
 void Monitor::PrintCrashReport() {
   PrintStopReply(stop_message_);
-  bool ok;
-  std::string response;
+  std::optional<std::string> response;
 
   std::cout << "----| General registers |----" << std::endl;
-  std::tie(ok, response) = rsp_client_.SendRecvPacket(
-      rsp::RspPacket::ReadGeneralRegisters, kRetries);
-  if (ok) {
-    PrintGeneralRegisters(response);
+  response = rsp_client_.SendRecvPacket(rsp::RspPacket::ReadGeneralRegisters,
+                                        kRetries);
+  if (response.has_value()) {
+    PrintGeneralRegisters(response.value());
   } else {
     std::cout << "Error reading general registers." << std::endl;
   }
 
   std::cout << "----| Kernal Fault Status |----" << std::endl;
   // Print CFSR register.
-  std::tie(ok, response) = rsp_client_.SendRecvPacket(
+  response = rsp_client_.SendRecvPacket(
       rsp::RspPacket(rsp::RspPacket::ReadFromMemory,
                      kConfigurableFaultStatusRegister, kRegisterLength),
       kRetries);
-  if (ok) {
-    uint32_t register_value = static_cast<uint32_t>(stoul(response, 0, 16));
+  if (response.has_value()) {
+    uint32_t register_value =
+        static_cast<uint32_t>(stoul(response.value(), 0, 16));
     // Register value is in host order in memory.
     register_value = htonl(register_value);
     PrintCfsrRegister(register_value);
@@ -277,12 +240,13 @@ void Monitor::PrintCrashReport() {
               << std::endl;
   }
   // Print HFSR register.
-  std::tie(ok, response) = rsp_client_.SendRecvPacket(
+  response = rsp_client_.SendRecvPacket(
       rsp::RspPacket(rsp::RspPacket::ReadFromMemory, kHardFaultStatusRegister,
                      kRegisterLength),
       kRetries);
-  if (ok) {
-    uint32_t register_value = static_cast<uint32_t>(stoul(response, 0, 16));
+  if (response.has_value()) {
+    uint32_t register_value =
+        static_cast<uint32_t>(stoul(response.value(), 0, 16));
     // Register value is in host order in memory.
     register_value = htonl(register_value);
     PrintHfsrRegister(register_value);
@@ -290,12 +254,13 @@ void Monitor::PrintCrashReport() {
     std::cout << "Error reading Hard Fault Status Register." << std::endl;
   }
   // Print memory fault and bus fault addresses.
-  std::tie(ok, response) = rsp_client_.SendRecvPacket(
+  response = rsp_client_.SendRecvPacket(
       rsp::RspPacket(rsp::RspPacket::ReadFromMemory,
                      kMemManageFaultAddressRegister, kRegisterLength),
       kRetries);
-  if (ok) {
-    uint32_t register_value = static_cast<uint32_t>(stoul(response, 0, 16));
+  if (response.has_value()) {
+    uint32_t register_value =
+        static_cast<uint32_t>(stoul(response.value(), 0, 16));
     // Register value is in host order in memory.
     register_value = htonl(register_value);
     std::cout << std::left << std::setw(40) << "Memory Fault Address:"
@@ -305,12 +270,13 @@ void Monitor::PrintCrashReport() {
   } else {
     std::cout << "Error reading Memory Fault Address." << std::endl;
   }
-  std::tie(ok, response) = rsp_client_.SendRecvPacket(
+  response = rsp_client_.SendRecvPacket(
       rsp::RspPacket(rsp::RspPacket::ReadFromMemory, kBusFaultAddressRegister,
                      kRegisterLength),
       kRetries);
-  if (ok) {
-    uint32_t register_value = static_cast<uint32_t>(stoul(response, 0, 16));
+  if (response.has_value()) {
+    uint32_t register_value =
+        static_cast<uint32_t>(stoul(response.value(), 0, 16));
     // Register value is in host order in memory.
     register_value = htonl(register_value);
     std::cout << std::left << std::setw(40) << "Bus Fault Address:"
@@ -323,17 +289,20 @@ void Monitor::PrintCrashReport() {
 }
 
 void Monitor::SaveCrashFile(InputType input_type,
-                            std::string_view const& input_path) {
-  std::string_view input_name = static_cast<std::vector<std::string_view>>(
-                                    absl::StrSplit(input_path, '/'))
-                                    .back();
+                            const std::string_view& input_path) {
+  std::string input_name =
+      static_cast<std::vector<std::string>>(absl::StrSplit(input_path, '/'))
+          .back();
   std::filesystem::path save_path = absl::StrCat(
       CreateArtifactsSubdirectory(InputTypeToDirectoryName(input_type)), "/",
       input_name);
+  std::cout << "Saving file to " << save_path << std::endl;
   if (!std::filesystem::copy_file(
           input_path, save_path,
           std::filesystem::copy_options::skip_existing)) {
-    std::cout << "Unable to save file!" << std::endl;
+    if (!std::filesystem::exists(save_path)) {
+      LOG(ERROR) << "Unable to save file!";
+    }
   }
 }
 

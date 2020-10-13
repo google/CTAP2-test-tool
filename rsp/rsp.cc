@@ -33,8 +33,7 @@ namespace rsp {
 namespace {
 
 // Timeout = 1 seconds.
-constexpr int kReceiveTimeoutMicroSec = 0;
-constexpr int kReceiveTimeoutSec = 1;
+constexpr int kReceiveTimeoutMicroSec = 1000000;
 // No specification found about max length,
 // Using 4000 as nRF52840-dk supported packet size.
 constexpr int kReceiveBufferLength = 4000;
@@ -74,57 +73,59 @@ bool RemoteSerialProtocol::Connect(int port) {
 bool RemoteSerialProtocol::Terminate() { return (close(socket_) != -1); }
 
 bool RemoteSerialProtocol::SendPacket(RspPacket packet, int retries /* = 1 */) {
-  int num_retries = 0;
   char const* buf = packet.ToString().c_str();
-  while (num_retries < retries) {
+  for (int i = 0; i < retries; ++i) {
     int aux = send(socket_, buf, strlen(buf), 0);
     if (aux != -1 && ReadAcknowledgement()) {
       return true;
     }
-    ++num_retries;
   }
   return false;
 }
 
 // The possible reply packets are listed in:
 // https://sourceware.org/gdb/current/onlinedocs/gdb/Stop-Reply-Packets.html#Stop-Reply-Packets
-std::tuple<bool, std::string> RemoteSerialProtocol::ReceivePacket() {
-  auto [ok, response] = Receive(kReceiveBufferLength);
-  return {ok, GetPacketdata(response)};
+std::optional<std::string> RemoteSerialProtocol::ReceivePacket() {
+  auto response = Receive(kReceiveBufferLength);
+  if (!response.has_value()) {
+    return std::nullopt;
+  }
+  return GetPacketdata(response.value());
 }
 
-std::tuple<bool, std::string> RemoteSerialProtocol::SendRecvPacket(
+std::optional<std::string> RemoteSerialProtocol::SendRecvPacket(
     RspPacket packet, int retries /* = 1 */) {
   if (!SendPacket(packet, retries)) {
-    return {false, ""};
+    return std::nullopt;
   }
   return ReceivePacket();
 }
 
-std::tuple<bool, std::string> RemoteSerialProtocol::Receive(
-    int receive_length) {
+std::optional<std::string> RemoteSerialProtocol::Receive(int receive_length) {
   fd_set file_set;
   FD_ZERO(&file_set);
   FD_SET(socket_, &file_set);
   struct timeval tv {
-    kReceiveTimeoutSec, kReceiveTimeoutMicroSec
+    kReceiveTimeoutMicroSec / 1000000, kReceiveTimeoutMicroSec % 1000000
   };
   int return_value = select(socket_ + 1, &file_set, NULL, NULL, &tv);
   if (return_value <= 0) {
-    return {false, ""};
+    return std::nullopt;
   }
   int real_len = recv(socket_, recv_buffer_.data(), receive_length, 0);
   if (real_len == -1) {
-    return {false, ""};
+    return std::nullopt;
   }
-  return {true,
-          std::string(recv_buffer_.begin(), recv_buffer_.begin() + real_len)};
+  return std::string(recv_buffer_.begin(), recv_buffer_.begin() + real_len);
 }
 
 // Acknowledgement is either '+' or '-'
 bool RemoteSerialProtocol::ReadAcknowledgement() {
-  auto [ok, response] = Receive(1);
-  return ok && (response == "+");
+  auto response = Receive(1);
+  if (!response.has_value()) {
+    return false;
+  }
+  return response.value() == "+";
 }
 
 }  // namespace rsp
