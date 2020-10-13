@@ -110,7 +110,7 @@ void PrintGeneralRegisters(const std::string_view& register_packet) {
     return;
   }
   for (int i = 0; i < kNumNumberedRegisters; ++i) {
-    PrintOneRegister(register_packet, "R" + std::to_string(i), i);
+    PrintOneRegister(register_packet, absl::StrCat("R", i), i);
   }
   PrintOneRegister(register_packet, "SP", 13);
   PrintOneRegister(register_packet, "LR", 14);
@@ -300,9 +300,7 @@ void Monitor::SaveCrashFile(InputType input_type,
   if (!std::filesystem::copy_file(
           input_path, save_path,
           std::filesystem::copy_options::skip_existing)) {
-    if (!std::filesystem::exists(save_path)) {
-      LOG(ERROR) << "Unable to save file!";
-    }
+    CHECK(std::filesystem::exists(save_path)) << "Unable to save file!";
   }
 }
 

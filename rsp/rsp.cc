@@ -122,10 +122,7 @@ std::optional<std::string> RemoteSerialProtocol::Receive(int receive_length) {
 // Acknowledgement is either '+' or '-'
 bool RemoteSerialProtocol::ReadAcknowledgement() {
   auto response = Receive(1);
-  if (!response.has_value()) {
-    return false;
-  }
-  return response.value() == "+";
+  return response.has_value() && response.value() == "+";
 }
 
 }  // namespace rsp
