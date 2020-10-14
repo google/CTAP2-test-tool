@@ -28,19 +28,6 @@
 
 namespace fido2_tests {
 
-void TestSeries::Reset() {
-  std::cout << "You have 10 seconds for the next touch after pressing enter.\n";
-  PromptReplugAndInit();
-  absl::variant<cbor::Value, Status> response =
-      fido2_commands::ResetPositiveTest(device_);
-  test_helpers::AssertResponse(response, "resetting the device");
-
-  platform_cose_key_ = cbor::Value::MapValue();
-  shared_secret_ = cbor::Value::BinaryValue();
-  pin_utf8_ = cbor::Value::BinaryValue();
-  auth_token_ = cbor::Value::BinaryValue();
-}
-
 void TestSeries::ResetDeletionTest() {
   std::string rp_id = "reset.example.com";
   Status returned_status;
@@ -55,7 +42,7 @@ void TestSeries::ResetDeletionTest() {
       device_, device_tracker_, reset_get_assertion_builder.GetCbor());
   device_tracker_->CheckAndReport(response, "get assertion before reset");
 
-  Reset();
+  command_state_->Reset();
 
   returned_status = fido2_commands::GetAssertionNegativeTest(
       device_, reset_get_assertion_builder.GetCbor(), false);
@@ -72,15 +59,19 @@ void TestSeries::ResetDeletionTest() {
       Status::kErrNoCredentials, returned_status,
       "get assertion of non-residential key after reset");
 
-  SetPin();
+  test_helpers::AssertCondition(command_state_->SetPin() == Status::kErrNone,
+                                "set pin for further tests");
   int initial_counter = GetPinRetries();
-  AttemptGetAuthToken(bad_pin_);
-  cbor::Value::BinaryValue old_auth_token = auth_token_;
+  command_state_->AttemptGetAuthToken(bad_pin_);
+  cbor::Value::BinaryValue old_auth_token =
+      command_state_->GetCurrentAuthToken();
+  // TODO(kaczmarczyck) compare to new token after either replug only or Reset
 
-  Reset();
+  command_state_->Reset();
 
   CheckPinAbsenceByMakeCredential();
-  SetPin();
+  test_helpers::AssertCondition(command_state_->SetPin() == Status::kErrNone,
+                                "set pin for further tests");
   device_tracker_->CheckAndReport(GetPinRetries() == initial_counter,
                                   "PIN retries reset on reset command");
 
@@ -93,7 +84,7 @@ void TestSeries::ResetDeletionTest() {
   device_tracker_->CheckAndReport(Status::kErrPinAuthInvalid, returned_status,
                                   "PIN auth was reset, token stops working");
 
-  Reset();
+  command_state_->Reset();
 }
 
 void TestSeries::ResetPhysicalPresenceTest() {

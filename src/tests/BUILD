@@ -30,6 +30,7 @@ cc_library(
     ],
     deps = [
         "//:cbor_builders",
+        "//:command_state",
         "//:crypto_utility",
         "//:device_interface",
         "//:device_tracker",

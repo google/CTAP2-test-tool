@@ -330,8 +330,11 @@ void TestSeries::MakeCredentialOptionsTest() {
   options_builder.SetUserVerificationOptions(true);
   if (device_tracker_->HasOption("clientPin")) {
     if (!device_tracker_->HasOption("uv")) {
-      GetAuthToken();
-      options_builder.SetDefaultPinUvAuthParam(auth_token_);
+      test_helpers::AssertCondition(
+          command_state_->GetAuthToken() == Status::kErrNone,
+          "get auth token for further tests");
+      options_builder.SetDefaultPinUvAuthParam(
+          command_state_->GetCurrentAuthToken());
       options_builder.SetDefaultPinUvAuthProtocol();
     }
     response = fido2_commands::MakeCredentialPositiveTest(
@@ -341,7 +344,7 @@ void TestSeries::MakeCredentialOptionsTest() {
     options_builder.RemoveMapEntry(MakeCredentialParameters::kPinUvAuthParam);
     options_builder.RemoveMapEntry(
         MakeCredentialParameters::kPinUvAuthProtocol);
-    Reset();
+    command_state_->Reset();
   } else {
     returned_status = fido2_commands::MakeCredentialNegativeTest(
         device_, options_builder.GetCbor(), false);
@@ -392,10 +395,13 @@ void TestSeries::MakeCredentialPinAuthTest() {
   device_tracker_->CheckAndReport(Status::kErrPinNotSet, returned_status,
                                   "pin not set yet");
 
-  GetAuthToken();
+  test_helpers::AssertCondition(
+      command_state_->GetAuthToken() == Status::kErrNone,
+      "get auth token for further tests");
   // Sets a PIN if necessary. From here on, the PIN is set on the authenticator.
 
-  pin_auth_builder.SetDefaultPinUvAuthParam(auth_token_);
+  pin_auth_builder.SetDefaultPinUvAuthParam(
+      command_state_->GetCurrentAuthToken());
   response = fido2_commands::MakeCredentialPositiveTest(
       device_, device_tracker_, pin_auth_builder.GetCbor());
   device_tracker_->CheckAndReport(response, "make credential using PIN token");
@@ -434,14 +440,15 @@ void TestSeries::MakeCredentialPinAuthTest() {
 
   no_pin_auth_builder.RemoveMapEntry(
       MakeCredentialParameters::kPinUvAuthProtocol);
-  no_pin_auth_builder.SetDefaultPinUvAuthParam(auth_token_);
+  no_pin_auth_builder.SetDefaultPinUvAuthParam(
+      command_state_->GetCurrentAuthToken());
   returned_status = fido2_commands::MakeCredentialNegativeTest(
       device_, no_pin_auth_builder.GetCbor(), false);
   device_tracker_->CheckAndReport(
       Status::kErrMissingParameter, returned_status,
       "PIN protocol not given, but PIN auth param is");
 
-  Reset();
+  command_state_->Reset();
 }
 
 void TestSeries::MakeCredentialMultipleKeysTest(int num_credentials) {
@@ -480,7 +487,7 @@ void TestSeries::MakeCredentialMultipleKeysTest(int num_credentials) {
               << num_credentials << " keys fit." << std::endl;
   }
 
-  Reset();
+  command_state_->Reset();
 }
 
 void TestSeries::MakeCredentialPhysicalPresenceTest() {
