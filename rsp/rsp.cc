@@ -76,7 +76,7 @@ bool RemoteSerialProtocol::SendPacket(RspPacket packet, int retries /* = 1 */) {
   char const* buf = packet.ToString().c_str();
   for (int i = 0; i < retries; ++i) {
     int aux = send(socket_, buf, strlen(buf), 0);
-    if (aux != -1 && ReadAcknowledgement()) {
+    if (aux == strlen(buf) && ReadAcknowledgement()) {
       return true;
     }
   }

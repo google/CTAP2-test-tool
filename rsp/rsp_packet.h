@@ -32,9 +32,11 @@ class RspPacket {
   // Constructor for a single packet.
   RspPacket(PacketData data);
   // Constructor for a RSP packet which requires an address and a third integer
-  // parameter. Depending on the specific packet, the parameter can be
+  // parameter.
+  // address: Hexadecimal representation of the address without leading 0x.
+  // param: Depending on the specific packet, the parameter can be
   // interpreted as length, number or cycles, etc.
-  RspPacket(PacketData data, std::string_view address, int param);
+  RspPacket(PacketData data, const std::string_view& address, int param);
   // Allows switch and comparisons of RspPacket class as an enum.
   operator PacketData() const { return data_; }
   bool operator==(RspPacket other) const { return data_ == other.data_; }

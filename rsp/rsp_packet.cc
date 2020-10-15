@@ -24,7 +24,7 @@ namespace rsp {
 namespace {
 
 // Returns the checksum of the packet data.
-uint8_t Checksum(std::string_view packet) {
+uint8_t Checksum(const std::string_view& packet) {
   uint8_t sum = 0;
   for (char c : packet) {
     sum += static_cast<uint8_t>(c);
@@ -36,7 +36,8 @@ uint8_t Checksum(std::string_view packet) {
 
 RspPacket::RspPacket(PacketData data) : data_(data) {}
 
-RspPacket::RspPacket(PacketData data, std::string_view address, int param)
+RspPacket::RspPacket(PacketData data, const std::string_view& address,
+                     int param)
     : data_(data), address_(address), param_(param) {}
 
 std::string RspPacket::DataToString() const {

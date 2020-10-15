@@ -223,7 +223,7 @@ void Monitor::PrintCrashReport() {
     std::cout << "Error reading general registers." << std::endl;
   }
 
-  std::cout << "----| Kernal Fault Status |----" << std::endl;
+  std::cout << "----| Kernel Fault Status |----" << std::endl;
   // Print CFSR register.
   response = rsp_client_.SendRecvPacket(
       rsp::RspPacket(rsp::RspPacket::ReadFromMemory,
@@ -295,7 +295,7 @@ void Monitor::SaveCrashFile(InputType input_type,
           .back();
   std::filesystem::path save_path = absl::StrCat(
       CreateArtifactsSubdirectory(InputTypeToDirectoryName(input_type)), "/",
-      input_name);
+      input_name, 1);
   std::cout << "Saving file to " << save_path << std::endl;
   if (!std::filesystem::copy_file(
           input_path, save_path,
