@@ -16,6 +16,7 @@
 #define TEST_INPUT_CONTROLLER_H_
 
 #include <filesystem>
+#include <tuple>
 #include <vector>
 
 #include "src/device_interface.h"
@@ -29,6 +30,9 @@ enum InputType {
   kCborRaw,
   kRawBytes
 };
+
+// Converts an InputType to the corresponding directory name.
+std::string InputTypeToDirectoryName(InputType input_type);
 
 // Sends input to the given device and returns the status code.
 fido2_tests::Status SendInput(fido2_tests::DeviceInterface* device,
@@ -48,8 +52,9 @@ class CorpusIterator {
   CorpusIterator(std::string_view corpus_path);
   // Returns whether there is a next input available.
   bool HasNextInput();
-  // Returns next input available and its type.
-  std::tuple<InputType, std::vector<uint8_t>> GetNextInput();
+  // Returns the type, the content and the file name of the next available
+  // input.
+  std::tuple<InputType, std::vector<uint8_t>, std::string> GetNextInput();
 
  private:
   // Increments the current input pointer to the next non empty one

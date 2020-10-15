@@ -15,6 +15,7 @@
 #ifndef MONITOR_H_
 #define MONITOR_H_
 
+#include "corpus_tests/test_input_controller.h"
 #include "rsp/rsp.h"
 #include "src/device_interface.h"
 
@@ -39,10 +40,16 @@ class Monitor {
   // Checks for an occured failure in the device by attempting to
   // receive data from the RSP server.
   bool DeviceCrashed();
+  // Prints some information about the produced crash on the device
+  // and/or the state of the device.
+  void PrintCrashReport();
+  // Saves the given file crashing the device in the artifacts directory.
+  void SaveCrashFile(InputType input_type, std::string_view const& input_path);
 
  private:
-  rsp::RemoteSerialProtocol rsp_client_;
   fido2_tests::DeviceInterface* device_;
+  rsp::RemoteSerialProtocol rsp_client_;
+  std::string stop_message_;
 };
 
 }  // namespace corpus_tests

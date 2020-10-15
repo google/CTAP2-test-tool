@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "absl/strings/str_split.h"
+#include "glog/logging.h"
 
 namespace corpus_tests {
 namespace {
@@ -80,7 +81,9 @@ bool CorpusIterator::HasNextInput() {
   return current_input_ != std::filesystem::directory_iterator();
 }
 
-std::tuple<InputType, std::vector<uint8_t>> CorpusIterator::GetNextInput() {
+std::tuple<InputType, std::vector<uint8_t>, std::string>
+CorpusIterator::GetNextInput() {
+  std::string input_path = current_input_->path();
   std::ifstream file(current_input_->path(), std::ios::in | std::ios::binary);
   std::vector<uint8_t> input_data = std::vector<uint8_t>(
       (std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -89,7 +92,21 @@ std::tuple<InputType, std::vector<uint8_t>> CorpusIterator::GetNextInput() {
   InputType input_type = GetInputType(path_splits.back());
   ++current_input_;
   UpdateInputPointer();
-  return {input_type, input_data};
+  return {input_type, input_data, input_path};
+}
+
+std::string InputTypeToDirectoryName(InputType input_type) {
+  // TODO(#27): Extend when more input types are supported.
+  switch (input_type) {
+    case InputType::kCborMakeCredentialParameter:
+      return "Cbor_MakeCredentialParameters";
+    case InputType::kCborGetAssertionParameter:
+      return "Cbor_GetAssertionParameters";
+    case InputType::kCborRaw:
+      return "Cbor_Raw";
+    default:
+      CHECK(false) << "unreachable default - TEST SUITE BUG";
+  }
 }
 
 fido2_tests::Status SendInput(fido2_tests::DeviceInterface* device,

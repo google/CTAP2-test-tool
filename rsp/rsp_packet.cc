@@ -21,10 +21,33 @@
 
 namespace rsp {
 
+namespace {
+
+// Returns the checksum of the packet data.
+uint8_t Checksum(const std::string_view& packet) {
+  uint8_t sum = 0;
+  for (char c : packet) {
+    sum += static_cast<uint8_t>(c);
+  }
+  return sum;
+}
+
+}  // namespace
+
+RspPacket::RspPacket(PacketData data) : data_(data) {}
+
+RspPacket::RspPacket(PacketData data, const std::string_view& address,
+                     int param)
+    : data_(data), address_(address), param_(param) {}
+
 std::string RspPacket::DataToString() const {
   switch (data_) {
     case RspPacket::Continue:
       return "c";
+    case RspPacket::ReadFromMemory:
+      return absl::StrCat("m", address_, ",", param_);
+    case RspPacket::ReadGeneralRegisters:
+      return "g";
     case RspPacket::RequestSupported:
       return "qSupported";
     default:
@@ -33,17 +56,9 @@ std::string RspPacket::DataToString() const {
 }
 
 std::string RspPacket::ToString() const {
-  return absl::StrCat("$", DataToString(), "#",
-                      absl::Hex(Checksum(), absl::kZeroPad2));
-}
-
-uint8_t RspPacket::Checksum() const {
-  uint8_t sum = 0;
-  std::string packet = DataToString();
-  for (char c : packet) {
-    sum += static_cast<uint8_t>(c);
-  }
-  return sum;
+  std::string packet_data = DataToString();
+  return absl::StrCat("$", packet_data, "#",
+                      absl::Hex(Checksum(packet_data), absl::kZeroPad2));
 }
 
 }  // namespace rsp
