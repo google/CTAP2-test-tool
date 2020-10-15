@@ -71,19 +71,6 @@ std::string CborToString(const std::string& name_prefix,
 
 namespace test_helpers {
 
-// Asserts a general condition, exits on failure.
-void AssertCondition(bool condition, const std::string& test_name) {
-  CHECK(condition) << "Failed critical test: " << test_name;
-}
-
-// As above, but asserts the success of an executed command.
-void AssertResponse(const absl::variant<cbor::Value, Status>& returned_variant,
-                    const std::string& test_name) {
-  CHECK(!absl::holds_alternative<Status>(returned_variant))
-      << "Failed critical test: " << test_name << " - returned status code "
-      << StatusToString(absl::get<Status>(returned_variant));
-}
-
 // Extracts the credential ID from an authenticator data structure[1].
 // [1] https://www.w3.org/TR/webauthn/#sec-authenticator-data
 cbor::Value::BinaryValue ExtractCredentialId(const cbor::Value& response) {
@@ -167,7 +154,8 @@ cbor::Value TestSeries::MakeTestCredential(const std::string& rp_id,
                                            bool use_residential_key) {
   absl::variant<cbor::Value, Status> response =
       command_state_->MakeTestCredential(rp_id, use_residential_key);
-  test_helpers::AssertResponse(response, "make credential for further tests");
+  device_tracker_->AssertResponse(response,
+                                  "make credential for further tests");
   return std::move(absl::get<cbor::Value>(response));
 }
 
@@ -353,7 +341,7 @@ int TestSeries::GetPinRetries() {
               << std::endl;
     return 0;
   }
-  test_helpers::AssertResponse(response, "get the PIN retries counter");
+  device_tracker_->AssertResponse(response, "get the PIN retries counter");
   return test_helpers::ExtractPinRetries(absl::get<cbor::Value>(response));
 }
 

@@ -223,9 +223,8 @@ void TestSeries::ClientPinRetriesTest() {
       GetPinRetries() == initial_counter - 1,
       "PIN retries decrement after a failed attempt");
 
-  test_helpers::AssertCondition(
-      command_state_->GetAuthToken() == Status::kErrNone,
-      "get auth token for further tests");
+  device_tracker_->AssertStatus(command_state_->GetAuthToken(),
+                                "get auth token for further tests");
   device_tracker_->CheckAndReport(
       GetPinRetries() == initial_counter,
       "PIN retries reset on entering the correct PIN");
@@ -251,9 +250,8 @@ void TestSeries::ClientPinRetriesTest() {
         GetPinRetries() == initial_counter - kWrongPinsBeforePowerCycle,
         "PIN retry counter does not decrement in a blocked operation");
     command_state_->PromptReplugAndInit();
-    test_helpers::AssertCondition(
-        command_state_->GetAuthToken() == Status::kErrNone,
-        "get auth token for further tests");
+    device_tracker_->AssertStatus(command_state_->GetAuthToken(),
+                                  "get auth token for further tests");
     device_tracker_->CheckAndReport(
         GetPinRetries() == initial_counter,
         "PIN retries reset on entering the correct PIN");

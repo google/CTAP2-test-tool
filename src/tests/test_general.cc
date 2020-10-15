@@ -31,13 +31,13 @@ namespace fido2_tests {
 void TestSeries::GetInfoTest() {
   absl::variant<cbor::Value, Status> response =
       fido2_commands::GetInfoPositiveTest(device_, device_tracker_);
-  test_helpers::AssertResponse(response, "correct GetInfo response");
+  device_tracker_->AssertResponse(response, "correct GetInfo response");
 
   const auto& decoded_map = absl::get<cbor::Value>(response).GetMap();
   auto map_iter = decoded_map.find(cbor::Value(3));
   if (map_iter != decoded_map.end()) {
-    test_helpers::AssertCondition(map_iter->second.is_bytestring(),
-                                  "AAGUID is a bytestring");
+    device_tracker_->AssertCondition(map_iter->second.is_bytestring(),
+                                     "AAGUID is a bytestring");
     std::cout << "The claimed AAGUID is:" << std::endl;
     test_helpers::PrintByteVector(map_iter->second.GetBytestring());
   }
@@ -70,8 +70,8 @@ void TestSeries::GetInfoTest() {
   bool has_pin_protocol_1 = false;
   if (map_iter != decoded_map.end()) {
     for (const auto& pin_protocol : map_iter->second.GetArray()) {
-      test_helpers::AssertCondition(pin_protocol.is_unsigned(),
-                                    "PIN protocol version is unsigned");
+      device_tracker_->AssertCondition(pin_protocol.is_unsigned(),
+                                       "PIN protocol version is unsigned");
       if (pin_protocol.GetUnsigned() == 1) {
         has_pin_protocol_1 = true;
       }
@@ -106,7 +106,7 @@ void TestSeries::PersistenceTest() {
   device_tracker_->CheckAndReport(response,
                                   "non-residential key persists after replug");
 
-  test_helpers::AssertCondition(command_state_->SetPin() == Status::kErrNone,
+  device_tracker_->AssertStatus(command_state_->SetPin(),
                                 "set pin for further tests");
   command_state_->AttemptGetAuthToken(bad_pin_);
   int reduced_counter = GetPinRetries();

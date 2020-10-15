@@ -230,13 +230,6 @@ class TestSeries {
 
 namespace test_helpers {
 
-// Asserts a general condition, exits on failure.
-void AssertCondition(bool condition, const std::string& test_name);
-
-// As above, but asserts the success of an executed command.
-void AssertResponse(const absl::variant<cbor::Value, Status>& returned_variant,
-                    const std::string& test_name);
-
 // Extracts the credential ID from an authenticator data structure[1].
 // [1] https://www.w3.org/TR/webauthn/#sec-authenticator-data
 cbor::Value::BinaryValue ExtractCredentialId(const cbor::Value& response);

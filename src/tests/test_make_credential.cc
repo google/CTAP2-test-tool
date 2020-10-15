@@ -330,9 +330,8 @@ void TestSeries::MakeCredentialOptionsTest() {
   options_builder.SetUserVerificationOptions(true);
   if (device_tracker_->HasOption("clientPin")) {
     if (!device_tracker_->HasOption("uv")) {
-      test_helpers::AssertCondition(
-          command_state_->GetAuthToken() == Status::kErrNone,
-          "get auth token for further tests");
+      device_tracker_->AssertStatus(command_state_->GetAuthToken(),
+                                    "get auth token for further tests");
       options_builder.SetDefaultPinUvAuthParam(
           command_state_->GetCurrentAuthToken());
       options_builder.SetDefaultPinUvAuthProtocol();
@@ -395,9 +394,8 @@ void TestSeries::MakeCredentialPinAuthTest() {
   device_tracker_->CheckAndReport(Status::kErrPinNotSet, returned_status,
                                   "pin not set yet");
 
-  test_helpers::AssertCondition(
-      command_state_->GetAuthToken() == Status::kErrNone,
-      "get auth token for further tests");
+  device_tracker_->AssertStatus(command_state_->GetAuthToken(),
+                                "get auth token for further tests");
   // Sets a PIN if necessary. From here on, the PIN is set on the authenticator.
 
   pin_auth_builder.SetDefaultPinUvAuthParam(

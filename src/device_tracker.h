@@ -59,6 +59,15 @@ class DeviceTracker {
   // are highlighted more prominently during a report. Use this if you suspect
   // the finding to be potentially problematic.
   void AddProblem(const std::string& problem);
+  // Asserts a general condition, exits on failure. Prints all results collected
+  // so far and saves them into a file.
+  void AssertCondition(bool condition, const std::string& message);
+  // As above, but asserts that the Status is kErrNone.
+  void AssertStatus(Status status, const std::string& message);
+  // As above, but asserts the success of an executed command.
+  void AssertResponse(
+      const absl::variant<cbor::Value, Status>& returned_variant,
+      const std::string& message);
   // Checks a general condition, reporting the result and writing statistics.
   void CheckAndReport(bool condition, const std::string& test_name);
   // As above, but checks specifically whether the variant is a CBOR value.

@@ -122,6 +122,29 @@ void DeviceTracker::AddProblem(const std::string& problem) {
   }
 }
 
+void DeviceTracker::AssertCondition(bool condition,
+                                    const std::string& message) {
+  ReportFindings();
+  SaveResultsToFile();
+  CHECK(condition) << "Failed critical test: " << message;
+}
+
+void DeviceTracker::AssertStatus(Status status, const std::string& message) {
+  AssertCondition(status == Status::kErrNone,
+                  absl::StrCat(message, " - returned status code ",
+                               StatusToString(status)));
+}
+
+void DeviceTracker::AssertResponse(
+    const absl::variant<cbor::Value, Status>& returned_variant,
+    const std::string& message) {
+  Status returned_status = Status::kErrNone;
+  if (absl::holds_alternative<Status>(returned_variant)) {
+    returned_status = absl::get<Status>(returned_variant);
+  }
+  AssertStatus(returned_status, message);
+}
+
 void DeviceTracker::CheckAndReport(bool condition,
                                    const std::string& test_name) {
   if (condition) {
