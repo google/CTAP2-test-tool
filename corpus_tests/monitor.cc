@@ -60,34 +60,37 @@ std::string CreateArtifactsSubdirectory(const std::string_view& subdirectory) {
 // Prints the details of the stop reply according to
 // https://sourceware.org/gdb/current/onlinedocs/gdb/Stop-Reply-Packets.html#Stop-Reply-Packets
 void PrintStopReply(const std::string_view& response) {
-  if (response[0] == 'N') {
-    std::cout << "There are no resumed threads left in the target."
-              << std::endl;
-    return;
-  }
-  if (response[0] == 'S' || response[0] == 'T') {
-    std::cout << "The program received signal: " << response.substr(1, 2);
-    if (response[0] == 'T') {
-      std::cout << ", " << response.substr(3);
-    }
-    std::cout << std::endl;
-    return;
-  }
-  if (response[0] == 'W') {
-    std::cout << "The process exited with exit status: "
-              << response.substr(1, 2);
-    if (response.size() > 3) {
-      std::cout << ", " << response.substr(4) << std::endl;
-    }
-    return;
-  }
-  if (response[0] == 'X') {
-    std::cout << "The process terminated with signal: "
-              << response.substr(1, 2);
-    if (response.size() > 3) {
-      std::cout << ", " << response.substr(4) << std::endl;
-    }
-    return;
+  switch (response[0]) {
+    case 'N':
+      std::cout << "There are no resumed threads left in the target."
+                << std::endl;
+      break;
+    case 'S':
+      std::cout << "The program received signal: " << response.substr(1, 2)
+                << std::endl;
+      break;
+    case 'T':
+      std::cout << "The program received signal: " << response.substr(1, 2)
+                << ", " << response.substr(3) << std::endl;
+      break;
+    case 'W':
+      std::cout << "The process exited with exit status: "
+                << response.substr(1, 2);
+      if (response.size() > 3) {
+        std::cout << ", " << response.substr(4);
+      }
+      std::cout << std::endl;
+      break;
+    case 'X':
+      std::cout << "The process terminated with signal: "
+                << response.substr(1, 2);
+      if (response.size() > 3) {
+        std::cout << ", " << response.substr(4);
+      }
+      std::cout << std::endl;
+      break;
+    default:
+      break;
   }
 }
 
