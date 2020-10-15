@@ -89,7 +89,7 @@ void TestSeries::PersistenceTest() {
   MakeTestCredential(rp_id, true);
   cbor::Value credential_response = MakeTestCredential(rp_id, false);
 
-  PromptReplugAndInit();
+  command_state_->PromptReplugAndInit();
 
   GetAssertionCborBuilder persistence_get_assertion_builder;
   persistence_get_assertion_builder.AddDefaultsForRequiredFields(rp_id);
@@ -106,16 +106,17 @@ void TestSeries::PersistenceTest() {
   device_tracker_->CheckAndReport(response,
                                   "non-residential key persists after replug");
 
-  SetPin();
-  AttemptGetAuthToken(bad_pin_);
+  test_helpers::AssertCondition(command_state_->SetPin() == Status::kErrNone,
+                                "set pin for further tests");
+  command_state_->AttemptGetAuthToken(bad_pin_);
   int reduced_counter = GetPinRetries();
 
-  PromptReplugAndInit();
+  command_state_->PromptReplugAndInit();
 
   device_tracker_->CheckAndReport(GetPinRetries() == reduced_counter,
                                   "PIN retries persist after replug");
 
-  Reset();
+  command_state_->Reset();
 }
 
 }  // namespace fido2_tests

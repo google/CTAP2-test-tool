@@ -124,6 +124,23 @@ cc_library(
 )
 
 cc_library(
+    name = "command_state",
+    srcs = ["src/command_state.cc"],
+    hdrs = ["src/command_state.h"],
+    deps = [
+        ":constants",
+        ":crypto_utility",
+        ":cbor_builders",
+        ":device_interface",
+        ":device_tracker",
+        ":fido2_commands",
+        "//third_party/chromium_components_cbor:cbor",
+        "@com_google_absl//absl/types:variant",
+        "@com_google_glog//:glog",
+    ],
+)
+
+cc_library(
     name = "parameter_check",
     srcs = ["src/parameter_check.cc"],
     hdrs = ["src/parameter_check.h"],
@@ -138,6 +155,7 @@ cc_binary(
     name = "fido2_conformance",
     srcs = ["src/fido2_conformance_main.cc"],
     deps = [
+        ":command_state",
         ":device_tracker",
         ":hid_device",
         ":parameter_check",
