@@ -59,10 +59,10 @@ void TestSeries::ResetDeletionTest() {
       Status::kErrNoCredentials, returned_status,
       "get assertion of non-residential key after reset");
 
-  test_helpers::AssertCondition(command_state_->SetPin() == Status::kErrNone,
+  device_tracker_->AssertStatus(command_state_->SetPin(),
                                 "set pin for further tests");
   int initial_counter = GetPinRetries();
-  command_state_->AttemptGetAuthToken(bad_pin_);
+  command_state_->AttemptGetAuthToken(test_helpers::BadPin());
   cbor::Value::BinaryValue old_auth_token =
       command_state_->GetCurrentAuthToken();
   // TODO(kaczmarczyck) compare to new token after either replug only or Reset
@@ -70,7 +70,7 @@ void TestSeries::ResetDeletionTest() {
   command_state_->Reset();
 
   CheckPinAbsenceByMakeCredential();
-  test_helpers::AssertCondition(command_state_->SetPin() == Status::kErrNone,
+  device_tracker_->AssertStatus(command_state_->SetPin(),
                                 "set pin for further tests");
   device_tracker_->CheckAndReport(GetPinRetries() == initial_counter,
                                   "PIN retries reset on reset command");

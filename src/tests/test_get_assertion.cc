@@ -74,11 +74,7 @@ void TestSeries::GetAssertionAllowListCredentialDescriptorTest() {
       Command::kAuthenticatorGetAssertion, &allow_list_builder,
       static_cast<int>(kKey), rp_id);
 
-  MakeCredentialCborBuilder positive_test_builder;
-  positive_test_builder.AddDefaultsForRequiredFields(rp_id);
-  response = fido2_commands::MakeCredentialPositiveTest(
-      device_, device_tracker_, positive_test_builder.GetCbor());
-  test_helpers::AssertResponse(response, "create a test key");
+  response = MakeTestCredential(rp_id, false);
 
   cbor::Value::ArrayValue credential_descriptor_list;
   cbor::Value::MapValue good_cred_descriptor;
@@ -162,9 +158,8 @@ void TestSeries::GetAssertionOptionsTest() {
   options_builder.SetUserVerificationOptions(true);
   if (device_tracker_->HasOption("clientPin")) {
     if (!device_tracker_->HasOption("uv")) {
-      test_helpers::AssertCondition(
-          command_state_->GetAuthToken() == Status::kErrNone,
-          "get auth token for further tests");
+      device_tracker_->AssertStatus(command_state_->GetAuthToken(),
+                                    "get auth token for further tests");
       options_builder.SetDefaultPinUvAuthParam(
           command_state_->GetCurrentAuthToken());
       options_builder.SetDefaultPinUvAuthProtocol();
@@ -276,9 +271,8 @@ void TestSeries::GetAssertionPinAuthTest() {
   device_tracker_->CheckAndReport(Status::kErrPinNotSet, returned_status,
                                   "pin not set yet");
 
-  test_helpers::AssertCondition(
-      command_state_->GetAuthToken() == Status::kErrNone,
-      "get auth token for further tests");
+  device_tracker_->AssertStatus(command_state_->GetAuthToken(),
+                                "get auth token for further tests");
   // Sets a PIN if necessary. From here on, the PIN is set on the authenticator.
 
   pin_auth_builder.SetDefaultPinUvAuthParam(

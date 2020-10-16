@@ -220,22 +220,13 @@ class TestSeries {
   DeviceInterface* device_;
   DeviceTracker* device_tracker_;
   CommandState* command_state_;
-  // These are arbitrary example values for each CBOR type.
-  std::map<cbor::Value::Type, cbor::Value> type_examples_;
-  // This is an example of an EC cose key map for client PIN operations.
-  cbor::Value::MapValue cose_key_example_;
-  // This is an example PIN that should be different from the real PIN.
-  const cbor::Value::BinaryValue bad_pin_;
 };
 
 namespace test_helpers {
 
-// Asserts a general condition, exits on failure.
-void AssertCondition(bool condition, const std::string& test_name);
-
-// As above, but asserts the success of an executed command.
-void AssertResponse(const absl::variant<cbor::Value, Status>& returned_variant,
-                    const std::string& test_name);
+// Returns a PIN that is different from the PIN set on the device. This is
+// enforced in SetPin() by making sure the chosen PIN is different.
+cbor::Value::BinaryValue BadPin();
 
 // Extracts the credential ID from an authenticator data structure[1].
 // [1] https://www.w3.org/TR/webauthn/#sec-authenticator-data

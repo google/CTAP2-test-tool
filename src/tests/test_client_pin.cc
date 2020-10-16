@@ -27,6 +27,13 @@
 #include "third_party/chromium_components_cbor/writer.h"
 
 namespace fido2_tests {
+namespace {
+
+// This is an example of an EC cose key map for client PIN operations.
+static const auto* const kCoseKeyExample =
+    new cbor::Value::MapValue(crypto_utility::GenerateExampleEcdhCoseKey());
+
+}  // namespace
 
 void TestSeries::ClientPinGetPinRetriesTest() {
   AuthenticatorClientPinCborBuilder pin1_builder;
@@ -45,9 +52,8 @@ void TestSeries::ClientPinGetKeyAgreementTest() {
 
 void TestSeries::ClientPinSetPinTest() {
   AuthenticatorClientPinCborBuilder pin3_builder;
-  pin3_builder.AddDefaultsForSetPin(cose_key_example_,
-                                    cbor::Value::BinaryValue(),
-                                    cbor::Value::BinaryValue());
+  pin3_builder.AddDefaultsForSetPin(
+      *kCoseKeyExample, cbor::Value::BinaryValue(), cbor::Value::BinaryValue());
   TestBadParameterTypes(Command::kAuthenticatorClientPIN, &pin3_builder);
   TestMissingParameters(Command::kAuthenticatorClientPIN, &pin3_builder);
 }
@@ -55,7 +61,7 @@ void TestSeries::ClientPinSetPinTest() {
 void TestSeries::ClientPinChangePinTest() {
   AuthenticatorClientPinCborBuilder pin4_builder;
   pin4_builder.AddDefaultsForChangePin(
-      cose_key_example_, cbor::Value::BinaryValue(), cbor::Value::BinaryValue(),
+      *kCoseKeyExample, cbor::Value::BinaryValue(), cbor::Value::BinaryValue(),
       cbor::Value::BinaryValue());
   TestBadParameterTypes(Command::kAuthenticatorClientPIN, &pin4_builder);
   TestMissingParameters(Command::kAuthenticatorClientPIN, &pin4_builder);
@@ -64,7 +70,7 @@ void TestSeries::ClientPinChangePinTest() {
 void TestSeries::ClientPinGetPinUvAuthTokenUsingPinTest() {
   AuthenticatorClientPinCborBuilder pin5_builder;
   pin5_builder.AddDefaultsForGetPinUvAuthTokenUsingPin(
-      cose_key_example_, cbor::Value::BinaryValue());
+      *kCoseKeyExample, cbor::Value::BinaryValue());
   TestBadParameterTypes(Command::kAuthenticatorClientPIN, &pin5_builder);
   TestMissingParameters(Command::kAuthenticatorClientPIN, &pin5_builder);
 }
@@ -74,7 +80,7 @@ void TestSeries::ClientPinGetPinUvAuthTokenUsingUvTest() {
     return;
   }
   AuthenticatorClientPinCborBuilder pin6_builder;
-  pin6_builder.AddDefaultsForGetPinUvAuthTokenUsingUv(cose_key_example_);
+  pin6_builder.AddDefaultsForGetPinUvAuthTokenUsingUv(*kCoseKeyExample);
   TestBadParameterTypes(Command::kAuthenticatorClientPIN, &pin6_builder);
   TestMissingParameters(Command::kAuthenticatorClientPIN, &pin6_builder);
 }
@@ -216,16 +222,15 @@ void TestSeries::ClientPinRetriesTest() {
       GetPinRetries() == initial_counter,
       "PIN retries changed between subsequent calls");
 
-  returned_status = command_state_->AttemptGetAuthToken(bad_pin_);
+  returned_status = command_state_->AttemptGetAuthToken(test_helpers::BadPin());
   device_tracker_->CheckAndReport(Status::kErrPinInvalid, returned_status,
                                   "reject wrong PIN");
   device_tracker_->CheckAndReport(
       GetPinRetries() == initial_counter - 1,
       "PIN retries decrement after a failed attempt");
 
-  test_helpers::AssertCondition(
-      command_state_->GetAuthToken() == Status::kErrNone,
-      "get auth token for further tests");
+  device_tracker_->AssertStatus(command_state_->GetAuthToken(),
+                                "get auth token for further tests");
   device_tracker_->CheckAndReport(
       GetPinRetries() == initial_counter,
       "PIN retries reset on entering the correct PIN");
@@ -233,17 +238,20 @@ void TestSeries::ClientPinRetriesTest() {
   constexpr int kWrongPinsBeforePowerCycle = 3;
   if (initial_counter > kWrongPinsBeforePowerCycle) {
     for (int i = 0; i < kWrongPinsBeforePowerCycle - 1; ++i) {
-      returned_status = command_state_->AttemptGetAuthToken(bad_pin_);
+      returned_status =
+          command_state_->AttemptGetAuthToken(test_helpers::BadPin());
       device_tracker_->CheckAndReport(Status::kErrPinInvalid, returned_status,
                                       "reject wrong PIN");
     }
-    returned_status = command_state_->AttemptGetAuthToken(bad_pin_);
+    returned_status =
+        command_state_->AttemptGetAuthToken(test_helpers::BadPin());
     device_tracker_->CheckAndReport(Status::kErrPinAuthBlocked, returned_status,
                                     "reject PIN before power cycle");
     device_tracker_->CheckAndReport(
         GetPinRetries() == initial_counter - kWrongPinsBeforePowerCycle,
         "PIN retry counter decremented until blocked");
-    returned_status = command_state_->AttemptGetAuthToken(bad_pin_);
+    returned_status =
+        command_state_->AttemptGetAuthToken(test_helpers::BadPin());
 
     device_tracker_->CheckAndReport(Status::kErrPinAuthBlocked, returned_status,
                                     "reject PIN before power cycle");
@@ -251,9 +259,8 @@ void TestSeries::ClientPinRetriesTest() {
         GetPinRetries() == initial_counter - kWrongPinsBeforePowerCycle,
         "PIN retry counter does not decrement in a blocked operation");
     command_state_->PromptReplugAndInit();
-    test_helpers::AssertCondition(
-        command_state_->GetAuthToken() == Status::kErrNone,
-        "get auth token for further tests");
+    device_tracker_->AssertStatus(command_state_->GetAuthToken(),
+                                  "get auth token for further tests");
     device_tracker_->CheckAndReport(
         GetPinRetries() == initial_counter,
         "PIN retries reset on entering the correct PIN");
@@ -267,7 +274,8 @@ void TestSeries::ClientPinRetriesTest() {
 
   // The next test checks whether the authenticator resets his own key agreement
   // key by reusing the old key material and see if it still works.
-  returned_status = command_state_->AttemptGetAuthToken(bad_pin_, false);
+  returned_status =
+      command_state_->AttemptGetAuthToken(test_helpers::BadPin(), false);
   device_tracker_->CheckAndReport(Status::kErrPinInvalid, returned_status,
                                   "reject wrong PIN");
   returned_status = command_state_->AttemptGetAuthToken();
@@ -278,7 +286,8 @@ void TestSeries::ClientPinRetriesTest() {
 
   int remaining_retries = GetPinRetries();
   for (int i = 0; i < remaining_retries - 1; ++i) {
-    returned_status = command_state_->AttemptGetAuthToken(bad_pin_);
+    returned_status =
+        command_state_->AttemptGetAuthToken(test_helpers::BadPin());
     if (i % 3 != 2) {
       device_tracker_->CheckAndReport(Status::kErrPinInvalid, returned_status,
                                       "reject wrong PIN");
@@ -290,7 +299,7 @@ void TestSeries::ClientPinRetriesTest() {
   }
   device_tracker_->CheckAndReport(GetPinRetries() == 1,
                                   "PIN retry counter was reduced to 1");
-  returned_status = command_state_->AttemptGetAuthToken(bad_pin_);
+  returned_status = command_state_->AttemptGetAuthToken(test_helpers::BadPin());
   device_tracker_->CheckAndReport(Status::kErrPinBlocked, returned_status,
                                   "block PIN retries if the counter gets to 0");
   device_tracker_->CheckAndReport(GetPinRetries() == 0,

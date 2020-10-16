@@ -29,6 +29,29 @@
 
 namespace fido2_tests {
 namespace {
+// These are arbitrary example values for each CBOR type.
+const std::map<cbor::Value::Type, cbor::Value>& GetTypeExamples() {
+  static const auto* const kTypeExamples = [] {
+    auto* type_examples = new std::map<cbor::Value::Type, cbor::Value>;
+    cbor::Value::ArrayValue array_example;
+    array_example.push_back(cbor::Value(42));
+    cbor::Value::MapValue map_example;
+    map_example[cbor::Value(42)] = cbor::Value(42);
+    (*type_examples)[cbor::Value::Type::UNSIGNED] = cbor::Value(42);
+    (*type_examples)[cbor::Value::Type::NEGATIVE] = cbor::Value(-42);
+    (*type_examples)[cbor::Value::Type::BYTE_STRING] =
+        cbor::Value(cbor::Value::BinaryValue({0x42}));
+    (*type_examples)[cbor::Value::Type::STRING] = cbor::Value("42");
+    (*type_examples)[cbor::Value::Type::ARRAY] = cbor::Value(array_example);
+    (*type_examples)[cbor::Value::Type::MAP] = cbor::Value(map_example);
+    // The TAG type is not supported, skipping it.
+    (*type_examples)[cbor::Value::Type::SIMPLE_VALUE] =
+        cbor::Value(cbor::Value::SimpleValue::TRUE_VALUE);
+    return type_examples;
+  }();
+  return *kTypeExamples;
+}
+
 std::string CborTypeToString(cbor::Value::Type cbor_type) {
   switch (cbor_type) {
     case cbor::Value::Type::UNSIGNED:
@@ -71,18 +94,7 @@ std::string CborToString(const std::string& name_prefix,
 
 namespace test_helpers {
 
-// Asserts a general condition, exits on failure.
-void AssertCondition(bool condition, const std::string& test_name) {
-  CHECK(condition) << "Failed critical test: " << test_name;
-}
-
-// As above, but asserts the success of an executed command.
-void AssertResponse(const absl::variant<cbor::Value, Status>& returned_variant,
-                    const std::string& test_name) {
-  CHECK(!absl::holds_alternative<Status>(returned_variant))
-      << "Failed critical test: " << test_name << " - returned status code "
-      << StatusToString(absl::get<Status>(returned_variant));
-}
+cbor::Value::BinaryValue BadPin() { return {0x66, 0x61, 0x6B, 0x65}; }
 
 // Extracts the credential ID from an authenticator data structure[1].
 // [1] https://www.w3.org/TR/webauthn/#sec-authenticator-data
@@ -140,24 +152,7 @@ TestSeries::TestSeries(DeviceInterface* device, DeviceTracker* device_tracker,
                        CommandState* command_state)
     : device_(device),
       device_tracker_(device_tracker),
-      command_state_(command_state),
-      cose_key_example_(crypto_utility::GenerateExampleEcdhCoseKey()),
-      bad_pin_({0x66, 0x61, 0x6B, 0x65}) {
-  cbor::Value::ArrayValue array_example;
-  array_example.push_back(cbor::Value(42));
-  cbor::Value::MapValue map_example;
-  map_example[cbor::Value(42)] = cbor::Value(42);
-  type_examples_[cbor::Value::Type::UNSIGNED] = cbor::Value(42);
-  type_examples_[cbor::Value::Type::NEGATIVE] = cbor::Value(-42);
-  type_examples_[cbor::Value::Type::BYTE_STRING] =
-      cbor::Value(cbor::Value::BinaryValue({0x42}));
-  type_examples_[cbor::Value::Type::STRING] = cbor::Value("42");
-  type_examples_[cbor::Value::Type::ARRAY] = cbor::Value(array_example);
-  type_examples_[cbor::Value::Type::MAP] = cbor::Value(map_example);
-  // The TAG type is not supported, skipping it.
-  type_examples_[cbor::Value::Type::SIMPLE_VALUE] =
-      cbor::Value(cbor::Value::SimpleValue::TRUE_VALUE);
-}
+      command_state_(command_state) {}
 
 bool TestSeries::IsFido2Point1Complicant() {
   return device_tracker_->HasVersion("FIDO_2_1_PRE");
@@ -167,12 +162,13 @@ cbor::Value TestSeries::MakeTestCredential(const std::string& rp_id,
                                            bool use_residential_key) {
   absl::variant<cbor::Value, Status> response =
       command_state_->MakeTestCredential(rp_id, use_residential_key);
-  test_helpers::AssertResponse(response, "make credential for further tests");
+  device_tracker_->AssertResponse(response,
+                                  "make credential for further tests");
   return std::move(absl::get<cbor::Value>(response));
 }
 
 void TestSeries::TestBadParameterTypes(Command command, CborBuilder* builder) {
-  for (const auto& item : type_examples_) {
+  for (const auto& item : GetTypeExamples()) {
     if (item.first != cbor::Value::Type::MAP) {
       Status returned_status = fido2_commands::GenericNegativeTest(
           device_, item.second, command, false);
@@ -191,7 +187,7 @@ void TestSeries::TestBadParameterTypes(Command command, CborBuilder* builder) {
 
     // Replace the map value with another of wrong type. Maps and arrays get
     // additional tests.
-    for (const auto& item : type_examples_) {
+    for (const auto& item : GetTypeExamples()) {
       if (item.second.is_integer() && map_value.is_integer()) {
         continue;
       }
@@ -257,7 +253,7 @@ void TestSeries::TestBadParametersInInnerMap(
     auto inner_key = inner_entry.first.Clone();
     auto inner_value = inner_entry.second.Clone();
 
-    for (const auto& item : type_examples_) {
+    for (const auto& item : GetTypeExamples()) {
       if (item.second.is_integer() && inner_value.is_integer()) {
         continue;
       }
@@ -287,7 +283,7 @@ void TestSeries::TestBadParametersInInnerMap(
 void TestSeries::TestBadParametersInInnerArray(
     Command command, CborBuilder* builder, int outer_map_key,
     const cbor::Value& array_element) {
-  for (const auto& item : type_examples_) {
+  for (const auto& item : GetTypeExamples()) {
     if (item.second.is_integer() && array_element.is_integer()) {
       continue;
     }
@@ -314,7 +310,7 @@ void TestSeries::TestCredentialDescriptorsArrayForCborDepth(
   absl::variant<cbor::Value, Status> response;
 
   cbor::Value::BinaryValue cred_descriptor_id(32, 0xce);
-  for (const auto& item : type_examples_) {
+  for (const auto& item : GetTypeExamples()) {
     if (item.first == cbor::Value::Type::ARRAY ||
         item.first == cbor::Value::Type::MAP) {
       cbor::Value::ArrayValue credential_descriptor_list;
@@ -353,7 +349,7 @@ int TestSeries::GetPinRetries() {
               << std::endl;
     return 0;
   }
-  test_helpers::AssertResponse(response, "get the PIN retries counter");
+  device_tracker_->AssertResponse(response, "get the PIN retries counter");
   return test_helpers::ExtractPinRetries(absl::get<cbor::Value>(response));
 }
 
