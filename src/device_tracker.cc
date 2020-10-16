@@ -123,8 +123,10 @@ void DeviceTracker::AddProblem(const std::string& problem) {
 }
 
 void DeviceTracker::AssertCondition(bool condition, std::string_view message) {
-  ReportFindings();
-  SaveResultsToFile();
+  if (!condition) {
+    ReportFindings();
+    SaveResultsToFile();
+  }
   CHECK(condition) << "Failed critical test: " << message;
 }
 

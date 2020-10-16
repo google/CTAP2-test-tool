@@ -74,7 +74,7 @@ void TestSeries::GetAssertionAllowListCredentialDescriptorTest() {
       Command::kAuthenticatorGetAssertion, &allow_list_builder,
       static_cast<int>(kKey), rp_id);
 
-  command_state_->MakeTestCredential(rp_id, false);
+  response = MakeTestCredential(rp_id, false);
 
   cbor::Value::ArrayValue credential_descriptor_list;
   cbor::Value::MapValue good_cred_descriptor;
