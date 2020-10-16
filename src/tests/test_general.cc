@@ -108,7 +108,7 @@ void TestSeries::PersistenceTest() {
 
   device_tracker_->AssertStatus(command_state_->SetPin(),
                                 "set pin for further tests");
-  command_state_->AttemptGetAuthToken(bad_pin_);
+  command_state_->AttemptGetAuthToken(test_helpers::BadPin());
   int reduced_counter = GetPinRetries();
 
   command_state_->PromptReplugAndInit();

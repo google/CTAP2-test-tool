@@ -62,7 +62,7 @@ void TestSeries::ResetDeletionTest() {
   device_tracker_->AssertStatus(command_state_->SetPin(),
                                 "set pin for further tests");
   int initial_counter = GetPinRetries();
-  command_state_->AttemptGetAuthToken(bad_pin_);
+  command_state_->AttemptGetAuthToken(test_helpers::BadPin());
   cbor::Value::BinaryValue old_auth_token =
       command_state_->GetCurrentAuthToken();
   // TODO(kaczmarczyck) compare to new token after either replug only or Reset
