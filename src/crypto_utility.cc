@@ -236,7 +236,7 @@ std::vector<uint8_t> LeftSha256Hash(const std::vector<uint8_t>& message) {
   return std::vector<uint8_t>(hash, hash + kAuthTokenSize);
 }
 
-std::vector<uint8_t> Sha256Hash(const std::string& message) {
+std::vector<uint8_t> Sha256Hash(std::string_view message) {
   std::vector<uint8_t> hash(SHA256_DIGEST_LENGTH, 0);
   SHA256(reinterpret_cast<const uint8_t*>(message.data()), message.size(),
          hash.data());

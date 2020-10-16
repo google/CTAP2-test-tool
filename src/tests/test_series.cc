@@ -31,23 +31,25 @@ namespace fido2_tests {
 namespace {
 // These are arbitrary example values for each CBOR type.
 const std::map<cbor::Value::Type, cbor::Value>& GetTypeExamples() {
-  cbor::Value::ArrayValue array_example;
-  array_example.push_back(cbor::Value(42));
-  cbor::Value::MapValue map_example;
-  map_example[cbor::Value(42)] = cbor::Value(42);
-  static auto* const type_examples =
-      new std::map<cbor::Value::Type, cbor::Value>();
-  (*type_examples)[cbor::Value::Type::UNSIGNED] = cbor::Value(42);
-  (*type_examples)[cbor::Value::Type::NEGATIVE] = cbor::Value(-42);
-  (*type_examples)[cbor::Value::Type::BYTE_STRING] =
-      cbor::Value(cbor::Value::BinaryValue({0x42}));
-  (*type_examples)[cbor::Value::Type::STRING] = cbor::Value("42");
-  (*type_examples)[cbor::Value::Type::ARRAY] = cbor::Value(array_example);
-  (*type_examples)[cbor::Value::Type::MAP] = cbor::Value(map_example);
-  // The TAG type is not supported, skipping it.
-  (*type_examples)[cbor::Value::Type::SIMPLE_VALUE] =
-      cbor::Value(cbor::Value::SimpleValue::TRUE_VALUE);
-  return *type_examples;
+  static const auto* const kTypeExamples = [] {
+    auto* type_examples = new std::map<cbor::Value::Type, cbor::Value>;
+    cbor::Value::ArrayValue array_example;
+    array_example.push_back(cbor::Value(42));
+    cbor::Value::MapValue map_example;
+    map_example[cbor::Value(42)] = cbor::Value(42);
+    (*type_examples)[cbor::Value::Type::UNSIGNED] = cbor::Value(42);
+    (*type_examples)[cbor::Value::Type::NEGATIVE] = cbor::Value(-42);
+    (*type_examples)[cbor::Value::Type::BYTE_STRING] =
+        cbor::Value(cbor::Value::BinaryValue({0x42}));
+    (*type_examples)[cbor::Value::Type::STRING] = cbor::Value("42");
+    (*type_examples)[cbor::Value::Type::ARRAY] = cbor::Value(array_example);
+    (*type_examples)[cbor::Value::Type::MAP] = cbor::Value(map_example);
+    // The TAG type is not supported, skipping it.
+    (*type_examples)[cbor::Value::Type::SIMPLE_VALUE] =
+        cbor::Value(cbor::Value::SimpleValue::TRUE_VALUE);
+    return type_examples;
+  }();
+  return *kTypeExamples;
 }
 
 std::string CborTypeToString(cbor::Value::Type cbor_type) {

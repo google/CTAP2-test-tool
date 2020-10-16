@@ -51,7 +51,7 @@ class DeviceTracker {
   // initialized.
   bool HasOption(std::string_view option_name);
   // Setter for the product_name, which is used as a results file name.
-  void SetProductName(const std::string& product_name);
+  void SetProductName(std::string_view product_name);
   // Adds a string to the list of observations. Duplicates are ignored. Use this
   // function for merely informational comments.
   void AddObservation(const std::string& observation);
@@ -61,13 +61,13 @@ class DeviceTracker {
   void AddProblem(const std::string& problem);
   // Asserts a general condition, exits on failure. Prints all results collected
   // so far and saves them into a file.
-  void AssertCondition(bool condition, const std::string& message);
+  void AssertCondition(bool condition, std::string_view message);
   // As above, but asserts that the Status is kErrNone.
-  void AssertStatus(Status status, const std::string& message);
+  void AssertStatus(Status status, std::string_view message);
   // As above, but asserts the success of an executed command.
   void AssertResponse(
       const absl::variant<cbor::Value, Status>& returned_variant,
-      const std::string& message);
+      std::string_view message);
   // Checks a general condition, reporting the result and writing statistics.
   void CheckAndReport(bool condition, const std::string& test_name);
   // As above, but checks specifically whether the variant is a CBOR value.

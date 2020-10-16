@@ -27,7 +27,7 @@ namespace {
 constexpr size_t kPinByteLength = 64;
 
 void AssertResponse(const absl::variant<cbor::Value, Status>& returned_variant,
-                    const std::string& hint) {
+                    std::string_view hint) {
   CHECK(!absl::holds_alternative<Status>(returned_variant))
       << "Failed test setup: " << hint << " - returned status code "
       << StatusToString(absl::get<Status>(returned_variant));
