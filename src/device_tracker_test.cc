@@ -113,14 +113,17 @@ TEST(DeviceTracker, TestGenerateResultsJson) {
   device_tracker.CheckAndReport(false, "FALSE_TEST");
   device_tracker.CheckAndReport(true, "TRUE_TEST");
 
-  nlohmann::json output = device_tracker.GenerateResultsJson();
+  nlohmann::json output =
+      device_tracker.GenerateResultsJson("c0", "2020-01-01");
   nlohmann::json expected_output = {
-      {"Passed tests", 1},
-      {"Total tests", 2},
-      {"Failed tests", {"FALSE_TEST"}},
-      {"Reported problems", {"PROBLEM"}},
-      {"Reported observations", {"OBSERVATION"}},
-      {"Counter", "All counters were constant zero."},
+      {"passed_test_count", 1},
+      {"total_test_count", 2},
+      {"failed_tests", {"FALSE_TEST"}},
+      {"problems", {"PROBLEM"}},
+      {"observations", {"OBSERVATION"}},
+      {"counter", "All counters were constant zero."},
+      {"date", "2020-01-01"},
+      {"commit", "c0"},
   };
   EXPECT_EQ(output, expected_output);
 }

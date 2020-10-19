@@ -525,5 +525,18 @@ void PrintFidoDevices() {
   hid_free_enumeration(devs);
 }
 
+std::string FindFirstFidoDevicePath() {
+  hid_device_info* devs = hid_enumerate(0, 0);  // 0 means all devices.
+  std::string device_path;
+  for (hid_device_info* cur_dev = devs; cur_dev; cur_dev = cur_dev->next) {
+    if (cur_dev->usage_page == 0xf1d0 /* FIDO specific usage page*/) {
+      device_path = cur_dev->path;
+      break;
+    }
+  }
+  hid_free_enumeration(devs);
+  return device_path;
+}
+
 }  // namespace hid
 }  // namespace fido2_tests
