@@ -14,6 +14,7 @@
 
 #include "corpus_tests/rsp/rsp_packet.h"
 
+#include <iostream>
 #include "gtest/gtest.h"
 
 namespace corpus_tests {
@@ -35,6 +36,14 @@ TEST(RspPacket, TestDataString) {
   EXPECT_EQ(packet.DataToString(), "c");
   packet = RspPacket(RspPacket::RequestSupported);
   EXPECT_EQ(packet.DataToString(), "qSupported");
+  packet = RspPacket(RspPacket::ReadGeneralRegisters);
+  EXPECT_EQ(packet.DataToString(), "g");
+  packet = RspPacket(RspPacket::ReadFromMemory, "00000000", 0);
+  EXPECT_EQ(packet.DataToString(), "m00000000,0");
+  packet = RspPacket(RspPacket::ReadFromMemory, "e000ed2c", 4);
+  EXPECT_EQ(packet.DataToString(), "me000ed2c,4");
+  packet = RspPacket(RspPacket::ReadFromMemory, "", 100);
+  EXPECT_EQ(packet.DataToString(), "m,100");
 }
 
 TEST(RspPacket, TestToString) {
@@ -42,6 +51,14 @@ TEST(RspPacket, TestToString) {
   EXPECT_EQ(packet.ToString(), "$c#63");
   packet = RspPacket(RspPacket::RequestSupported);
   EXPECT_EQ(packet.ToString(), "$qSupported#37");
+  packet = RspPacket(RspPacket::ReadGeneralRegisters);
+  EXPECT_EQ(packet.ToString(), "$g#67");
+  packet = RspPacket(RspPacket::ReadFromMemory, "00000000", 0);
+  EXPECT_EQ(packet.ToString(), "$m00000000,0#49");
+  packet = RspPacket(RspPacket::ReadFromMemory, "e000ed2c", 4);
+  EXPECT_EQ(packet.ToString(), "$me000ed2c,4#20");
+  packet = RspPacket(RspPacket::ReadFromMemory, "", 100);
+  EXPECT_EQ(packet.ToString(), "$m,100#2a");
 }
 
 }  // namespace
