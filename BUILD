@@ -159,14 +159,14 @@ cc_binary(
 
 cc_library(
     name = "rsp_packet",
-    srcs = ["rsp/rsp_packet.cc"],
-    hdrs = ["rsp/rsp_packet.h"],
+    srcs = ["corpus_tests/rsp/rsp_packet.cc"],
+    hdrs = ["corpus_tests/rsp/rsp_packet.h"],
     deps = ["@com_google_absl//absl/strings"]
 )
 
 cc_test(
     name = "rsp_packet_test",
-    srcs = ["rsp/rsp_packet_test.cc"],
+    srcs = ["corpus_tests/rsp/rsp_packet_test.cc"],
     deps = [
         ":rsp_packet",
         "@com_google_googletest//:gtest_main",
@@ -176,8 +176,8 @@ cc_test(
 
 cc_library(
     name = "rsp",
-    srcs = ["rsp/rsp.cc"],
-    hdrs = ["rsp/rsp.h"],
+    srcs = ["corpus_tests/rsp/rsp.cc"],
+    hdrs = ["corpus_tests/rsp/rsp.h"],
     deps = [
         ":rsp_packet",
         "@com_google_glog//:glog",
@@ -186,12 +186,31 @@ cc_library(
 
 cc_library(
     name = "monitor",
-    srcs = ["corpus_tests/monitor.cc"],
-    hdrs = ["corpus_tests/monitor.h"],
+    srcs = ["corpus_tests/monitor/monitor.cc"],
+    hdrs = ["corpus_tests/monitor/monitor.h"],
     deps = [
         ":device_interface",
-        ":rsp",
         ":test_input_controller"
+    ],
+)
+
+cc_library(
+    name = "gdb_monitor",
+    srcs = ["corpus_tests/monitor/gdb_monitor.cc"],
+    hdrs = ["corpus_tests/monitor/gdb_monitor.h"],
+    deps = [
+        ":device_interface",
+        ":monitor",
+        ":rsp"
+    ],
+)
+
+cc_library(
+    name = "cortexm4_gdb_monitor",
+    srcs = ["corpus_tests/monitor/cortexm4_gdb_monitor.cc"],
+    hdrs = ["corpus_tests/monitor/cortexm4_gdb_monitor.h"],
+    deps = [
+        ":gdb_monitor",
     ],
 )
 
@@ -209,7 +228,7 @@ cc_binary(
     name = "corpus_test",
     srcs = ["corpus_tests/corpus_test_main.cc"],
     deps = [
-        ":monitor",
+        ":cortexm4_gdb_monitor",
         ":test_input_controller",
         ":hid_device",
         ":constants",

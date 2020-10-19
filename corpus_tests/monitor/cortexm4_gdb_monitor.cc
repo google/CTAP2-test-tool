@@ -12,21 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "corpus_tests/monitor.h"
+#include "corpus_tests/monitor/cortexm4_gdb_monitor.h"
 
 #include <arpa/inet.h>
 
-#include <filesystem>
 #include <iomanip>
 #include <iostream>
 
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_split.h"
-#include "glog/logging.h"
 
 namespace corpus_tests {
 namespace {
-constexpr std::string_view kRelativeDir = "corpus_tests/artifacts";
 // Memory addresses of the status registers for fault exceptions.
 constexpr std::string_view kConfigurableFaultStatusRegister = "e000ed28";
 constexpr std::string_view kHardFaultStatusRegister = "e000ed2c";
@@ -41,58 +37,6 @@ constexpr int kNumNumberedRegisters = 13;
 constexpr int kRetries = 10;
 // Default field width used for printing registers.
 constexpr int kFieldWidth = 40;
-
-// Creates a directory for files that caused a crash and a subdirectory
-// of the given name. Also returns the path.
-// Just return the path if that directory already exists. Fails if the
-// directory wasn't created successfully.
-std::string CreateArtifactsSubdirectory(const std::string_view& subdirectory) {
-  std::string results_dir = std::string(kRelativeDir);
-  if (const char* env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) {
-    results_dir = absl::StrCat(env_dir, "/", results_dir);
-  }
-  std::filesystem::create_directory(results_dir);  // creates artifact directory
-  results_dir = absl::StrCat(results_dir, "/", subdirectory);
-  std::filesystem::create_directory(results_dir);  // creates subdirectory
-  return results_dir;
-}
-
-// Prints the details of the stop reply according to
-// https://sourceware.org/gdb/current/onlinedocs/gdb/Stop-Reply-Packets.html#Stop-Reply-Packets
-void PrintStopReply(const std::string_view& response) {
-  switch (response[0]) {
-    case 'N':
-      std::cout << "There are no resumed threads left in the target."
-                << std::endl;
-      break;
-    case 'S':
-      std::cout << "The program received signal: " << response.substr(1, 2)
-                << std::endl;
-      break;
-    case 'T':
-      std::cout << "The program received signal: " << response.substr(1, 2)
-                << ", " << response.substr(3) << std::endl;
-      break;
-    case 'W':
-      std::cout << "The process exited with exit status: "
-                << response.substr(1, 2);
-      if (response.size() > 3) {
-        std::cout << ", " << response.substr(4);
-      }
-      std::cout << std::endl;
-      break;
-    case 'X':
-      std::cout << "The process terminated with signal: "
-                << response.substr(1, 2);
-      if (response.size() > 3) {
-        std::cout << ", " << response.substr(4);
-      }
-      std::cout << std::endl;
-      break;
-    default:
-      break;
-  }
-}
 
 void PrintOneRegister(const std::string_view& register_packet,
                       const std::string_view& register_name,
@@ -192,29 +136,10 @@ void PrintHfsrRegister(uint32_t register_value) {
 
 }  // namespace
 
-bool Monitor::Attach(fido2_tests::DeviceInterface* device, int port) {
-  device_ = device;
-  if (!rsp_client_.Initialize()) {
-    return false;
-  }
-  return rsp_client_.Connect(port);
-}
+Cortexm4GdbMonitor::Cortexm4GdbMonitor(fido2_tests::DeviceInterface* device, int port) : GdbMonitor(device, port) {}
 
-bool Monitor::Start() {
-  return rsp_client_.SendPacket(rsp::RspPacket(rsp::RspPacket::Continue));
-}
-
-bool Monitor::DeviceCrashed() {
-  auto response = rsp_client_.ReceivePacket();
-  if (!response.has_value()) {
-    return false;
-  }
-  stop_message_ = response.value();
-  return true;
-}
-
-void Monitor::PrintCrashReport() {
-  PrintStopReply(stop_message_);
+void Cortexm4GdbMonitor::PrintCrashReport() {
+  GdbMonitor::PrintCrashReport();
   std::optional<std::string> response;
 
   std::cout << "----| General registers |----" << std::endl;
@@ -288,22 +213,6 @@ void Monitor::PrintCrashReport() {
               << std::endl;
   } else {
     std::cout << "Error reading Bus Fault Address." << std::endl;
-  }
-}
-
-void Monitor::SaveCrashFile(InputType input_type,
-                            const std::string_view& input_path) {
-  std::string input_name =
-      static_cast<std::vector<std::string>>(absl::StrSplit(input_path, '/'))
-          .back();
-  std::filesystem::path save_path = absl::StrCat(
-      CreateArtifactsSubdirectory(InputTypeToDirectoryName(input_type)), "/",
-      input_name, 1);
-  std::cout << "Saving file to " << save_path << std::endl;
-  if (!std::filesystem::copy_file(
-          input_path, save_path,
-          std::filesystem::copy_options::skip_existing)) {
-    CHECK(std::filesystem::exists(save_path)) << "Unable to save file!";
   }
 }
 

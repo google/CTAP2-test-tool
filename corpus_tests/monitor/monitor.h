@@ -16,40 +16,34 @@
 #define MONITOR_H_
 
 #include "corpus_tests/test_input_controller.h"
-#include "rsp/rsp.h"
 #include "src/device_interface.h"
 
 namespace corpus_tests {
 
-// Monitors and reports crash on a given device by communicating with
-// its GDB remote serial protocol server.
+// Base class for a monitor in charge of tracking crash on a given device.
 // Example:
 //   corpus_tests::Monitor monitor;
-//   monitor.Attach(device, port);
-//   monitor.Start();
-//   if (monitor.DeviceCrashed()) { ... }
+//   monitor.Attach();
+//   if (monitor.DeviceCrashed()) { 
+//     monitor.PrintCrashReport();
+//     monitor.SaveCrashFile();
+//   }
 class Monitor {
  public:
-  // Attaches the monitor to a device and connects to the port
-  // device's GDB server is listening to.
-  bool Attach(fido2_tests::DeviceInterface* device, int port);
-  // Starts monitoring the attached device by sending "continue"
-  // command to the target. This will execute the program until a
-  // crash triggers a breakpoint.
-  bool Start();
-  // Checks for an occured failure in the device by attempting to
-  // receive data from the RSP server.
-  bool DeviceCrashed();
+  Monitor(fido2_tests::DeviceInterface* device);
+  // Attaches the monitor to a device if needed. By default it's not necessary.
+  virtual bool Attach() { return true; };
+  // Checks for an occured failure in the device. Every derived monitor should
+  // provide an implementation of this function.
+  virtual bool DeviceCrashed() = 0;
   // Prints some information about the produced crash on the device
   // and/or the state of the device.
-  void PrintCrashReport();
+  virtual void PrintCrashReport() {};
   // Saves the given file crashing the device in the artifacts directory.
   void SaveCrashFile(InputType input_type, std::string_view const& input_path);
 
- private:
+ protected:
   fido2_tests::DeviceInterface* device_;
-  rsp::RemoteSerialProtocol rsp_client_;
-  std::string stop_message_;
 };
 
 }  // namespace corpus_tests
