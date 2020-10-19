@@ -23,8 +23,8 @@ using git.
 ### How to run
 
 Running the tool without comments lists all avaiable devices. Select the device
-you want to test by passing `--token_path`. If only one CTAP2 compatible device
-is plugged in, you can simply run:
+you want to test by passing `--token_path`. For Unix, ff only one CTAP2
+compatible device is plugged in, you can simply run:
 
 ```shell
 ./run.sh

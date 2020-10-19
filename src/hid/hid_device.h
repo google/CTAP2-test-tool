@@ -62,7 +62,7 @@ struct __attribute__((__packed__)) Frame {
 void PrintFidoDevices();
 
 // Utility function that returns the first suitable device path found.
-std::string FindFidoDevicePath();
+std::string FindFirstFidoDevicePath();
 
 class HidDevice : public DeviceInterface {
  public:

@@ -13,8 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# The underscore is the magic path that uses the first device found. You can
-# also pass the desired path as a command line argument.
-
 echo BUILD_SCM_REVISION  $(git rev-parse HEAD)
 

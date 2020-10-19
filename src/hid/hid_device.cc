@@ -525,7 +525,7 @@ void PrintFidoDevices() {
   hid_free_enumeration(devs);
 }
 
-std::string FindFidoDevicePath() {
+std::string FindFirstFidoDevicePath() {
   hid_device_info* devs = hid_enumerate(0, 0);  // 0 means all devices.
   std::string device_path;
   for (hid_device_info* cur_dev = devs; cur_dev; cur_dev = cur_dev->next) {
