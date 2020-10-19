@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rsp.h"
+#include "corpus_tests/rsp/rsp.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -26,10 +26,10 @@
 #include <string>
 #include <vector>
 
-#include "rsp_packet.h"
+#include "corpus_tests/rsp/rsp_packet.h"
 
+namespace corpus_tests {
 namespace rsp {
-
 namespace {
 
 // Timeout = 1 seconds.
@@ -126,3 +126,4 @@ bool RemoteSerialProtocol::ReadAcknowledgement() {
 }
 
 }  // namespace rsp
+}  // namespace corpus_tests
