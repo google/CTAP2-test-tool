@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TEST_SERIES_H_
-#define TEST_SERIES_H_
+#ifndef TESTS_TEST_SERIES_H_
+#define TESTS_TEST_SERIES_H_
 
 #include <cstdio>
 
 #include "absl/types/variant.h"
 #include "src/cbor_builders.h"
+#include "src/command_state.h"
 #include "src/device_interface.h"
 #include "src/device_tracker.h"
 #include "third_party/chromium_components_cbor/values.h"
@@ -40,7 +41,8 @@ class TestSeries {
  public:
   // The ownership for device and device_tracker stays with the caller and must
   // outlive the TestSeries instance.
-  TestSeries(DeviceInterface* device, DeviceTracker* device_tracker);
+  TestSeries(DeviceInterface* device, DeviceTracker* device_tracker,
+             CommandState* command_state);
 
   // Tests for MakeCredential.
 
@@ -153,10 +155,6 @@ class TestSeries {
   void PersistenceTest();
 
  private:
-  // Prompts the user to replug the device which is required before operations
-  // that need a power cycle (i.e. resetting). The Init will then handle device
-  // initilalization, regardless of the current state of the device.
-  void PromptReplugAndInit();
   // TODO(#16) replace version string with FIDO_2_1 when specification is final
   bool IsFido2Point1Complicant();
   // Makes a credential for all tests that require one, for example assertions.
@@ -207,37 +205,6 @@ class TestSeries {
 
   // Gets and checks the PIN retry counter response from the authenticator.
   int GetPinRetries();
-  // Compute the shared secret between authenticator and platform. Sets the
-  // argument platform_cose_key to the EC key used during the transaction.
-  void ComputeSharedSecret();
-  // Sets the PIN to the value specified in new_pin_utf8. Performs key agreement
-  // if not already done. Safe to call multiple times, and only talks to the
-  // authenticator if there is no PIN already. Defaults to 1234 if nothing else
-  // is set. Fails if the PIN requirements are not satisfied.
-  void SetPin(const cbor::Value::BinaryValue& new_pin_utf8 = {0x31, 0x32, 0x33,
-                                                              0x34});
-  // Calls the SetPin command with the given padded PIN. Fails if the length is
-  // not a multiple of the AES block size. Returns the command's status code.
-  // Performs key agreement if not already done.
-  Status AttemptSetPin(const cbor::Value::BinaryValue& new_padded_pin);
-  // Changes the current PIN to new_pin_utf8. Fails if the PIN requirements are
-  // not satisfied. Creates a PIN if not already done.
-  void ChangePin(const cbor::Value::BinaryValue& new_pin_utf8);
-  // Calls the ChangePin command with the given padded PIN, using the currently
-  // set PIN. Fails if the length is not a multiple of the AES block size.
-  // Returns the command's status code. Creates a PIN if not already done.
-  Status AttemptChangePin(const cbor::Value::BinaryValue& new_padded_pin);
-  // Returns a PIN Auth token valid for this power cycle from the authenticator.
-  // Sets the PIN to 1234 if no PIN exists.
-  void GetAuthToken();
-  // Calls the GetAuthToken command with the given PIN. Creates a PIN if
-  // not already done. Returns the command's status code. If redo_key_agreement
-  // is true, it brings the shared_secret back to a valid state. This is
-  // necessary because authenticators reset the key agreement on failed PIN
-  // hash checks. Setting redo_key_agreement is only used for specific failure
-  // mode tests.
-  Status AttemptGetAuthToken(const cbor::Value::BinaryValue& pin_utf8,
-                             bool redo_key_agreement = true);
   // Checks if the PIN we currently assume is set works for getting an auth
   // token. This way, we don't have to trust only the returned status code
   // after a SetPin or ChangePin command. It does not actually return an auth
@@ -252,36 +219,14 @@ class TestSeries {
 
   DeviceInterface* device_;
   DeviceTracker* device_tracker_;
-  // These are arbitrary example values for each CBOR type.
-  std::map<cbor::Value::Type, cbor::Value> type_examples_;
-  // This map is a subset of the type_examples_. Since CBOR implementations do
-  // not need to allow all CBOR types as map keys, testing on all of them for
-  // map keys might produce different error codes. Since we currently enforce
-  // a specific error code, use this subset of CBOR types for all tests on map
-  // keys. Allowed map keys might depend on the CBOR parser implementation.
-  // The specification only states: "Note that this rule allows maps that have
-  // keys of different types, even though that is probably a bad practice that
-  // could lead to errors in some canonicalization implementations."
-  std::map<cbor::Value::Type, cbor::Value> map_key_examples_;
-  // This is an example of an EC cose key map for client PIN operations.
-  cbor::Value::MapValue cose_key_example_;
-  // This is an example PIN that should be different from the real PIN.
-  const cbor::Value::BinaryValue bad_pin_;
-  // The PIN is persistent, the other state is kept for a power cycle.
-  cbor::Value::MapValue platform_cose_key_;
-  cbor::Value::BinaryValue shared_secret_;
-  cbor::Value::BinaryValue pin_utf8_;
-  cbor::Value::BinaryValue auth_token_;
+  CommandState* command_state_;
 };
 
 namespace test_helpers {
 
-// Asserts a general condition, exits on failure.
-void AssertCondition(bool condition, const std::string& test_name);
-
-// As above, but asserts the success of an executed command.
-void AssertResponse(const absl::variant<cbor::Value, Status>& returned_variant,
-                    const std::string& test_name);
+// Returns a PIN that is different from the PIN set on the device. This is
+// enforced in SetPin() by making sure the chosen PIN is different.
+cbor::Value::BinaryValue BadPin();
 
 // Extracts the credential ID from an authenticator data structure[1].
 // [1] https://www.w3.org/TR/webauthn/#sec-authenticator-data
@@ -298,4 +243,4 @@ void PrintNoTouchPrompt();
 
 }  // namespace fido2_tests
 
-#endif  // TEST_SERIES_H_
+#endif  // TESTS_TEST_SERIES_H_

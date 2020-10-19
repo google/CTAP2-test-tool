@@ -69,9 +69,9 @@ class HidDevice : public DeviceInterface {
   // The constructor without the third parameter implicitly assumes false.
   // In both constructors, the ownership for tracker stays with the caller
   // and it must outlive the HidDevice instance.
-  HidDevice(DeviceTracker* tracker, const std::string& pathname);
+  HidDevice(DeviceTracker* tracker, std::string_view pathname);
   // Prepares the object for sending packets. The pathname points to the device.
-  HidDevice(DeviceTracker* tracker, const std::string& pathname,
+  HidDevice(DeviceTracker* tracker, std::string_view pathname,
             bool verbose_logging);
   ~HidDevice() override;
   // In contrast to the constructor, Init sends a package to initilialize the
@@ -101,8 +101,8 @@ class HidDevice : public DeviceInterface {
   Status ReceiveFrame(absl::Duration timeout, Frame* frame) const;
   // Perform the Wink command.
   Status ExecuteWink();
-  void Log(const std::string& message) const;
-  void Log(const std::string& direction, Frame* frame) const;
+  void Log(std::string_view message) const;
+  void Log(std::string_view direction, Frame* frame) const;
   // Scans connected HID devices for one with the same product ID as this device
   // and returns its filesystem path, or fails if none was found. Sets the
   // product name in the DeviceTracker as a side effect.

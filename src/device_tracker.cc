@@ -42,15 +42,15 @@ std::string CreateSaveFileDirectory() {
   return results_dir;
 }
 
-void PrintSuccessMessage(const std::string& message) {
+void PrintSuccessMessage(std::string_view message) {
   std::cout << "\x1b[0;32m" << message << "\x1b[0m" << std::endl;
 }
 
-void PrintWarningMessage(const std::string& message) {
+void PrintWarningMessage(std::string_view message) {
   std::cout << "\x1b[0;33m" << message << "\x1b[0m" << std::endl;
 }
 
-void PrintFailMessage(const std::string& message) {
+void PrintFailMessage(std::string_view message) {
   std::cout << "\x1b[0;31m" << message << "\x1b[0m" << std::endl;
 }
 
@@ -106,7 +106,7 @@ bool DeviceTracker::HasOption(std::string_view option_name) {
   return options_.contains(option_name);
 }
 
-void DeviceTracker::SetProductName(const std::string& product_name) {
+void DeviceTracker::SetProductName(std::string_view product_name) {
   product_name_ = product_name;
 }
 
@@ -123,6 +123,30 @@ void DeviceTracker::AddProblem(const std::string& problem) {
       problems_.end()) {
     problems_.push_back(problem);
   }
+}
+
+void DeviceTracker::AssertCondition(bool condition, std::string_view message) {
+  if (!condition) {
+    ReportFindings();
+    SaveResultsToFile();
+  }
+  CHECK(condition) << "Failed critical test: " << message;
+}
+
+void DeviceTracker::AssertStatus(Status status, std::string_view message) {
+  AssertCondition(status == Status::kErrNone,
+                  absl::StrCat(message, " - returned status code ",
+                               StatusToString(status)));
+}
+
+void DeviceTracker::AssertResponse(
+    const absl::variant<cbor::Value, Status>& returned_variant,
+    std::string_view message) {
+  Status returned_status = Status::kErrNone;
+  if (absl::holds_alternative<Status>(returned_variant)) {
+    returned_status = absl::get<Status>(returned_variant);
+  }
+  AssertStatus(returned_status, message);
 }
 
 void DeviceTracker::CheckAndReport(bool condition,
@@ -173,15 +197,15 @@ CounterChecker* DeviceTracker::GetCounterChecker() { return &counter_checker_; }
 
 void DeviceTracker::ReportFindings() const {
   std::cout << counter_checker_.ReportFindings() << "\n\n";
-  for (const std::string& observation : observations_) {
+  for (std::string_view observation : observations_) {
     std::cout << observation << "\n";
   }
   std::cout << std::endl;
-  for (const std::string& problem : problems_) {
+  for (std::string_view problem : problems_) {
     PrintWarningMessage(problem);
   }
   std::cout << std::endl;
-  for (const std::string& test : failed_tests_) {
+  for (std::string_view test : failed_tests_) {
     PrintFailMessage(test);
   }
   int successful_test_count = successful_tests_.size();

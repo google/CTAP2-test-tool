@@ -16,6 +16,7 @@
 
 #include "gflags/gflags.h"
 #include "glog/logging.h"
+#include "src/command_state.h"
 #include "src/constants.h"
 #include "src/device_tracker.h"
 #include "src/hid/hid_device.h"
@@ -60,13 +61,11 @@ int main(int argc, char** argv) {
   CHECK(fido2_tests::Status::kErrNone == device->Init())
       << "CTAPHID initialization failed";
   device->Wink();
+  // Resets and initializes.
+  fido2_tests::CommandState command_state(device.get(), &tracker);
 
   fido2_tests::TestSeries test_series =
-      fido2_tests::TestSeries(device.get(), &tracker);
-
-  test_series.Reset();
-  // You need to execute GetInfo first to initialize the tracker.
-  test_series.GetInfoTest();
+      fido2_tests::TestSeries(device.get(), &tracker, &command_state);
 
   test_series.MakeCredentialBadParameterTypesTest();
   test_series.MakeCredentialMissingParameterTest();
@@ -102,6 +101,8 @@ int main(int argc, char** argv) {
   test_series.GetAssertionResidentialKeyTest();
   test_series.GetAssertionPinAuthTest();
   test_series.GetAssertionPhysicalPresenceTest();
+
+  test_series.GetInfoTest();
 
   test_series.ClientPinRequirementsTest();
   test_series.ClientPinRequirements2Point1Test();

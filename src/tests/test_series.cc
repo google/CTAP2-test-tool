@@ -29,7 +29,28 @@
 
 namespace fido2_tests {
 namespace {
-constexpr size_t kPinByteLength = 64;
+// These are arbitrary example values for each CBOR type.
+const std::map<cbor::Value::Type, cbor::Value>& GetTypeExamples() {
+  static const auto* const kTypeExamples = [] {
+    auto* type_examples = new std::map<cbor::Value::Type, cbor::Value>;
+    cbor::Value::ArrayValue array_example;
+    array_example.push_back(cbor::Value(42));
+    cbor::Value::MapValue map_example;
+    map_example[cbor::Value(42)] = cbor::Value(42);
+    (*type_examples)[cbor::Value::Type::UNSIGNED] = cbor::Value(42);
+    (*type_examples)[cbor::Value::Type::NEGATIVE] = cbor::Value(-42);
+    (*type_examples)[cbor::Value::Type::BYTE_STRING] =
+        cbor::Value(cbor::Value::BinaryValue({0x42}));
+    (*type_examples)[cbor::Value::Type::STRING] = cbor::Value("42");
+    (*type_examples)[cbor::Value::Type::ARRAY] = cbor::Value(array_example);
+    (*type_examples)[cbor::Value::Type::MAP] = cbor::Value(map_example);
+    // The TAG type is not supported, skipping it.
+    (*type_examples)[cbor::Value::Type::SIMPLE_VALUE] =
+        cbor::Value(cbor::Value::SimpleValue::TRUE_VALUE);
+    return type_examples;
+  }();
+  return *kTypeExamples;
+}
 
 std::string CborTypeToString(cbor::Value::Type cbor_type) {
   switch (cbor_type) {
@@ -73,18 +94,7 @@ std::string CborToString(const std::string& name_prefix,
 
 namespace test_helpers {
 
-// Asserts a general condition, exits on failure.
-void AssertCondition(bool condition, const std::string& test_name) {
-  CHECK(condition) << "Failed critical test: " << test_name;
-}
-
-// As above, but asserts the success of an executed command.
-void AssertResponse(const absl::variant<cbor::Value, Status>& returned_variant,
-                    const std::string& test_name) {
-  CHECK(!absl::holds_alternative<Status>(returned_variant))
-      << "Failed critical test: " << test_name << " - returned status code "
-      << StatusToString(absl::get<Status>(returned_variant));
-}
+cbor::Value::BinaryValue BadPin() { return {0x66, 0x61, 0x6B, 0x65}; }
 
 // Extracts the credential ID from an authenticator data structure[1].
 // [1] https://www.w3.org/TR/webauthn/#sec-authenticator-data
@@ -138,43 +148,11 @@ void PrintNoTouchPrompt() {
 
 }  // namespace test_helpers
 
-TestSeries::TestSeries(DeviceInterface* device, DeviceTracker* device_tracker)
+TestSeries::TestSeries(DeviceInterface* device, DeviceTracker* device_tracker,
+                       CommandState* command_state)
     : device_(device),
       device_tracker_(device_tracker),
-      cose_key_example_(crypto_utility::GenerateExampleEcdhCoseKey()),
-      bad_pin_({0x66, 0x61, 0x6B, 0x65}) {
-  cbor::Value::ArrayValue array_example;
-  array_example.push_back(cbor::Value(42));
-  cbor::Value::MapValue map_example;
-  map_example[cbor::Value(42)] = cbor::Value(42);
-  type_examples_[cbor::Value::Type::UNSIGNED] = cbor::Value(42);
-  type_examples_[cbor::Value::Type::NEGATIVE] = cbor::Value(-42);
-  type_examples_[cbor::Value::Type::BYTE_STRING] =
-      cbor::Value(cbor::Value::BinaryValue({0x42}));
-  type_examples_[cbor::Value::Type::STRING] = cbor::Value("42");
-  type_examples_[cbor::Value::Type::ARRAY] = cbor::Value(array_example);
-  type_examples_[cbor::Value::Type::MAP] = cbor::Value(map_example);
-  // The TAG type is not supported, skipping it.
-  type_examples_[cbor::Value::Type::SIMPLE_VALUE] =
-      cbor::Value(cbor::Value::SimpleValue::TRUE_VALUE);
-
-  map_key_examples_[cbor::Value::Type::UNSIGNED] = cbor::Value(42);
-  map_key_examples_[cbor::Value::Type::NEGATIVE] = cbor::Value(-42);
-  map_key_examples_[cbor::Value::Type::BYTE_STRING] =
-      cbor::Value(cbor::Value::BinaryValue({0x42}));
-  map_key_examples_[cbor::Value::Type::STRING] = cbor::Value("42");
-}
-
-void TestSeries::PromptReplugAndInit() {
-  std::cout << "Please replug the device, then hit enter." << std::endl;
-  std::cin.ignore();
-  CHECK(fido2_tests::Status::kErrNone == device_->Init())
-      << "CTAPHID initialization failed";
-
-  platform_cose_key_ = cbor::Value::MapValue();
-  shared_secret_ = cbor::Value::BinaryValue();
-  auth_token_ = cbor::Value::BinaryValue();
-}
+      command_state_(command_state) {}
 
 bool TestSeries::IsFido2Point1Complicant() {
   return device_tracker_->HasVersion("FIDO_2_1_PRE");
@@ -182,23 +160,15 @@ bool TestSeries::IsFido2Point1Complicant() {
 
 cbor::Value TestSeries::MakeTestCredential(const std::string& rp_id,
                                            bool use_residential_key) {
-  MakeCredentialCborBuilder test_builder;
-  test_builder.AddDefaultsForRequiredFields(rp_id);
-  test_builder.SetResidentialKeyOptions(use_residential_key);
-  if (!auth_token_.empty()) {
-    test_builder.SetDefaultPinUvAuthParam(auth_token_);
-    test_builder.SetDefaultPinUvAuthProtocol();
-  }
-
   absl::variant<cbor::Value, Status> response =
-      fido2_commands::MakeCredentialPositiveTest(device_, device_tracker_,
-                                                 test_builder.GetCbor());
-  test_helpers::AssertResponse(response, "make credential for further tests");
+      command_state_->MakeTestCredential(rp_id, use_residential_key);
+  device_tracker_->AssertResponse(response,
+                                  "make credential for further tests");
   return std::move(absl::get<cbor::Value>(response));
 }
 
 void TestSeries::TestBadParameterTypes(Command command, CborBuilder* builder) {
-  for (const auto& item : type_examples_) {
+  for (const auto& item : GetTypeExamples()) {
     if (item.first != cbor::Value::Type::MAP) {
       Status returned_status = fido2_commands::GenericNegativeTest(
           device_, item.second, command, false);
@@ -217,7 +187,7 @@ void TestSeries::TestBadParameterTypes(Command command, CborBuilder* builder) {
 
     // Replace the map value with another of wrong type. Maps and arrays get
     // additional tests.
-    for (const auto& item : type_examples_) {
+    for (const auto& item : GetTypeExamples()) {
       if (item.second.is_integer() && map_value.is_integer()) {
         continue;
       }
@@ -283,7 +253,7 @@ void TestSeries::TestBadParametersInInnerMap(
     auto inner_key = inner_entry.first.Clone();
     auto inner_value = inner_entry.second.Clone();
 
-    for (const auto& item : type_examples_) {
+    for (const auto& item : GetTypeExamples()) {
       if (item.second.is_integer() && inner_value.is_integer()) {
         continue;
       }
@@ -313,7 +283,7 @@ void TestSeries::TestBadParametersInInnerMap(
 void TestSeries::TestBadParametersInInnerArray(
     Command command, CborBuilder* builder, int outer_map_key,
     const cbor::Value& array_element) {
-  for (const auto& item : type_examples_) {
+  for (const auto& item : GetTypeExamples()) {
     if (item.second.is_integer() && array_element.is_integer()) {
       continue;
     }
@@ -340,7 +310,7 @@ void TestSeries::TestCredentialDescriptorsArrayForCborDepth(
   absl::variant<cbor::Value, Status> response;
 
   cbor::Value::BinaryValue cred_descriptor_id(32, 0xce);
-  for (const auto& item : type_examples_) {
+  for (const auto& item : GetTypeExamples()) {
     if (item.first == cbor::Value::Type::ARRAY ||
         item.first == cbor::Value::Type::MAP) {
       cbor::Value::ArrayValue credential_descriptor_list;
@@ -379,185 +349,14 @@ int TestSeries::GetPinRetries() {
               << std::endl;
     return 0;
   }
-  test_helpers::AssertResponse(response, "get the PIN retries counter");
+  device_tracker_->AssertResponse(response, "get the PIN retries counter");
   return test_helpers::ExtractPinRetries(absl::get<cbor::Value>(response));
 }
 
-void TestSeries::ComputeSharedSecret() {
-  AuthenticatorClientPinCborBuilder key_agreement_builder;
-  key_agreement_builder.AddDefaultsForGetKeyAgreement();
-  absl::variant<cbor::Value, Status> key_response =
-      fido2_commands::AuthenticatorClientPinPositiveTest(
-          device_, device_tracker_, key_agreement_builder.GetCbor());
-  device_tracker_->CheckAndReport(key_response, "performing key agreement");
-  if (absl::holds_alternative<Status>(key_response)) {
-    std::cout << "Since key agreement failed, the next tests might be affected."
-              << std::endl;
-    return;
-  }
-
-  const auto& key_agreement_map = absl::get<cbor::Value>(key_response).GetMap();
-  auto map_iter = key_agreement_map.find(cbor::Value(1));
-  shared_secret_ = crypto_utility::CompleteEcdhHandshake(
-      map_iter->second.GetMap(), &platform_cose_key_);
-}
-
-void TestSeries::SetPin(const cbor::Value::BinaryValue& new_pin_utf8) {
-  if (platform_cose_key_.empty() || shared_secret_.empty()) {
-    ComputeSharedSecret();
-  }
-  if (!pin_utf8_.empty()) {
-    return;
-  }
-  CHECK(new_pin_utf8.size() >= 4 && new_pin_utf8.size() <= 63)
-      << "PIN requirements not fulfilled - TEST SUITE BUG";
-  CHECK(new_pin_utf8 != bad_pin_)
-      << "new PIN must be different from the bad example PIN - TEST SUITE BUG";
-
-  cbor::Value::BinaryValue new_padded_pin(kPinByteLength, 0);
-  std::copy(new_pin_utf8.begin(), new_pin_utf8.end(), new_padded_pin.begin());
-  cbor::Value::BinaryValue new_pin_enc =
-      crypto_utility::Aes256CbcEncrypt(shared_secret_, new_padded_pin);
-  cbor::Value::BinaryValue pin_auth =
-      crypto_utility::LeftHmacSha256(shared_secret_, new_pin_enc);
-
-  AuthenticatorClientPinCborBuilder set_pin_builder;
-  set_pin_builder.AddDefaultsForSetPin(platform_cose_key_, pin_auth,
-                                       new_pin_enc);
-  absl::variant<cbor::Value, Status> set_pin_response =
-      fido2_commands::AuthenticatorClientPinPositiveTest(
-          device_, device_tracker_, set_pin_builder.GetCbor());
-  test_helpers::AssertResponse(set_pin_response, "set PIN");
-  pin_utf8_ = new_pin_utf8;
-  std::cout << "The new PIN is ";
-  test_helpers::PrintByteVector(new_pin_utf8);
-}
-
-Status TestSeries::AttemptSetPin(
-    const cbor::Value::BinaryValue& new_padded_pin) {
-  if (platform_cose_key_.empty() || shared_secret_.empty()) {
-    ComputeSharedSecret();
-  }
-
-  cbor::Value::BinaryValue new_pin_enc =
-      crypto_utility::Aes256CbcEncrypt(shared_secret_, new_padded_pin);
-  cbor::Value::BinaryValue pin_auth =
-      crypto_utility::LeftHmacSha256(shared_secret_, new_pin_enc);
-
-  AuthenticatorClientPinCborBuilder set_pin_builder;
-  set_pin_builder.AddDefaultsForSetPin(platform_cose_key_, pin_auth,
-                                       new_pin_enc);
-  return fido2_commands::AuthenticatorClientPinNegativeTest(
-      device_, set_pin_builder.GetCbor(), false);
-}
-
-void TestSeries::ChangePin(const cbor::Value::BinaryValue& new_pin_utf8) {
-  SetPin();
-  CHECK(new_pin_utf8.size() >= 4 && new_pin_utf8.size() <= 63)
-      << "PIN requirements not fulfilled - TEST SUITE BUG";
-  CHECK(new_pin_utf8 != bad_pin_)
-      << "new PIN must be different from the bad example PIN - TEST SUITE BUG";
-
-  cbor::Value::BinaryValue new_padded_pin(kPinByteLength, 0);
-  std::copy(new_pin_utf8.begin(), new_pin_utf8.end(), new_padded_pin.begin());
-  cbor::Value::BinaryValue pin_hash_enc = crypto_utility::Aes256CbcEncrypt(
-      shared_secret_, crypto_utility::LeftSha256Hash(pin_utf8_));
-  cbor::Value::BinaryValue new_pin_enc =
-      crypto_utility::Aes256CbcEncrypt(shared_secret_, new_padded_pin);
-  cbor::Value::BinaryValue auth_data(new_pin_enc);
-  auth_data.insert(auth_data.end(), pin_hash_enc.begin(), pin_hash_enc.end());
-  cbor::Value::BinaryValue pin_auth =
-      crypto_utility::LeftHmacSha256(shared_secret_, auth_data);
-
-  AuthenticatorClientPinCborBuilder change_pin_builder;
-  change_pin_builder.AddDefaultsForChangePin(platform_cose_key_, pin_auth,
-                                             new_pin_enc, pin_hash_enc);
-  absl::variant<cbor::Value, Status> change_pin_response =
-      fido2_commands::AuthenticatorClientPinPositiveTest(
-          device_, device_tracker_, change_pin_builder.GetCbor());
-  test_helpers::AssertResponse(change_pin_response, "change PIN");
-  pin_utf8_ = new_pin_utf8;
-  std::cout << "The changed PIN is ";
-  test_helpers::PrintByteVector(new_pin_utf8);
-}
-
-Status TestSeries::AttemptChangePin(
-    const cbor::Value::BinaryValue& new_padded_pin) {
-  SetPin();
-
-  cbor::Value::BinaryValue pin_hash_enc = crypto_utility::Aes256CbcEncrypt(
-      shared_secret_, crypto_utility::LeftSha256Hash(pin_utf8_));
-  cbor::Value::BinaryValue new_pin_enc =
-      crypto_utility::Aes256CbcEncrypt(shared_secret_, new_padded_pin);
-  cbor::Value::BinaryValue auth_data(new_pin_enc);
-  auth_data.insert(auth_data.end(), pin_hash_enc.begin(), pin_hash_enc.end());
-  cbor::Value::BinaryValue pin_auth =
-      crypto_utility::LeftHmacSha256(shared_secret_, auth_data);
-
-  AuthenticatorClientPinCborBuilder change_pin_builder;
-  change_pin_builder.AddDefaultsForChangePin(platform_cose_key_, pin_auth,
-                                             new_pin_enc, pin_hash_enc);
-  Status returned_status = fido2_commands::AuthenticatorClientPinNegativeTest(
-      device_, change_pin_builder.GetCbor(), false);
-  // Since failed PIN checks reset the key agreement, keep the state consistent.
-  ComputeSharedSecret();
-  return returned_status;
-}
-
-void TestSeries::GetAuthToken() {
-  SetPin();
-
-  AuthenticatorClientPinCborBuilder pin_token_builder;
-  cbor::Value::BinaryValue pin_hash_enc = crypto_utility::Aes256CbcEncrypt(
-      shared_secret_, crypto_utility::LeftSha256Hash(pin_utf8_));
-  pin_token_builder.AddDefaultsForGetPinUvAuthTokenUsingPin(platform_cose_key_,
-                                                            pin_hash_enc);
-  absl::variant<cbor::Value, Status> pin_token_response =
-      fido2_commands::AuthenticatorClientPinPositiveTest(
-          device_, device_tracker_, pin_token_builder.GetCbor());
-  test_helpers::AssertResponse(pin_token_response, "getting PIN auth token");
-
-  const auto& pin_token_map =
-      absl::get<cbor::Value>(pin_token_response).GetMap();
-  auto map_iter = pin_token_map.find(cbor::Value(2));
-  cbor::Value::BinaryValue encrypted_token = map_iter->second.GetBytestring();
-  auth_token_ =
-      crypto_utility::Aes256CbcDecrypt(shared_secret_, encrypted_token);
-}
-
-Status TestSeries::AttemptGetAuthToken(const cbor::Value::BinaryValue& pin_utf8,
-                                       bool redo_key_agreement) {
-  SetPin();
-
-  AuthenticatorClientPinCborBuilder pin_token_builder;
-  cbor::Value::BinaryValue pin_hash_enc = crypto_utility::Aes256CbcEncrypt(
-      shared_secret_, crypto_utility::LeftSha256Hash(pin_utf8));
-  pin_token_builder.AddDefaultsForGetPinUvAuthTokenUsingPin(platform_cose_key_,
-                                                            pin_hash_enc);
-  Status returned_status = fido2_commands::AuthenticatorClientPinNegativeTest(
-      device_, pin_token_builder.GetCbor(), false);
-  if (redo_key_agreement) {
-    // Since failed PIN checks reset the key agreement, keep the state
-    // consistent.
-    ComputeSharedSecret();
-  }
-  return returned_status;
-}
-
 void TestSeries::CheckPinByGetAuthToken() {
-  AuthenticatorClientPinCborBuilder pin_token_builder;
-  cbor::Value::BinaryValue pin_hash_enc = crypto_utility::Aes256CbcEncrypt(
-      shared_secret_, crypto_utility::LeftSha256Hash(pin_utf8_));
-  pin_token_builder.AddDefaultsForGetPinUvAuthTokenUsingPin(platform_cose_key_,
-                                                            pin_hash_enc);
-  absl::variant<cbor::Value, Status> pin_token_response =
-      fido2_commands::AuthenticatorClientPinPositiveTest(
-          device_, device_tracker_, pin_token_builder.GetCbor());
-  device_tracker_->CheckAndReport(pin_token_response,
-                                  "PIN was usable for getting an auth token");
-
-  // Since failed PIN checks reset the key agreement, keep the state consistent.
-  ComputeSharedSecret();
+  device_tracker_->CheckAndReport(
+      /*Status::kErrNone, */ command_state_->GetAuthToken(false),
+      "PIN was usable for getting an auth token");
 }
 
 void TestSeries::CheckPinAbsenceByMakeCredential() {
