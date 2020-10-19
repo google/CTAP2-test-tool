@@ -64,50 +64,72 @@ int main(int argc, char** argv) {
   // Resets and initializes.
   fido2_tests::CommandState command_state(device.get(), &tracker);
 
-  fido2_tests::TestSeries test_series =
-      fido2_tests::TestSeries(device.get(), &tracker, &command_state);
+  fido2_tests::TestSeries test_series = fido2_tests::TestSeries();
 
-  test_series.MakeCredentialBadParameterTypesTest();
-  test_series.MakeCredentialMissingParameterTest();
-  test_series.MakeCredentialRelyingPartyEntityTest();
-  test_series.MakeCredentialUserEntityTest();
-  test_series.MakeCredentialExcludeListCredentialDescriptorTest();
-  test_series.MakeCredentialExtensionsTest();
-  test_series.GetAssertionBadParameterTypesTest();
-  test_series.GetAssertionMissingParameterTest();
-  test_series.GetAssertionAllowListCredentialDescriptorTest();
-  test_series.GetAssertionExtensionsTest();
-  test_series.ClientPinGetPinRetriesTest();
-  test_series.ClientPinGetKeyAgreementTest();
-  test_series.ClientPinSetPinTest();
-  test_series.ClientPinChangePinTest();
-  test_series.ClientPinGetPinUvAuthTokenUsingPinTest();
-  test_series.ClientPinGetPinUvAuthTokenUsingUvTest();
-  test_series.ClientPinGetUVRetriesTest();
+  test_series.MakeCredentialBadParameterTypesTest(device.get(), &tracker,
+                                                  &command_state);
+  test_series.MakeCredentialMissingParameterTest(device.get(), &tracker,
+                                                 &command_state);
+  test_series.MakeCredentialRelyingPartyEntityTest(device.get(), &tracker,
+                                                   &command_state);
+  test_series.MakeCredentialUserEntityTest(device.get(), &tracker,
+                                           &command_state);
+  test_series.MakeCredentialExcludeListCredentialDescriptorTest(
+      device.get(), &tracker, &command_state);
+  test_series.MakeCredentialExtensionsTest(device.get(), &tracker,
+                                           &command_state);
+  test_series.GetAssertionBadParameterTypesTest(device.get(), &tracker,
+                                                &command_state);
+  test_series.GetAssertionMissingParameterTest(device.get(), &tracker,
+                                               &command_state);
+  test_series.GetAssertionAllowListCredentialDescriptorTest(
+      device.get(), &tracker, &command_state);
+  test_series.GetAssertionExtensionsTest(device.get(), &tracker,
+                                         &command_state);
+  test_series.ClientPinGetPinRetriesTest(device.get(), &tracker,
+                                         &command_state);
+  test_series.ClientPinGetKeyAgreementTest(device.get(), &tracker,
+                                           &command_state);
+  test_series.ClientPinSetPinTest(device.get(), &tracker, &command_state);
+  test_series.ClientPinChangePinTest(device.get(), &tracker, &command_state);
+  test_series.ClientPinGetPinUvAuthTokenUsingPinTest(device.get(), &tracker,
+                                                     &command_state);
+  test_series.ClientPinGetPinUvAuthTokenUsingUvTest(device.get(), &tracker,
+                                                    &command_state);
+  test_series.ClientPinGetUVRetriesTest(device.get(), &tracker, &command_state);
 
-  test_series.ResetDeletionTest();
-  test_series.ResetPhysicalPresenceTest();
-  test_series.PersistenceTest();
+  test_series.ResetDeletionTest(device.get(), &tracker, &command_state);
+  test_series.ResetPhysicalPresenceTest(device.get(), &tracker, &command_state);
+  test_series.PersistenceTest(device.get(), &tracker, &command_state);
 
-  test_series.MakeCredentialExcludeListTest();
-  test_series.MakeCredentialCoseAlgorithmTest();
-  test_series.MakeCredentialOptionsTest();
-  test_series.MakeCredentialPinAuthTest();
-  test_series.MakeCredentialMultipleKeysTest(FLAGS_num_credentials);
-  test_series.MakeCredentialPhysicalPresenceTest();
-  test_series.MakeCredentialDisplayNameEncodingTest();
+  test_series.MakeCredentialExcludeListTest(device.get(), &tracker,
+                                            &command_state);
+  test_series.MakeCredentialCoseAlgorithmTest(device.get(), &tracker,
+                                              &command_state);
+  test_series.MakeCredentialOptionsTest(device.get(), &tracker, &command_state);
+  test_series.MakeCredentialPinAuthTest(device.get(), &tracker, &command_state);
+  test_series.MakeCredentialMultipleKeysTest(
+      device.get(), &tracker, &command_state, FLAGS_num_credentials);
+  test_series.MakeCredentialPhysicalPresenceTest(device.get(), &tracker,
+                                                 &command_state);
+  test_series.MakeCredentialDisplayNameEncodingTest(device.get(), &tracker,
+                                                    &command_state);
 
-  test_series.GetAssertionOptionsTest();
-  test_series.GetAssertionResidentialKeyTest();
-  test_series.GetAssertionPinAuthTest();
-  test_series.GetAssertionPhysicalPresenceTest();
+  test_series.GetAssertionOptionsTest(device.get(), &tracker, &command_state);
+  test_series.GetAssertionResidentialKeyTest(device.get(), &tracker,
+                                             &command_state);
+  test_series.GetAssertionPinAuthTest(device.get(), &tracker, &command_state);
+  test_series.GetAssertionPhysicalPresenceTest(device.get(), &tracker,
+                                               &command_state);
 
-  test_series.GetInfoTest();
+  test_series.GetInfoTest(device.get(), &tracker, &command_state);
 
-  test_series.ClientPinRequirementsTest();
-  test_series.ClientPinRequirements2Point1Test();
-  test_series.ClientPinRetriesTest();
-  test_series.MakeCredentialHmacSecretTest();
+  test_series.ClientPinRequirementsTest(device.get(), &tracker, &command_state);
+  test_series.ClientPinRequirements2Point1Test(device.get(), &tracker,
+                                               &command_state);
+  test_series.ClientPinRetriesTest(device.get(), &tracker, &command_state);
+  test_series.MakeCredentialHmacSecretTest(device.get(), &tracker,
+                                           &command_state);
 
   std::cout << "\nRESULTS" << std::endl;
   tracker.ReportFindings();

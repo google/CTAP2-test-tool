@@ -28,25 +28,28 @@
 
 namespace fido2_tests {
 
-void TestSeries::ResetDeletionTest() {
+void TestSeries::ResetDeletionTest(DeviceInterface* device,
+                                   DeviceTracker* device_tracker,
+                                   CommandState* command_state) {
   std::string rp_id = "reset.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
 
-  MakeTestCredential(rp_id, true);
-  cbor::Value credential_response = MakeTestCredential(rp_id, false);
+  test_helpers::MakeTestCredential(device_tracker, command_state, rp_id, true);
+  cbor::Value credential_response = test_helpers::MakeTestCredential(
+      device_tracker, command_state, rp_id, false);
 
   GetAssertionCborBuilder reset_get_assertion_builder;
   reset_get_assertion_builder.AddDefaultsForRequiredFields(rp_id);
   response = fido2_commands::GetAssertionPositiveTest(
-      device_, device_tracker_, reset_get_assertion_builder.GetCbor());
-  device_tracker_->CheckAndReport(response, "get assertion before reset");
+      device, device_tracker, reset_get_assertion_builder.GetCbor());
+  device_tracker->CheckAndReport(response, "get assertion before reset");
 
-  command_state_->Reset();
+  command_state->Reset();
 
   returned_status = fido2_commands::GetAssertionNegativeTest(
-      device_, reset_get_assertion_builder.GetCbor(), false);
-  device_tracker_->CheckAndReport(
+      device, reset_get_assertion_builder.GetCbor(), false);
+  device_tracker->CheckAndReport(
       Status::kErrNoCredentials, returned_status,
       "get assertion of residential key after reset");
 
@@ -54,40 +57,43 @@ void TestSeries::ResetDeletionTest() {
       test_helpers::ExtractCredentialId(credential_response);
   reset_get_assertion_builder.SetAllowListCredential(credential_id);
   returned_status = fido2_commands::GetAssertionNegativeTest(
-      device_, reset_get_assertion_builder.GetCbor(), false);
-  device_tracker_->CheckAndReport(
+      device, reset_get_assertion_builder.GetCbor(), false);
+  device_tracker->CheckAndReport(
       Status::kErrNoCredentials, returned_status,
       "get assertion of non-residential key after reset");
 
-  device_tracker_->AssertStatus(command_state_->SetPin(),
-                                "set pin for further tests");
-  int initial_counter = GetPinRetries();
-  command_state_->AttemptGetAuthToken(test_helpers::BadPin());
+  device_tracker->AssertStatus(command_state->SetPin(),
+                               "set pin for further tests");
+  int initial_counter = test_helpers::GetPinRetries(device, device_tracker);
+  command_state->AttemptGetAuthToken(test_helpers::BadPin());
   cbor::Value::BinaryValue old_auth_token =
-      command_state_->GetCurrentAuthToken();
+      command_state->GetCurrentAuthToken();
   // TODO(kaczmarczyck) compare to new token after either replug only or Reset
 
-  command_state_->Reset();
+  command_state->Reset();
 
-  CheckPinAbsenceByMakeCredential();
-  device_tracker_->AssertStatus(command_state_->SetPin(),
-                                "set pin for further tests");
-  device_tracker_->CheckAndReport(GetPinRetries() == initial_counter,
-                                  "PIN retries reset on reset command");
+  test_helpers::CheckPinAbsenceByMakeCredential(device, device_tracker);
+  device_tracker->AssertStatus(command_state->SetPin(),
+                               "set pin for further tests");
+  device_tracker->CheckAndReport(
+      test_helpers::GetPinRetries(device, device_tracker) == initial_counter,
+      "PIN retries reset on reset command");
 
   MakeCredentialCborBuilder reset_make_credential_builder;
   reset_make_credential_builder.AddDefaultsForRequiredFields(rp_id);
   reset_make_credential_builder.SetDefaultPinUvAuthParam(old_auth_token);
   reset_make_credential_builder.SetDefaultPinUvAuthProtocol();
   returned_status = fido2_commands::MakeCredentialNegativeTest(
-      device_, reset_make_credential_builder.GetCbor(), false);
-  device_tracker_->CheckAndReport(Status::kErrPinAuthInvalid, returned_status,
-                                  "PIN auth was reset, token stops working");
+      device, reset_make_credential_builder.GetCbor(), false);
+  device_tracker->CheckAndReport(Status::kErrPinAuthInvalid, returned_status,
+                                 "PIN auth was reset, token stops working");
 
-  command_state_->Reset();
+  command_state->Reset();
 }
 
-void TestSeries::ResetPhysicalPresenceTest() {
+void TestSeries::ResetPhysicalPresenceTest(DeviceInterface* device,
+                                           DeviceTracker* device_tracker,
+                                           CommandState* command_state) {
   // Currently, devices with displays are not supported.
   std::string rp_id = "presence.example.com";
   Status returned_status;
@@ -98,10 +104,9 @@ void TestSeries::ResetPhysicalPresenceTest() {
   // TODO(kaczmarczcyk) ask user for confirmation of flashing LED?
 
   returned_status =
-      fido2_commands::ResetNegativeTest(device_, cbor::Value(), true);
-  device_tracker_->CheckAndReport(Status::kErrUserActionTimeout,
-                                  returned_status,
-                                  "key was not touched for reset");
+      fido2_commands::ResetNegativeTest(device, cbor::Value(), true);
+  device_tracker->CheckAndReport(Status::kErrUserActionTimeout, returned_status,
+                                 "key was not touched for reset");
 
   if (reset_timeout > absl::Now()) {
     std::cout << "Please wait a few seconds for an internal timeout."
@@ -112,8 +117,8 @@ void TestSeries::ResetPhysicalPresenceTest() {
 
   std::cout << "The next touch prompt is valid again." << std::endl;
   returned_status =
-      fido2_commands::ResetNegativeTest(device_, cbor::Value(), false);
-  device_tracker_->CheckAndReport(
+      fido2_commands::ResetNegativeTest(device, cbor::Value(), false);
+  device_tracker->CheckAndReport(
       Status::kErrNotAllowed, returned_status,
       "reset not allowed more than 10 seconds after plugging in");
 }

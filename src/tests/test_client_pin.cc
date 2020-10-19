@@ -35,67 +35,97 @@ static const auto* const kCoseKeyExample =
 
 }  // namespace
 
-void TestSeries::ClientPinGetPinRetriesTest() {
+void TestSeries::ClientPinGetPinRetriesTest(DeviceInterface* device,
+                                            DeviceTracker* device_tracker,
+                                            CommandState* command_state) {
   AuthenticatorClientPinCborBuilder pin1_builder;
   pin1_builder.AddDefaultsForGetPinRetries();
-  TestBadParameterTypes(Command::kAuthenticatorClientPIN, &pin1_builder);
-  TestMissingParameters(Command::kAuthenticatorClientPIN, &pin1_builder);
+  test_helpers::TestBadParameterTypes(
+      device, device_tracker, Command::kAuthenticatorClientPIN, &pin1_builder);
+  test_helpers::TestMissingParameters(
+      device, device_tracker, Command::kAuthenticatorClientPIN, &pin1_builder);
 }
 
-void TestSeries::ClientPinGetKeyAgreementTest() {
+void TestSeries::ClientPinGetKeyAgreementTest(DeviceInterface* device,
+                                              DeviceTracker* device_tracker,
+                                              CommandState* command_state) {
   // crypto_utility enforces that the COSE key map only has the correct entries.
   AuthenticatorClientPinCborBuilder pin2_builder;
   pin2_builder.AddDefaultsForGetKeyAgreement();
-  TestBadParameterTypes(Command::kAuthenticatorClientPIN, &pin2_builder);
-  TestMissingParameters(Command::kAuthenticatorClientPIN, &pin2_builder);
+  test_helpers::TestBadParameterTypes(
+      device, device_tracker, Command::kAuthenticatorClientPIN, &pin2_builder);
+  test_helpers::TestMissingParameters(
+      device, device_tracker, Command::kAuthenticatorClientPIN, &pin2_builder);
 }
 
-void TestSeries::ClientPinSetPinTest() {
+void TestSeries::ClientPinSetPinTest(DeviceInterface* device,
+                                     DeviceTracker* device_tracker,
+                                     CommandState* command_state) {
   AuthenticatorClientPinCborBuilder pin3_builder;
   pin3_builder.AddDefaultsForSetPin(
       *kCoseKeyExample, cbor::Value::BinaryValue(), cbor::Value::BinaryValue());
-  TestBadParameterTypes(Command::kAuthenticatorClientPIN, &pin3_builder);
-  TestMissingParameters(Command::kAuthenticatorClientPIN, &pin3_builder);
+  test_helpers::TestBadParameterTypes(
+      device, device_tracker, Command::kAuthenticatorClientPIN, &pin3_builder);
+  test_helpers::TestMissingParameters(
+      device, device_tracker, Command::kAuthenticatorClientPIN, &pin3_builder);
 }
 
-void TestSeries::ClientPinChangePinTest() {
+void TestSeries::ClientPinChangePinTest(DeviceInterface* device,
+                                        DeviceTracker* device_tracker,
+                                        CommandState* command_state) {
   AuthenticatorClientPinCborBuilder pin4_builder;
   pin4_builder.AddDefaultsForChangePin(
       *kCoseKeyExample, cbor::Value::BinaryValue(), cbor::Value::BinaryValue(),
       cbor::Value::BinaryValue());
-  TestBadParameterTypes(Command::kAuthenticatorClientPIN, &pin4_builder);
-  TestMissingParameters(Command::kAuthenticatorClientPIN, &pin4_builder);
+  test_helpers::TestBadParameterTypes(
+      device, device_tracker, Command::kAuthenticatorClientPIN, &pin4_builder);
+  test_helpers::TestMissingParameters(
+      device, device_tracker, Command::kAuthenticatorClientPIN, &pin4_builder);
 }
 
-void TestSeries::ClientPinGetPinUvAuthTokenUsingPinTest() {
+void TestSeries::ClientPinGetPinUvAuthTokenUsingPinTest(
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    CommandState* command_state) {
   AuthenticatorClientPinCborBuilder pin5_builder;
   pin5_builder.AddDefaultsForGetPinUvAuthTokenUsingPin(
       *kCoseKeyExample, cbor::Value::BinaryValue());
-  TestBadParameterTypes(Command::kAuthenticatorClientPIN, &pin5_builder);
-  TestMissingParameters(Command::kAuthenticatorClientPIN, &pin5_builder);
+  test_helpers::TestBadParameterTypes(
+      device, device_tracker, Command::kAuthenticatorClientPIN, &pin5_builder);
+  test_helpers::TestMissingParameters(
+      device, device_tracker, Command::kAuthenticatorClientPIN, &pin5_builder);
 }
 
-void TestSeries::ClientPinGetPinUvAuthTokenUsingUvTest() {
-  if (!IsFido2Point1Complicant()) {
+void TestSeries::ClientPinGetPinUvAuthTokenUsingUvTest(
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    CommandState* command_state) {
+  if (!test_helpers::IsFido2Point1Complicant(device_tracker)) {
     return;
   }
   AuthenticatorClientPinCborBuilder pin6_builder;
   pin6_builder.AddDefaultsForGetPinUvAuthTokenUsingUv(*kCoseKeyExample);
-  TestBadParameterTypes(Command::kAuthenticatorClientPIN, &pin6_builder);
-  TestMissingParameters(Command::kAuthenticatorClientPIN, &pin6_builder);
+  test_helpers::TestBadParameterTypes(
+      device, device_tracker, Command::kAuthenticatorClientPIN, &pin6_builder);
+  test_helpers::TestMissingParameters(
+      device, device_tracker, Command::kAuthenticatorClientPIN, &pin6_builder);
 }
 
-void TestSeries::ClientPinGetUVRetriesTest() {
-  if (!IsFido2Point1Complicant()) {
+void TestSeries::ClientPinGetUVRetriesTest(DeviceInterface* device,
+                                           DeviceTracker* device_tracker,
+                                           CommandState* command_state) {
+  if (!test_helpers::IsFido2Point1Complicant(device_tracker)) {
     return;
   }
   AuthenticatorClientPinCborBuilder pin7_builder;
   pin7_builder.AddDefaultsForGetUvRetries();
-  TestBadParameterTypes(Command::kAuthenticatorClientPIN, &pin7_builder);
-  TestMissingParameters(Command::kAuthenticatorClientPIN, &pin7_builder);
+  test_helpers::TestBadParameterTypes(
+      device, device_tracker, Command::kAuthenticatorClientPIN, &pin7_builder);
+  test_helpers::TestMissingParameters(
+      device, device_tracker, Command::kAuthenticatorClientPIN, &pin7_builder);
 }
 
-void TestSeries::ClientPinRequirementsTest() {
+void TestSeries::ClientPinRequirementsTest(DeviceInterface* device,
+                                           DeviceTracker* device_tracker,
+                                           CommandState* command_state) {
   Status returned_status;
 
   cbor::Value::BinaryValue too_short_pin_utf8 = {0x31, 0x32, 0x33};
@@ -104,24 +134,24 @@ void TestSeries::ClientPinRequirementsTest() {
   for (size_t i = 0; i < too_short_pin_utf8.size(); ++i) {
     too_short_padded_pin[i] = too_short_pin_utf8[i];
   }
-  returned_status = command_state_->AttemptSetPin(too_short_padded_pin);
-  device_tracker_->CheckAndReport(Status::kErrPinPolicyViolation,
-                                  returned_status,
-                                  "reject to set a PIN of length < 4");
-  CheckPinAbsenceByMakeCredential();
+  returned_status = command_state->AttemptSetPin(too_short_padded_pin);
+  device_tracker->CheckAndReport(Status::kErrPinPolicyViolation,
+                                 returned_status,
+                                 "reject to set a PIN of length < 4");
+  test_helpers::CheckPinAbsenceByMakeCredential(device, device_tracker);
   if (returned_status == Status::kErrNone) {
-    command_state_->Reset();
+    command_state->Reset();
   }
 
   cbor::Value::BinaryValue too_long_padded_pin =
       cbor::Value::BinaryValue(64, 0x30);
-  returned_status = command_state_->AttemptSetPin(too_long_padded_pin);
-  device_tracker_->CheckAndReport(Status::kErrPinPolicyViolation,
-                                  returned_status,
-                                  "reject to set a PIN of length > 63");
-  CheckPinAbsenceByMakeCredential();
+  returned_status = command_state->AttemptSetPin(too_long_padded_pin);
+  device_tracker->CheckAndReport(Status::kErrPinPolicyViolation,
+                                 returned_status,
+                                 "reject to set a PIN of length > 63");
+  test_helpers::CheckPinAbsenceByMakeCredential(device, device_tracker);
   if (returned_status == Status::kErrNone) {
-    command_state_->Reset();
+    command_state->Reset();
   }
 
   // The minimum length is 4, but the authenticator can enforce more, so only
@@ -129,41 +159,43 @@ void TestSeries::ClientPinRequirementsTest() {
   // TODO(kaczmarczyck) use minimum PIN length from GetInfo
   cbor::Value::BinaryValue maximum_pin_utf8 =
       cbor::Value::BinaryValue(63, 0x30);
-  device_tracker_->CheckAndReport(Status::kErrNone,
-                                  command_state_->SetPin(maximum_pin_utf8),
-                                  "set PIN of length 63");
-  CheckPinByGetAuthToken();
+  device_tracker->CheckAndReport(Status::kErrNone,
+                                 command_state->SetPin(maximum_pin_utf8),
+                                 "set PIN of length 63");
+  test_helpers::CheckPinByGetAuthToken(device_tracker, command_state);
 
-  returned_status = command_state_->AttemptChangePin(too_short_padded_pin);
-  device_tracker_->CheckAndReport(Status::kErrPinPolicyViolation,
-                                  returned_status,
-                                  "reject to change to a PIN of length < 4");
-  CheckPinByGetAuthToken();
+  returned_status = command_state->AttemptChangePin(too_short_padded_pin);
+  device_tracker->CheckAndReport(Status::kErrPinPolicyViolation,
+                                 returned_status,
+                                 "reject to change to a PIN of length < 4");
+  test_helpers::CheckPinByGetAuthToken(device_tracker, command_state);
   if (returned_status == Status::kErrNone) {
-    command_state_->Reset();
+    command_state->Reset();
   }
 
-  returned_status = command_state_->AttemptChangePin(too_long_padded_pin);
-  device_tracker_->CheckAndReport(Status::kErrPinPolicyViolation,
-                                  returned_status,
-                                  "reject to change to a PIN of length > 63");
-  CheckPinByGetAuthToken();
+  returned_status = command_state->AttemptChangePin(too_long_padded_pin);
+  device_tracker->CheckAndReport(Status::kErrPinPolicyViolation,
+                                 returned_status,
+                                 "reject to change to a PIN of length > 63");
+  test_helpers::CheckPinByGetAuthToken(device_tracker, command_state);
   if (returned_status == Status::kErrNone) {
-    command_state_->Reset();
+    command_state->Reset();
   }
 
   // Again only testing maximum, not minimum PIN length.
-  device_tracker_->CheckAndReport(Status::kErrNone,
-                                  command_state_->ChangePin(maximum_pin_utf8),
-                                  "change to PIN of length 63");
-  CheckPinByGetAuthToken();
+  device_tracker->CheckAndReport(Status::kErrNone,
+                                 command_state->ChangePin(maximum_pin_utf8),
+                                 "change to PIN of length 63");
+  test_helpers::CheckPinByGetAuthToken(device_tracker, command_state);
 }
 
-void TestSeries::ClientPinRequirements2Point1Test() {
-  if (!IsFido2Point1Complicant()) {
+void TestSeries::ClientPinRequirements2Point1Test(DeviceInterface* device,
+                                                  DeviceTracker* device_tracker,
+                                                  CommandState* command_state) {
+  if (!test_helpers::IsFido2Point1Complicant(device_tracker)) {
     return;
   }
-  command_state_->Reset();
+  command_state->Reset();
   Status returned_status;
 
   cbor::Value::BinaryValue valid_pin_utf8 = {0x31, 0x32, 0x33, 0x34};
@@ -171,98 +203,103 @@ void TestSeries::ClientPinRequirements2Point1Test() {
   for (size_t i = 0; i < valid_pin_utf8.size(); ++i) {
     too_short_padding[i] = valid_pin_utf8[i];
   }
-  returned_status = command_state_->AttemptSetPin(too_short_padding);
-  device_tracker_->CheckAndReport(Status::kErrPinPolicyViolation,
-                                  returned_status,
-                                  "reject to set a PIN padding of length 32");
-  CheckPinAbsenceByMakeCredential();
+  returned_status = command_state->AttemptSetPin(too_short_padding);
+  device_tracker->CheckAndReport(Status::kErrPinPolicyViolation,
+                                 returned_status,
+                                 "reject to set a PIN padding of length 32");
+  test_helpers::CheckPinAbsenceByMakeCredential(device, device_tracker);
   if (returned_status == Status::kErrNone) {
-    command_state_->Reset();
+    command_state->Reset();
   }
 
   cbor::Value::BinaryValue too_long_padding = cbor::Value::BinaryValue(128);
   for (size_t i = 0; i < valid_pin_utf8.size(); ++i) {
     too_long_padding[i] = valid_pin_utf8[i];
   }
-  returned_status = command_state_->AttemptSetPin(too_long_padding);
-  device_tracker_->CheckAndReport(Status::kErrPinPolicyViolation,
-                                  returned_status,
-                                  "reject to set a PIN padding of length 128");
-  CheckPinAbsenceByMakeCredential();
+  returned_status = command_state->AttemptSetPin(too_long_padding);
+  device_tracker->CheckAndReport(Status::kErrPinPolicyViolation,
+                                 returned_status,
+                                 "reject to set a PIN padding of length 128");
+  test_helpers::CheckPinAbsenceByMakeCredential(device, device_tracker);
   if (returned_status == Status::kErrNone) {
-    command_state_->Reset();
+    command_state->Reset();
   }
 
-  returned_status = command_state_->AttemptChangePin(too_short_padding);
-  device_tracker_->CheckAndReport(
+  returned_status = command_state->AttemptChangePin(too_short_padding);
+  device_tracker->CheckAndReport(
       Status::kErrPinPolicyViolation, returned_status,
       "reject to change to a PIN padding of length 32");
-  CheckPinByGetAuthToken();
+  test_helpers::CheckPinByGetAuthToken(device_tracker, command_state);
   if (returned_status == Status::kErrNone) {
-    command_state_->Reset();
+    command_state->Reset();
   }
 
-  returned_status = command_state_->AttemptChangePin(too_long_padding);
-  device_tracker_->CheckAndReport(
+  returned_status = command_state->AttemptChangePin(too_long_padding);
+  device_tracker->CheckAndReport(
       Status::kErrPinPolicyViolation, returned_status,
       "reject to change to a PIN padding of length 128");
-  CheckPinByGetAuthToken();
+  test_helpers::CheckPinByGetAuthToken(device_tracker, command_state);
 }
 
-void TestSeries::ClientPinRetriesTest() {
+void TestSeries::ClientPinRetriesTest(DeviceInterface* device,
+                                      DeviceTracker* device_tracker,
+                                      CommandState* command_state) {
   Status returned_status;
-  command_state_->Reset();
+  command_state->Reset();
 
-  int initial_counter = GetPinRetries();
-  device_tracker_->CheckAndReport(
+  int initial_counter = test_helpers::GetPinRetries(device, device_tracker);
+  device_tracker->CheckAndReport(
       initial_counter <= 8, "maximum PIN retries holds the upper limit of 8");
-  device_tracker_->CheckAndReport(initial_counter > 0,
-                                  "maximum PIN retries is positive");
-  device_tracker_->CheckAndReport(
-      GetPinRetries() == initial_counter,
+  device_tracker->CheckAndReport(initial_counter > 0,
+                                 "maximum PIN retries is positive");
+  device_tracker->CheckAndReport(
+      test_helpers::GetPinRetries(device, device_tracker) == initial_counter,
       "PIN retries changed between subsequent calls");
 
-  returned_status = command_state_->AttemptGetAuthToken(test_helpers::BadPin());
-  device_tracker_->CheckAndReport(Status::kErrPinInvalid, returned_status,
-                                  "reject wrong PIN");
-  device_tracker_->CheckAndReport(
-      GetPinRetries() == initial_counter - 1,
+  returned_status = command_state->AttemptGetAuthToken(test_helpers::BadPin());
+  device_tracker->CheckAndReport(Status::kErrPinInvalid, returned_status,
+                                 "reject wrong PIN");
+  device_tracker->CheckAndReport(
+      test_helpers::GetPinRetries(device, device_tracker) ==
+          initial_counter - 1,
       "PIN retries decrement after a failed attempt");
 
-  device_tracker_->AssertStatus(command_state_->GetAuthToken(),
-                                "get auth token for further tests");
-  device_tracker_->CheckAndReport(
-      GetPinRetries() == initial_counter,
+  device_tracker->AssertStatus(command_state->GetAuthToken(),
+                               "get auth token for further tests");
+  device_tracker->CheckAndReport(
+      test_helpers::GetPinRetries(device, device_tracker) == initial_counter,
       "PIN retries reset on entering the correct PIN");
 
   constexpr int kWrongPinsBeforePowerCycle = 3;
   if (initial_counter > kWrongPinsBeforePowerCycle) {
     for (int i = 0; i < kWrongPinsBeforePowerCycle - 1; ++i) {
       returned_status =
-          command_state_->AttemptGetAuthToken(test_helpers::BadPin());
-      device_tracker_->CheckAndReport(Status::kErrPinInvalid, returned_status,
-                                      "reject wrong PIN");
+          command_state->AttemptGetAuthToken(test_helpers::BadPin());
+      device_tracker->CheckAndReport(Status::kErrPinInvalid, returned_status,
+                                     "reject wrong PIN");
     }
     returned_status =
-        command_state_->AttemptGetAuthToken(test_helpers::BadPin());
-    device_tracker_->CheckAndReport(Status::kErrPinAuthBlocked, returned_status,
-                                    "reject PIN before power cycle");
-    device_tracker_->CheckAndReport(
-        GetPinRetries() == initial_counter - kWrongPinsBeforePowerCycle,
+        command_state->AttemptGetAuthToken(test_helpers::BadPin());
+    device_tracker->CheckAndReport(Status::kErrPinAuthBlocked, returned_status,
+                                   "reject PIN before power cycle");
+    device_tracker->CheckAndReport(
+        test_helpers::GetPinRetries(device, device_tracker) ==
+            initial_counter - kWrongPinsBeforePowerCycle,
         "PIN retry counter decremented until blocked");
     returned_status =
-        command_state_->AttemptGetAuthToken(test_helpers::BadPin());
+        command_state->AttemptGetAuthToken(test_helpers::BadPin());
 
-    device_tracker_->CheckAndReport(Status::kErrPinAuthBlocked, returned_status,
-                                    "reject PIN before power cycle");
-    device_tracker_->CheckAndReport(
-        GetPinRetries() == initial_counter - kWrongPinsBeforePowerCycle,
+    device_tracker->CheckAndReport(Status::kErrPinAuthBlocked, returned_status,
+                                   "reject PIN before power cycle");
+    device_tracker->CheckAndReport(
+        test_helpers::GetPinRetries(device, device_tracker) ==
+            initial_counter - kWrongPinsBeforePowerCycle,
         "PIN retry counter does not decrement in a blocked operation");
-    command_state_->PromptReplugAndInit();
-    device_tracker_->AssertStatus(command_state_->GetAuthToken(),
-                                  "get auth token for further tests");
-    device_tracker_->CheckAndReport(
-        GetPinRetries() == initial_counter,
+    command_state->PromptReplugAndInit();
+    device_tracker->AssertStatus(command_state->GetAuthToken(),
+                                 "get auth token for further tests");
+    device_tracker->CheckAndReport(
+        test_helpers::GetPinRetries(device, device_tracker) == initial_counter,
         "PIN retries reset on entering the correct PIN");
   } else {
     std::cout << "The tests for power cycle requirement on "
@@ -275,41 +312,43 @@ void TestSeries::ClientPinRetriesTest() {
   // The next test checks whether the authenticator resets his own key agreement
   // key by reusing the old key material and see if it still works.
   returned_status =
-      command_state_->AttemptGetAuthToken(test_helpers::BadPin(), false);
-  device_tracker_->CheckAndReport(Status::kErrPinInvalid, returned_status,
-                                  "reject wrong PIN");
-  returned_status = command_state_->AttemptGetAuthToken();
-  device_tracker_->CheckAndReport(
+      command_state->AttemptGetAuthToken(test_helpers::BadPin(), false);
+  device_tracker->CheckAndReport(Status::kErrPinInvalid, returned_status,
+                                 "reject wrong PIN");
+  returned_status = command_state->AttemptGetAuthToken();
+  device_tracker->CheckAndReport(
       Status::kErrPinInvalid, returned_status,
       "reject even the correct PIN if shared secrets do not match");
-  command_state_->PromptReplugAndInit();
+  command_state->PromptReplugAndInit();
 
-  int remaining_retries = GetPinRetries();
+  int remaining_retries = test_helpers::GetPinRetries(device, device_tracker);
   for (int i = 0; i < remaining_retries - 1; ++i) {
     returned_status =
-        command_state_->AttemptGetAuthToken(test_helpers::BadPin());
+        command_state->AttemptGetAuthToken(test_helpers::BadPin());
     if (i % 3 != 2) {
-      device_tracker_->CheckAndReport(Status::kErrPinInvalid, returned_status,
-                                      "reject wrong PIN");
+      device_tracker->CheckAndReport(Status::kErrPinInvalid, returned_status,
+                                     "reject wrong PIN");
     } else {
-      device_tracker_->CheckAndReport(Status::kErrPinAuthBlocked,
-                                      returned_status, "reject wrong PIN");
-      command_state_->PromptReplugAndInit();
+      device_tracker->CheckAndReport(Status::kErrPinAuthBlocked,
+                                     returned_status, "reject wrong PIN");
+      command_state->PromptReplugAndInit();
     }
   }
-  device_tracker_->CheckAndReport(GetPinRetries() == 1,
-                                  "PIN retry counter was reduced to 1");
-  returned_status = command_state_->AttemptGetAuthToken(test_helpers::BadPin());
-  device_tracker_->CheckAndReport(Status::kErrPinBlocked, returned_status,
-                                  "block PIN retries if the counter gets to 0");
-  device_tracker_->CheckAndReport(GetPinRetries() == 0,
-                                  "PIN retry counter was reduced to 0");
-  returned_status = command_state_->AttemptGetAuthToken();
-  device_tracker_->CheckAndReport(
+  device_tracker->CheckAndReport(
+      test_helpers::GetPinRetries(device, device_tracker) == 1,
+      "PIN retry counter was reduced to 1");
+  returned_status = command_state->AttemptGetAuthToken(test_helpers::BadPin());
+  device_tracker->CheckAndReport(Status::kErrPinBlocked, returned_status,
+                                 "block PIN retries if the counter gets to 0");
+  device_tracker->CheckAndReport(
+      test_helpers::GetPinRetries(device, device_tracker) == 0,
+      "PIN retry counter was reduced to 0");
+  returned_status = command_state->AttemptGetAuthToken();
+  device_tracker->CheckAndReport(
       Status::kErrPinBlocked, returned_status,
       "reject even the correct PIN if the retry counter is 0");
 
-  command_state_->Reset();
+  command_state->Reset();
   // TODO(kaczmarczyck) check optional powerCycleState
 }
 
