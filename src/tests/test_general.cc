@@ -28,16 +28,18 @@
 
 namespace fido2_tests {
 
-void TestSeries::GetInfoTest() {
+void TestSeries::GetInfoTest(DeviceInterface* device,
+                             DeviceTracker* device_tracker,
+                             CommandState* command_state) {
   absl::variant<cbor::Value, Status> response =
-      fido2_commands::GetInfoPositiveTest(device_, device_tracker_);
-  device_tracker_->AssertResponse(response, "correct GetInfo response");
+      fido2_commands::GetInfoPositiveTest(device, device_tracker);
+  device_tracker->AssertResponse(response, "correct GetInfo response");
 
   const auto& decoded_map = absl::get<cbor::Value>(response).GetMap();
   auto map_iter = decoded_map.find(cbor::Value(3));
   if (map_iter != decoded_map.end()) {
-    device_tracker_->AssertCondition(map_iter->second.is_bytestring(),
-                                     "AAGUID is a bytestring");
+    device_tracker->AssertCondition(map_iter->second.is_bytestring(),
+                                    "AAGUID is a bytestring");
     std::cout << "The claimed AAGUID is:" << std::endl;
     test_helpers::PrintByteVector(map_iter->second.GetBytestring());
   }
@@ -59,64 +61,68 @@ void TestSeries::GetInfoTest() {
       }
     }
   }
-  device_tracker_->CheckAndReport(
+  device_tracker->CheckAndReport(
       has_rk_option, "this test suite expects support of residential keys");
-  device_tracker_->CheckAndReport(
+  device_tracker->CheckAndReport(
       has_client_pin_option, "his test suite expects support of client PIN");
-  device_tracker_->CheckAndReport(
+  device_tracker->CheckAndReport(
       has_up_option, "his test suite expects support of user presence checks");
 
   map_iter = decoded_map.find(cbor::Value(6));
   bool has_pin_protocol_1 = false;
   if (map_iter != decoded_map.end()) {
     for (const auto& pin_protocol : map_iter->second.GetArray()) {
-      device_tracker_->AssertCondition(pin_protocol.is_unsigned(),
-                                       "PIN protocol version is unsigned");
+      device_tracker->AssertCondition(pin_protocol.is_unsigned(),
+                                      "PIN protocol version is unsigned");
       if (pin_protocol.GetUnsigned() == 1) {
         has_pin_protocol_1 = true;
       }
     }
   }
-  device_tracker_->CheckAndReport(
+  device_tracker->CheckAndReport(
       has_pin_protocol_1,
       "support of PIN protocol version 1 is expected in this test suite");
 }
 
-void TestSeries::PersistenceTest() {
+void TestSeries::PersistenceTest(DeviceInterface* device,
+                                 DeviceTracker* device_tracker,
+                                 CommandState* command_state) {
   std::string rp_id = "persistence.example.com";
   absl::variant<cbor::Value, Status> response;
 
-  MakeTestCredential(rp_id, true);
-  cbor::Value credential_response = MakeTestCredential(rp_id, false);
+  test_helpers::MakeTestCredential(device_tracker, command_state, rp_id, true);
+  cbor::Value credential_response = test_helpers::MakeTestCredential(
+      device_tracker, command_state, rp_id, false);
 
-  command_state_->PromptReplugAndInit();
+  command_state->PromptReplugAndInit();
 
   GetAssertionCborBuilder persistence_get_assertion_builder;
   persistence_get_assertion_builder.AddDefaultsForRequiredFields(rp_id);
   response = fido2_commands::GetAssertionPositiveTest(
-      device_, device_tracker_, persistence_get_assertion_builder.GetCbor());
-  device_tracker_->CheckAndReport(response,
-                                  "residential key persists after replug");
+      device, device_tracker, persistence_get_assertion_builder.GetCbor());
+  device_tracker->CheckAndReport(response,
+                                 "residential key persists after replug");
 
   cbor::Value::BinaryValue credential_id =
       test_helpers::ExtractCredentialId(credential_response);
   persistence_get_assertion_builder.SetAllowListCredential(credential_id);
   response = fido2_commands::GetAssertionPositiveTest(
-      device_, device_tracker_, persistence_get_assertion_builder.GetCbor());
-  device_tracker_->CheckAndReport(response,
-                                  "non-residential key persists after replug");
+      device, device_tracker, persistence_get_assertion_builder.GetCbor());
+  device_tracker->CheckAndReport(response,
+                                 "non-residential key persists after replug");
 
-  device_tracker_->AssertStatus(command_state_->SetPin(),
-                                "set pin for further tests");
-  command_state_->AttemptGetAuthToken(test_helpers::BadPin());
-  int reduced_counter = GetPinRetries();
+  device_tracker->AssertStatus(command_state->SetPin(),
+                               "set pin for further tests");
+  command_state->AttemptGetAuthToken(test_helpers::BadPin());
+  int reduced_counter = test_helpers::GetPinRetries(device, device_tracker);
 
-  command_state_->PromptReplugAndInit();
+  command_state->PromptReplugAndInit();
 
-  device_tracker_->CheckAndReport(GetPinRetries() == reduced_counter,
-                                  "PIN retries persist after replug");
+  device_tracker->CheckAndReport(
+      test_helpers::GetPinRetries(device, device_tracker) == reduced_counter,
+      "PIN retries persist after replug");
 
-  command_state_->Reset();
+  command_state->Reset();
 }
 
 }  // namespace fido2_tests

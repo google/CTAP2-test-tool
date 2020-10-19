@@ -28,9 +28,12 @@
 
 namespace fido2_tests {
 
-void TestSeries::GetAssertionBadParameterTypesTest() {
+void TestSeries::GetAssertionBadParameterTypesTest(
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    CommandState* command_state) {
   std::string rp_id = "get_bad_types.example.com";
-  cbor::Value credential_response = MakeTestCredential(rp_id, false);
+  cbor::Value credential_response = test_helpers::MakeTestCredential(
+      device_tracker, command_state, rp_id, false);
   cbor::Value::BinaryValue credential_id =
       test_helpers::ExtractCredentialId(credential_response);
 
@@ -49,32 +52,40 @@ void TestSeries::GetAssertionBadParameterTypesTest() {
 
   full_builder.SetDefaultPinUvAuthParam(cbor::Value::BinaryValue());
   full_builder.SetDefaultPinUvAuthProtocol();
-  TestBadParameterTypes(Command::kAuthenticatorGetAssertion, &full_builder);
+  test_helpers::TestBadParameterTypes(device, device_tracker,
+                                      Command::kAuthenticatorGetAssertion,
+                                      &full_builder);
 }
 
-void TestSeries::GetAssertionMissingParameterTest() {
+void TestSeries::GetAssertionMissingParameterTest(DeviceInterface* device,
+                                                  DeviceTracker* device_tracker,
+                                                  CommandState* command_state) {
   std::string rp_id = "get_missing.example.com";
-  MakeTestCredential(rp_id, true);
+  test_helpers::MakeTestCredential(device_tracker, command_state, rp_id, true);
 
   GetAssertionCborBuilder missing_required_builder;
   missing_required_builder.AddDefaultsForRequiredFields(rp_id);
-  TestMissingParameters(Command::kAuthenticatorGetAssertion,
-                        &missing_required_builder);
+  test_helpers::TestMissingParameters(device, device_tracker,
+                                      Command::kAuthenticatorGetAssertion,
+                                      &missing_required_builder);
 }
 
-void TestSeries::GetAssertionAllowListCredentialDescriptorTest() {
+void TestSeries::GetAssertionAllowListCredentialDescriptorTest(
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    CommandState* command_state) {
   constexpr GetAssertionParameters kKey = GetAssertionParameters::kAllowList;
   std::string rp_id = absl::StrCat("get_parameter_allow_list.example.com");
   absl::variant<cbor::Value, Status> response;
-  MakeTestCredential(rp_id, true);
+  test_helpers::MakeTestCredential(device_tracker, command_state, rp_id, true);
 
   GetAssertionCborBuilder allow_list_builder;
   allow_list_builder.AddDefaultsForRequiredFields(rp_id);
-  TestCredentialDescriptorsArrayForCborDepth(
-      Command::kAuthenticatorGetAssertion, &allow_list_builder,
-      static_cast<int>(kKey), rp_id);
+  test_helpers::TestCredentialDescriptorsArrayForCborDepth(
+      device, device_tracker, Command::kAuthenticatorGetAssertion,
+      &allow_list_builder, static_cast<int>(kKey), rp_id);
 
-  response = MakeTestCredential(rp_id, false);
+  response = test_helpers::MakeTestCredential(device_tracker, command_state,
+                                              rp_id, false);
 
   cbor::Value::ArrayValue credential_descriptor_list;
   cbor::Value::MapValue good_cred_descriptor;
@@ -85,16 +96,19 @@ void TestSeries::GetAssertionAllowListCredentialDescriptorTest() {
   credential_descriptor_list.push_back(cbor::Value(good_cred_descriptor));
   allow_list_builder.SetMapEntry(kKey, cbor::Value(credential_descriptor_list));
   response = fido2_commands::GetAssertionPositiveTest(
-      device_, device_tracker_, allow_list_builder.GetCbor());
-  device_tracker_->CheckAndReport(response,
-                                  "accept a valid credential descriptor");
+      device, device_tracker, allow_list_builder.GetCbor());
+  device_tracker->CheckAndReport(response,
+                                 "accept a valid credential descriptor");
 }
 
-void TestSeries::GetAssertionExtensionsTest() {
+void TestSeries::GetAssertionExtensionsTest(DeviceInterface* device,
+                                            DeviceTracker* device_tracker,
+                                            CommandState* command_state) {
   constexpr GetAssertionParameters kKey = GetAssertionParameters::kExtensions;
   std::string rp_id = absl::StrCat("get_parameter", kKey, ".example.com");
   absl::variant<cbor::Value, Status> response;
-  cbor::Value credential_response = MakeTestCredential(rp_id, false);
+  cbor::Value credential_response = test_helpers::MakeTestCredential(
+      device_tracker, command_state, rp_id, false);
   cbor::Value::BinaryValue credential_id =
       test_helpers::ExtractCredentialId(credential_response);
 
@@ -105,16 +119,18 @@ void TestSeries::GetAssertionExtensionsTest() {
   extensions_map[cbor::Value("test_extension")] = cbor::Value("extension CBOR");
   extensions_builder.SetMapEntry(kKey, cbor::Value(extensions_map));
   response = fido2_commands::GetAssertionPositiveTest(
-      device_, device_tracker_, extensions_builder.GetCbor());
-  device_tracker_->CheckAndReport(response, "accept a valid extension");
+      device, device_tracker, extensions_builder.GetCbor());
+  device_tracker->CheckAndReport(response, "accept a valid extension");
 }
 
-void TestSeries::GetAssertionOptionsTest() {
+void TestSeries::GetAssertionOptionsTest(DeviceInterface* device,
+                                         DeviceTracker* device_tracker,
+                                         CommandState* command_state) {
   std::string rp_id = "options.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
 
-  MakeTestCredential(rp_id, true);
+  test_helpers::MakeTestCredential(device_tracker, command_state, rp_id, true);
   GetAssertionCborBuilder options_builder;
   options_builder.AddDefaultsForRequiredFields(rp_id);
 
@@ -123,8 +139,8 @@ void TestSeries::GetAssertionOptionsTest() {
   options_builder.SetMapEntry(GetAssertionParameters::kOptions,
                               cbor::Value(authenticator_options));
   returned_status = fido2_commands::GetAssertionNegativeTest(
-      device_, options_builder.GetCbor(), false);
-  device_tracker_->CheckAndReport(
+      device, options_builder.GetCbor(), false);
+  device_tracker->CheckAndReport(
       Status::kErrInvalidOption, returned_status,
       "reject invalid residential key option (false)");
 
@@ -132,50 +148,51 @@ void TestSeries::GetAssertionOptionsTest() {
   options_builder.SetMapEntry(GetAssertionParameters::kOptions,
                               cbor::Value(authenticator_options));
   returned_status = fido2_commands::GetAssertionNegativeTest(
-      device_, options_builder.GetCbor(), false);
-  device_tracker_->CheckAndReport(
+      device, options_builder.GetCbor(), false);
+  device_tracker->CheckAndReport(
       Status::kErrInvalidOption, returned_status,
       "reject invalid residential key option (true)");
 
   options_builder.SetUserPresenceOptions(false);
   response = fido2_commands::GetAssertionPositiveTest(
-      device_, device_tracker_, options_builder.GetCbor());
-  device_tracker_->CheckAndReport(response,
-                                  "recognize user presence option (false)");
+      device, device_tracker, options_builder.GetCbor());
+  device_tracker->CheckAndReport(response,
+                                 "recognize user presence option (false)");
 
   options_builder.SetUserPresenceOptions(true);
   response = fido2_commands::GetAssertionPositiveTest(
-      device_, device_tracker_, options_builder.GetCbor());
-  device_tracker_->CheckAndReport(response,
-                                  "recognize user presence option (true)");
+      device, device_tracker, options_builder.GetCbor());
+  device_tracker->CheckAndReport(response,
+                                 "recognize user presence option (true)");
 
   options_builder.SetUserVerificationOptions(false);
   response = fido2_commands::GetAssertionPositiveTest(
-      device_, device_tracker_, options_builder.GetCbor());
-  device_tracker_->CheckAndReport(response,
-                                  "recognize user verification option (false)");
+      device, device_tracker, options_builder.GetCbor());
+  device_tracker->CheckAndReport(response,
+                                 "recognize user verification option (false)");
 
   options_builder.SetUserVerificationOptions(true);
-  if (device_tracker_->HasOption("clientPin")) {
-    if (!device_tracker_->HasOption("uv")) {
-      device_tracker_->AssertStatus(command_state_->GetAuthToken(),
-                                    "get auth token for further tests");
+  if (device_tracker->HasOption("clientPin")) {
+    if (!device_tracker->HasOption("uv")) {
+      device_tracker->AssertStatus(command_state->GetAuthToken(),
+                                   "get auth token for further tests");
       options_builder.SetDefaultPinUvAuthParam(
-          command_state_->GetCurrentAuthToken());
+          command_state->GetCurrentAuthToken());
       options_builder.SetDefaultPinUvAuthProtocol();
     }
     response = fido2_commands::GetAssertionPositiveTest(
-        device_, device_tracker_, options_builder.GetCbor());
-    device_tracker_->CheckAndReport(
-        response, "recognize user verification option (true)");
+        device, device_tracker, options_builder.GetCbor());
+    device_tracker->CheckAndReport(response,
+                                   "recognize user verification option (true)");
     options_builder.RemoveMapEntry(GetAssertionParameters::kPinUvAuthParam);
     options_builder.RemoveMapEntry(GetAssertionParameters::kPinUvAuthProtocol);
-    command_state_->Reset();
-    MakeTestCredential(rp_id, true);
+    command_state->Reset();
+    test_helpers::MakeTestCredential(device_tracker, command_state, rp_id,
+                                     true);
   } else {
     returned_status = fido2_commands::GetAssertionNegativeTest(
-        device_, options_builder.GetCbor(), false);
-    device_tracker_->CheckAndReport(
+        device, options_builder.GetCbor(), false);
+    device_tracker->CheckAndReport(
         Status::kErrInvalidOption, returned_status,
         "recognize user verification option (true) without PIN set");
   }
@@ -185,11 +202,13 @@ void TestSeries::GetAssertionOptionsTest() {
   options_builder.SetMapEntry(GetAssertionParameters::kOptions,
                               cbor::Value(options_map));
   response = fido2_commands::GetAssertionPositiveTest(
-      device_, device_tracker_, options_builder.GetCbor());
-  device_tracker_->CheckAndReport(response, "ignore unknown options");
+      device, device_tracker, options_builder.GetCbor());
+  device_tracker->CheckAndReport(response, "ignore unknown options");
 }
 
-void TestSeries::GetAssertionResidentialKeyTest() {
+void TestSeries::GetAssertionResidentialKeyTest(DeviceInterface* device,
+                                                DeviceTracker* device_tracker,
+                                                CommandState* command_state) {
   std::string rp_id = "residential.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
@@ -197,61 +216,63 @@ void TestSeries::GetAssertionResidentialKeyTest() {
   GetAssertionCborBuilder assertion_builder;
   assertion_builder.AddDefaultsForRequiredFields(rp_id);
   returned_status = fido2_commands::GetAssertionNegativeTest(
-      device_, assertion_builder.GetCbor(), false);
-  device_tracker_->CheckAndReport(
+      device, assertion_builder.GetCbor(), false);
+  device_tracker->CheckAndReport(
       Status::kErrNoCredentials, returned_status,
       "there should be no credentials for this relying party");
 
-  MakeTestCredential(rp_id, true);
+  test_helpers::MakeTestCredential(device_tracker, command_state, rp_id, true);
 
   response = fido2_commands::GetAssertionPositiveTest(
-      device_, device_tracker_, assertion_builder.GetCbor());
-  device_tracker_->CheckAndReport(response,
-                                  "get assertion for residential key");
+      device, device_tracker, assertion_builder.GetCbor());
+  device_tracker->CheckAndReport(response, "get assertion for residential key");
 
   rp_id = "non-residential.example.com";
   assertion_builder.SetRelyingParty(rp_id);
   returned_status = fido2_commands::GetAssertionNegativeTest(
-      device_, assertion_builder.GetCbor(), false);
-  device_tracker_->CheckAndReport(
+      device, assertion_builder.GetCbor(), false);
+  device_tracker->CheckAndReport(
       Status::kErrNoCredentials, returned_status,
       "there should be no credentials for this relying party");
 
-  cbor::Value credential_response = MakeTestCredential(rp_id, false);
+  cbor::Value credential_response = test_helpers::MakeTestCredential(
+      device_tracker, command_state, rp_id, false);
 
   cbor::Value::BinaryValue credential_id =
       test_helpers::ExtractCredentialId(credential_response);
   assertion_builder.SetAllowListCredential(credential_id);
   response = fido2_commands::GetAssertionPositiveTest(
-      device_, device_tracker_, assertion_builder.GetCbor());
-  device_tracker_->CheckAndReport(response,
-                                  "get assertion for non-residental key");
+      device, device_tracker, assertion_builder.GetCbor());
+  device_tracker->CheckAndReport(response,
+                                 "get assertion for non-residental key");
 
   cbor::Value::BinaryValue fake_credential_id =
       cbor::Value::BinaryValue(credential_id.size(), 0xFA);
   assertion_builder.SetAllowListCredential(fake_credential_id);
   returned_status = fido2_commands::GetAssertionNegativeTest(
-      device_, assertion_builder.GetCbor(), false);
-  device_tracker_->CheckAndReport(Status::kErrNoCredentials, returned_status,
-                                  "this credential ID is fake");
+      device, assertion_builder.GetCbor(), false);
+  device_tracker->CheckAndReport(Status::kErrNoCredentials, returned_status,
+                                 "this credential ID is fake");
 }
 
-void TestSeries::GetAssertionPinAuthTest() {
+void TestSeries::GetAssertionPinAuthTest(DeviceInterface* device,
+                                         DeviceTracker* device_tracker,
+                                         CommandState* command_state) {
   std::string rp_id = "pinauth.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
 
-  MakeTestCredential(rp_id, true);
+  test_helpers::MakeTestCredential(device_tracker, command_state, rp_id, true);
 
   GetAssertionCborBuilder pin_auth_builder;
   pin_auth_builder.AddDefaultsForRequiredFields(rp_id);
   pin_auth_builder.SetPinUvAuthParam(cbor::Value::BinaryValue());
   pin_auth_builder.SetDefaultPinUvAuthProtocol();
 
-  if (IsFido2Point1Complicant()) {
+  if (test_helpers::IsFido2Point1Complicant(device_tracker)) {
     returned_status = fido2_commands::GetAssertionNegativeTest(
-        device_, pin_auth_builder.GetCbor(), true);
-    device_tracker_->CheckAndReport(
+        device, pin_auth_builder.GetCbor(), true);
+    device_tracker->CheckAndReport(
         Status::kErrPinNotSet, returned_status,
         "PIN auth param has zero length, no PIN is set");
   }
@@ -260,79 +281,80 @@ void TestSeries::GetAssertionPinAuthTest() {
   pin_auth_builder.SetMapEntry(GetAssertionParameters::kPinUvAuthProtocol,
                                cbor::Value(123456));
   returned_status = fido2_commands::GetAssertionNegativeTest(
-      device_, pin_auth_builder.GetCbor(), false);
-  device_tracker_->CheckAndReport(Status::kErrPinAuthInvalid, returned_status,
-                                  "pin protocol is not supported");
+      device, pin_auth_builder.GetCbor(), false);
+  device_tracker->CheckAndReport(Status::kErrPinAuthInvalid, returned_status,
+                                 "pin protocol is not supported");
 
   pin_auth_builder.SetPinUvAuthParam(cbor::Value::BinaryValue(16, 0x9a));
   pin_auth_builder.SetDefaultPinUvAuthProtocol();
   returned_status = fido2_commands::GetAssertionNegativeTest(
-      device_, pin_auth_builder.GetCbor(), false);
-  device_tracker_->CheckAndReport(Status::kErrPinNotSet, returned_status,
-                                  "pin not set yet");
+      device, pin_auth_builder.GetCbor(), false);
+  device_tracker->CheckAndReport(Status::kErrPinNotSet, returned_status,
+                                 "pin not set yet");
 
-  device_tracker_->AssertStatus(command_state_->GetAuthToken(),
-                                "get auth token for further tests");
+  device_tracker->AssertStatus(command_state->GetAuthToken(),
+                               "get auth token for further tests");
   // Sets a PIN if necessary. From here on, the PIN is set on the authenticator.
 
   pin_auth_builder.SetDefaultPinUvAuthParam(
-      command_state_->GetCurrentAuthToken());
+      command_state->GetCurrentAuthToken());
   response = fido2_commands::GetAssertionPositiveTest(
-      device_, device_tracker_, pin_auth_builder.GetCbor());
-  device_tracker_->CheckAndReport(response, "get assertion using PIN token");
+      device, device_tracker, pin_auth_builder.GetCbor());
+  device_tracker->CheckAndReport(response, "get assertion using PIN token");
 
   pin_auth_builder.SetPinUvAuthParam(cbor::Value::BinaryValue());
   pin_auth_builder.SetDefaultPinUvAuthProtocol();
-  if (IsFido2Point1Complicant()) {
+  if (test_helpers::IsFido2Point1Complicant(device_tracker)) {
     returned_status = fido2_commands::GetAssertionNegativeTest(
-        device_, pin_auth_builder.GetCbor(), true);
-    device_tracker_->CheckAndReport(
+        device, pin_auth_builder.GetCbor(), true);
+    device_tracker->CheckAndReport(
         Status::kErrPinInvalid, returned_status,
         "PIN auth param has zero length, but PIN is set");
   }
 
   pin_auth_builder.SetPinUvAuthParam(cbor::Value::BinaryValue(16, 0x9a));
   returned_status = fido2_commands::GetAssertionNegativeTest(
-      device_, pin_auth_builder.GetCbor(), false);
-  device_tracker_->CheckAndReport(Status::kErrPinAuthInvalid, returned_status,
-                                  "pin auth does not match client data hash");
+      device, pin_auth_builder.GetCbor(), false);
+  device_tracker->CheckAndReport(Status::kErrPinAuthInvalid, returned_status,
+                                 "pin auth does not match client data hash");
 
-  MakeTestCredential(rp_id, true);
+  test_helpers::MakeTestCredential(device_tracker, command_state, rp_id, true);
 
   GetAssertionCborBuilder no_pin_auth_builder;
   no_pin_auth_builder.AddDefaultsForRequiredFields(rp_id);
   response = fido2_commands::GetAssertionPositiveTest(
-      device_, device_tracker_, no_pin_auth_builder.GetCbor());
-  device_tracker_->CheckAndReport(
+      device, device_tracker, no_pin_auth_builder.GetCbor());
+  device_tracker->CheckAndReport(
       response, "get assertion with a PIN set, but without a token");
 
   no_pin_auth_builder.SetDefaultPinUvAuthParam(
-      command_state_->GetCurrentAuthToken());
+      command_state->GetCurrentAuthToken());
   returned_status = fido2_commands::GetAssertionNegativeTest(
-      device_, no_pin_auth_builder.GetCbor(), false);
-  device_tracker_->CheckAndReport(
+      device, no_pin_auth_builder.GetCbor(), false);
+  device_tracker->CheckAndReport(
       Status::kErrMissingParameter, returned_status,
       "PIN protocol not given, but PIN auth param is");
 
-  command_state_->Reset();
+  command_state->Reset();
 }
 
-void TestSeries::GetAssertionPhysicalPresenceTest() {
+void TestSeries::GetAssertionPhysicalPresenceTest(DeviceInterface* device,
+                                                  DeviceTracker* device_tracker,
+                                                  CommandState* command_state) {
   // Currently, devices with displays are not supported.
   std::string rp_id = "presence.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
 
-  MakeTestCredential(rp_id, true);
+  test_helpers::MakeTestCredential(device_tracker, command_state, rp_id, true);
   test_helpers::PrintNoTouchPrompt();
 
   GetAssertionCborBuilder get_assertion_builder;
   get_assertion_builder.AddDefaultsForRequiredFields(rp_id);
   returned_status = fido2_commands::GetAssertionNegativeTest(
-      device_, get_assertion_builder.GetCbor(), true);
-  device_tracker_->CheckAndReport(Status::kErrUserActionTimeout,
-                                  returned_status,
-                                  "key was not touched for get assertion");
+      device, get_assertion_builder.GetCbor(), true);
+  device_tracker->CheckAndReport(Status::kErrUserActionTimeout, returned_status,
+                                 "key was not touched for get assertion");
 
   // TODO(kaczmarczyck) ask user for confirmation of flashing LED?
 }
