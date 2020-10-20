@@ -22,7 +22,7 @@
 #include "absl/strings/str_cat.h"
 
 namespace corpus_tests {
-namespace {
+
 // Memory addresses of the status registers for fault exceptions.
 constexpr std::string_view kConfigurableFaultStatusRegister = "e000ed28";
 constexpr std::string_view kHardFaultStatusRegister = "e000ed2c";
@@ -38,19 +38,21 @@ constexpr int kRetries = 10;
 // Default field width used for printing registers.
 constexpr int kFieldWidth = 40;
 
-void PrintOneRegister(const std::string_view& register_packet,
-                      const std::string_view& register_name,
-                      int register_number) {
+Cortexm4GdbMonitor::Cortexm4GdbMonitor(fido2_tests::DeviceInterface* device,
+                                       int port)
+    : GdbMonitor(device, port) {}
+
+void Cortexm4GdbMonitor::PrintOneRegister(
+    const std::string_view& register_packet,
+    const std::string_view& register_name, int register_number) {
   std::cout << std::left << std::setw(kFieldWidth) << register_name << "0x"
             << register_packet.substr(register_number * kRegisterHexLength,
                                       kRegisterHexLength)
             << std::endl;
 }
 
-// Prints all general registers of the architecture.
-// Processor general registers summary can be found in:
-// https://developer.arm.com/documentation/ddi0439/b/Programmers-Model/Processor-core-register-summary
-void PrintGeneralRegisters(const std::string_view& register_packet) {
+void Cortexm4GdbMonitor::PrintGeneralRegisters(
+    const std::string_view& register_packet) {
   if (register_packet.length() != kNumTotalRegisters * kRegisterHexLength) {
     std::cout << "Error reading general registers. Got unexpected response: "
               << register_packet << std::endl;
@@ -65,17 +67,15 @@ void PrintGeneralRegisters(const std::string_view& register_packet) {
   PrintOneRegister(register_packet, "PSR", 16);
 }
 
-void PrintOneFlag(uint32_t register_value, const std::string_view& flag_info,
-                  int flag_bit) {
+void Cortexm4GdbMonitor::PrintOneFlag(uint32_t register_value,
+                                      const std::string_view& flag_info,
+                                      int flag_bit) {
   std::cout << std::left << std::setw(kFieldWidth) << flag_info
             << std::boolalpha
             << static_cast<bool>(register_value & (1 << flag_bit)) << std::endl;
 }
 
-// Prints the information contained in the configurable fault status register.
-// Details can be found at https://www.keil.com/appnotes/files/apnt209.pdf
-// page 8.
-void PrintCfsrRegister(uint32_t register_value) {
+void Cortexm4GdbMonitor::PrintCfsrRegister(uint32_t register_value) {
   // Memory Management Status Register
   // IACCVIOL: Instruction access violation flag
   PrintOneFlag(register_value, "Instruction Access Violation:", 0);
@@ -123,20 +123,13 @@ void PrintCfsrRegister(uint32_t register_value) {
   PrintOneFlag(register_value, "Divide By Zero:", 25);
 }
 
-// Prints the information contained in the hard fault status register.
-// Details can be found at https://www.keil.com/appnotes/files/apnt209.pdf
-// page 7.
-void PrintHfsrRegister(uint32_t register_value) {
+void Cortexm4GdbMonitor::PrintHfsrRegister(uint32_t register_value) {
   // VECTTBL: Indicates a Bus Fault on a vector table read during exception
   // processing
   PrintOneFlag(register_value, "Bus Fault on Vector Table Read:", 1);
   // FORCED: Indicates a forced Hard Fault
   PrintOneFlag(register_value, "Forced Hard Fault:", 30);
 }
-
-}  // namespace
-
-Cortexm4GdbMonitor::Cortexm4GdbMonitor(fido2_tests::DeviceInterface* device, int port) : GdbMonitor(device, port) {}
 
 void Cortexm4GdbMonitor::PrintCrashReport() {
   GdbMonitor::PrintCrashReport();

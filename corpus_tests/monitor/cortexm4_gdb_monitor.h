@@ -19,14 +19,33 @@
 
 namespace corpus_tests {
 
-// A GdbMonitor specific to the Cortex m4 architecture, capable of 
+// A GdbMonitor specific to the Cortex m4 architecture, capable of
 // a more detailed crash report.
 class Cortexm4GdbMonitor : public GdbMonitor {
  public:
   Cortexm4GdbMonitor(fido2_tests::DeviceInterface* device, int port);
-  // Prints the general registers and fault status of the 
+  // Prints the general registers and fault status of the
   // cortex m4 architecture.
   void PrintCrashReport() override;
+  // Prints a singular register from the given register packet.
+  void PrintOneRegister(const std::string_view& register_packet,
+                        const std::string_view& register_name,
+                        int register_number);
+  // Prints all general registers of the architecture.
+  // Processor general registers summary can be found in:
+  // https://developer.arm.com/documentation/ddi0439/b/Programmers-Model/Processor-core-register-summary.
+  void PrintGeneralRegisters(const std::string_view& register_packet);
+  // Prints a singular flag information from the given register value.
+  void PrintOneFlag(uint32_t register_value, const std::string_view& flag_info,
+                    int flag_bit);
+  // Prints the information contained in the configurable fault status register.
+  // Details can be found at https://www.keil.com/appnotes/files/apnt209.pdf
+  // page 8.
+  void PrintCfsrRegister(uint32_t register_value);
+  // Prints the information contained in the hard fault status register.
+  // Details can be found at https://www.keil.com/appnotes/files/apnt209.pdf
+  // page 7.
+  void PrintHfsrRegister(uint32_t register_value);
 };
 
 }  // namespace corpus_tests

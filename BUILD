@@ -236,3 +236,13 @@ cc_binary(
         "@com_google_glog//:glog",
     ],
 )
+
+cc_test(
+    name = "cortexm4_gdb_monitor_test",
+    srcs = ["corpus_tests/monitor/cortexm4_gdb_monitor_test.cc"],
+    deps = [
+        ":cortexm4_gdb_monitor",
+        "@com_google_googletest//:gtest_main",
+    ],
+    size = "small",
+)
