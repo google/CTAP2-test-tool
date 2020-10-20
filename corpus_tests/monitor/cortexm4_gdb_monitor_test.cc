@@ -172,7 +172,7 @@ TEST(Cortexm4GdbMonitor, TestPrintCfsrRegister) {
   std::string output = testing::internal::GetCapturedStdout();
   EXPECT_EQ(output, expected_output);
 
-  register_value = ~0; // all bits set
+  register_value = ~0;  // all bits set
   expected_output =
       "Instruction Access Violation:           true\n"
       "Data Access Violation:                  true\n"
