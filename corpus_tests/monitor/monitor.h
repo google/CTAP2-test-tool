@@ -20,7 +20,7 @@
 
 namespace corpus_tests {
 
-// Base class for a monitor in charge of tracking crash on a given device.
+// Base class that tracks crashes on a given device.
 // Example:
 //   corpus_tests::Monitor monitor;
 //   monitor.Attach();
