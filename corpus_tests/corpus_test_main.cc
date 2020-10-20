@@ -75,9 +75,9 @@ int main(int argc, char** argv) {
   corpus_tests::CorpusIterator corpus_iterator(corpus_dir);
   while (corpus_iterator.HasNextInput()) {
     auto [input_type, input_data, input_path] = corpus_iterator.GetNextInput();
-    //if (FLAGS_verbose) {
+    if (FLAGS_verbose) {
       std::cout << "Running file " << input_path << std::endl;
-    //}
+    }
     corpus_tests::SendInput(device.get(), input_type, input_data);
     if (monitor.DeviceCrashed()) {
       std::cout << "DEVICE CRASHED!" << std::endl;

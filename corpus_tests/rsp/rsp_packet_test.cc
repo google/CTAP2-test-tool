@@ -15,6 +15,7 @@
 #include "corpus_tests/rsp/rsp_packet.h"
 
 #include <iostream>
+
 #include "gtest/gtest.h"
 
 namespace corpus_tests {
