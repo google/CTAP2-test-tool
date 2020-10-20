@@ -21,11 +21,11 @@
 #include "glog/logging.h"
 
 namespace corpus_tests {
-namespace {
 
-// Prints the details of the stop reply according to
-// https://sourceware.org/gdb/current/onlinedocs/gdb/Stop-Reply-Packets.html#Stop-Reply-Packets
-void PrintStopReply(const std::string_view& response) {
+GdbMonitor::GdbMonitor(fido2_tests::DeviceInterface* device, int port)
+    : Monitor(device), port_(port) {}
+
+void GdbMonitor::PrintStopReply(const std::string_view& response) {
   switch (response[0]) {
     case 'N':
       std::cout << "There are no resumed threads left in the target."
@@ -60,10 +60,6 @@ void PrintStopReply(const std::string_view& response) {
   }
 }
 
-}  // namespace
-
-GdbMonitor::GdbMonitor(fido2_tests::DeviceInterface* device, int port) : Monitor(device), port_(port) {}
-
 bool GdbMonitor::Attach() {
   if (!rsp_client_.Initialize() || !rsp_client_.Connect(port_)) {
     return false;
@@ -80,8 +76,6 @@ bool GdbMonitor::DeviceCrashed() {
   return true;
 }
 
-void GdbMonitor::PrintCrashReport() {
-  PrintStopReply(stop_message_);
-}
+void GdbMonitor::PrintCrashReport() { PrintStopReply(stop_message_); }
 
 }  // namespace corpus_tests

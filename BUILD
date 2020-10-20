@@ -246,3 +246,13 @@ cc_test(
     ],
     size = "small",
 )
+
+cc_test(
+    name = "gdb_monitor_test",
+    srcs = ["corpus_tests/monitor/gdb_monitor_test.cc"],
+    deps = [
+        ":gdb_monitor",
+        "@com_google_googletest//:gtest_main",
+    ],
+    size = "small",
+)

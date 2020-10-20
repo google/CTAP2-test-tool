@@ -15,13 +15,13 @@
 #ifndef GDB_MONITOR_H_
 #define GDB_MONITOR_H_
 
-#include "corpus_tests/rsp/rsp.h"
 #include "corpus_tests/monitor/monitor.h"
+#include "corpus_tests/rsp/rsp.h"
 #include "src/device_interface.h"
 
 namespace corpus_tests {
 
-// A Monitor that detects crashes by communicating with a GDB remote 
+// A Monitor that detects crashes by communicating with a GDB remote
 // serial protocol server on the target.
 class GdbMonitor : public Monitor {
  public:
@@ -36,11 +36,14 @@ class GdbMonitor : public Monitor {
   bool DeviceCrashed() override;
   // Prints the stop response received from the RSP server.
   void PrintCrashReport() override;
+  // Prints the details of the stop reply according to
+  // https://sourceware.org/gdb/current/onlinedocs/gdb/Stop-Reply-Packets.html#Stop-Reply-Packets
+  void PrintStopReply(const std::string_view& response);
 
  protected:
   rsp::RemoteSerialProtocol rsp_client_;
 
- private: 
+ private:
   int port_;
   std::string stop_message_;
 };
