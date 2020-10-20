@@ -189,7 +189,6 @@ cc_library(
     srcs = ["corpus_tests/monitor/monitor.cc"],
     hdrs = ["corpus_tests/monitor/monitor.h"],
     deps = [
-        ":device_interface",
         ":test_input_controller"
     ],
 )
@@ -199,7 +198,6 @@ cc_library(
     srcs = ["corpus_tests/monitor/gdb_monitor.cc"],
     hdrs = ["corpus_tests/monitor/gdb_monitor.h"],
     deps = [
-        ":device_interface",
         ":monitor",
         ":rsp"
     ],

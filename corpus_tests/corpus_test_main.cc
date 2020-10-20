@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
   CHECK(fido2_tests::Status::kErrNone == device->Init())
       << "CTAPHID initialization failed";
 
-  corpus_tests::Cortexm4GdbMonitor monitor(device.get(), FLAGS_port);
+  corpus_tests::Cortexm4GdbMonitor monitor(FLAGS_port);
   CHECK(monitor.Attach()) << "Monitor failed to attach!";
 
   std::string corpus_dir = FLAGS_corpus_path;

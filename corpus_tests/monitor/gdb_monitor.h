@@ -17,7 +17,6 @@
 
 #include "corpus_tests/monitor/monitor.h"
 #include "corpus_tests/rsp/rsp.h"
-#include "src/device_interface.h"
 
 namespace corpus_tests {
 
@@ -25,7 +24,7 @@ namespace corpus_tests {
 // serial protocol server on the target.
 class GdbMonitor : public Monitor {
  public:
-  GdbMonitor(fido2_tests::DeviceInterface* device, int port);
+  GdbMonitor(int port);
   // Attaches the monitor to a device by connecting to the port
   // device's GDB server is listening to, and sends "continue" command
   // to the target. This will execute the program until a
@@ -41,10 +40,12 @@ class GdbMonitor : public Monitor {
   void PrintStopReply(const std::string_view& response);
 
  protected:
-  rsp::RemoteSerialProtocol rsp_client_;
+  // Returns the pointer to the rsp client.
+  rsp::RemoteSerialProtocol* GetRspClient() { return &rsp_client_; }
 
  private:
   int port_;
+  rsp::RemoteSerialProtocol rsp_client_;
   std::string stop_message_;
 };
 

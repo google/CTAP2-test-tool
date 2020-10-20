@@ -22,7 +22,7 @@ namespace corpus_tests {
 namespace {
 
 TEST(GdbMonitor, TestPrintStopReply) {
-  GdbMonitor monitor(nullptr, 0);
+  GdbMonitor monitor(0);
   std::string expected_output = "The program received signal: 05\n";
   testing::internal::CaptureStdout();
   monitor.PrintStopReply("S05");

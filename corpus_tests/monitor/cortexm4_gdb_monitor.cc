@@ -38,9 +38,9 @@ constexpr int kRetries = 10;
 // Default field width used for printing registers.
 constexpr int kFieldWidth = 40;
 
-Cortexm4GdbMonitor::Cortexm4GdbMonitor(fido2_tests::DeviceInterface* device,
-                                       int port)
-    : GdbMonitor(device, port) {}
+Cortexm4GdbMonitor::Cortexm4GdbMonitor(int port) : GdbMonitor(port) {
+  rsp_client_ = GdbMonitor::GetRspClient();
+}
 
 void Cortexm4GdbMonitor::PrintOneRegister(
     const std::string_view& register_packet,
@@ -136,8 +136,8 @@ void Cortexm4GdbMonitor::PrintCrashReport() {
   std::optional<std::string> response;
 
   std::cout << "----| General registers |----" << std::endl;
-  response = rsp_client_.SendRecvPacket(rsp::RspPacket::ReadGeneralRegisters,
-                                        kRetries);
+  response = rsp_client_->SendRecvPacket(rsp::RspPacket::ReadGeneralRegisters,
+                                         kRetries);
   if (response.has_value()) {
     PrintGeneralRegisters(response.value());
   } else {
@@ -146,7 +146,7 @@ void Cortexm4GdbMonitor::PrintCrashReport() {
 
   std::cout << "----| Kernel Fault Status |----" << std::endl;
   // Print CFSR register.
-  response = rsp_client_.SendRecvPacket(
+  response = rsp_client_->SendRecvPacket(
       rsp::RspPacket(rsp::RspPacket::ReadFromMemory,
                      kConfigurableFaultStatusRegister, kRegisterLength),
       kRetries);
@@ -161,7 +161,7 @@ void Cortexm4GdbMonitor::PrintCrashReport() {
               << std::endl;
   }
   // Print HFSR register.
-  response = rsp_client_.SendRecvPacket(
+  response = rsp_client_->SendRecvPacket(
       rsp::RspPacket(rsp::RspPacket::ReadFromMemory, kHardFaultStatusRegister,
                      kRegisterLength),
       kRetries);
@@ -175,7 +175,7 @@ void Cortexm4GdbMonitor::PrintCrashReport() {
     std::cout << "Error reading Hard Fault Status Register." << std::endl;
   }
   // Print memory fault and bus fault addresses.
-  response = rsp_client_.SendRecvPacket(
+  response = rsp_client_->SendRecvPacket(
       rsp::RspPacket(rsp::RspPacket::ReadFromMemory,
                      kMemManageFaultAddressRegister, kRegisterLength),
       kRetries);
@@ -191,7 +191,7 @@ void Cortexm4GdbMonitor::PrintCrashReport() {
   } else {
     std::cout << "Error reading Memory Fault Address." << std::endl;
   }
-  response = rsp_client_.SendRecvPacket(
+  response = rsp_client_->SendRecvPacket(
       rsp::RspPacket(rsp::RspPacket::ReadFromMemory, kBusFaultAddressRegister,
                      kRegisterLength),
       kRetries);

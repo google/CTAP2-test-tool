@@ -22,24 +22,29 @@
 
 namespace corpus_tests {
 
-GdbMonitor::GdbMonitor(fido2_tests::DeviceInterface* device, int port)
-    : Monitor(device), port_(port) {}
+GdbMonitor::GdbMonitor(int port) : port_(port) {}
 
 void GdbMonitor::PrintStopReply(const std::string_view& response) {
+  if (response.empty()) {
+    return;
+  }
   switch (response[0]) {
     case 'N':
       std::cout << "There are no resumed threads left in the target."
                 << std::endl;
       break;
     case 'S':
+      CHECK(response.size() == 3) << "Wrong packet length";
       std::cout << "The program received signal: " << response.substr(1, 2)
                 << std::endl;
       break;
     case 'T':
+      CHECK(response.size() >= 3) << "Wrong packet length";
       std::cout << "The program received signal: " << response.substr(1, 2)
                 << ", " << response.substr(3) << std::endl;
       break;
     case 'W':
+      CHECK(response.size() >= 3) << "Wrong packet length";
       std::cout << "The process exited with exit status: "
                 << response.substr(1, 2);
       if (response.size() > 3) {
@@ -48,6 +53,7 @@ void GdbMonitor::PrintStopReply(const std::string_view& response) {
       std::cout << std::endl;
       break;
     case 'X':
+      CHECK(response.size() >= 3) << "Wrong packet length";
       std::cout << "The process terminated with signal: "
                 << response.substr(1, 2);
       if (response.size() > 3) {

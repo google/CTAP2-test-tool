@@ -42,8 +42,6 @@ std::string CreateArtifactsSubdirectory(const std::string_view& subdirectory) {
 
 }  // namespace
 
-Monitor::Monitor(fido2_tests::DeviceInterface* device) : device_(device) {}
-
 void Monitor::SaveCrashFile(InputType input_type,
                             const std::string_view& input_path) {
   std::string input_name =

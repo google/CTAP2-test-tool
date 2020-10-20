@@ -23,7 +23,7 @@ namespace corpus_tests {
 // a more detailed crash report.
 class Cortexm4GdbMonitor : public GdbMonitor {
  public:
-  Cortexm4GdbMonitor(fido2_tests::DeviceInterface* device, int port);
+  Cortexm4GdbMonitor(int port);
   // Prints the general registers and fault status of the
   // cortex m4 architecture.
   void PrintCrashReport() override;
@@ -46,6 +46,9 @@ class Cortexm4GdbMonitor : public GdbMonitor {
   // Details can be found at https://www.keil.com/appnotes/files/apnt209.pdf
   // page 7.
   void PrintHfsrRegister(uint32_t register_value);
+
+ private:
+  rsp::RemoteSerialProtocol* rsp_client_;
 };
 
 }  // namespace corpus_tests

@@ -16,7 +16,6 @@
 #define MONITOR_H_
 
 #include "corpus_tests/test_input_controller.h"
-#include "src/device_interface.h"
 
 namespace corpus_tests {
 
@@ -30,7 +29,6 @@ namespace corpus_tests {
 //   }
 class Monitor {
  public:
-  Monitor(fido2_tests::DeviceInterface* device);
   // Attaches the monitor to a device if needed. By default it's not necessary.
   virtual bool Attach() { return true; };
   // Checks for an occured failure in the device. Every derived monitor should
@@ -41,9 +39,6 @@ class Monitor {
   virtual void PrintCrashReport(){};
   // Saves the given file crashing the device in the artifacts directory.
   void SaveCrashFile(InputType input_type, std::string_view const& input_path);
-
- protected:
-  fido2_tests::DeviceInterface* device_;
 };
 
 }  // namespace corpus_tests
