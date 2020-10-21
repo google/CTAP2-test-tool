@@ -48,7 +48,7 @@ class Cortexm4GdbMonitor : public GdbMonitor {
   void PrintHfsrRegister(uint32_t register_value);
 
  private:
-  rsp::RemoteSerialProtocol* rsp_client_;
+  rsp::RemoteSerialProtocol& rsp_client_;
 };
 
 }  // namespace corpus_tests

@@ -41,7 +41,7 @@ class GdbMonitor : public Monitor {
 
  protected:
   // Returns the pointer to the rsp client.
-  rsp::RemoteSerialProtocol* GetRspClient() { return &rsp_client_; }
+  rsp::RemoteSerialProtocol& GetRspClient() { return rsp_client_; }
 
  private:
   int port_;
