@@ -36,7 +36,7 @@ class Monitor {
   virtual bool DeviceCrashed() = 0;
   // Prints some information about the produced crash on the device
   // and/or the state of the device.
-  virtual void PrintCrashReport(){};
+  virtual void PrintCrashReport();
   // Saves the given file crashing the device in the artifacts directory.
   void SaveCrashFile(InputType input_type, std::string_view const& input_path);
 };

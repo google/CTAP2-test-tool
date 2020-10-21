@@ -82,6 +82,9 @@ bool GdbMonitor::DeviceCrashed() {
   return true;
 }
 
-void GdbMonitor::PrintCrashReport() { PrintStopReply(stop_message_); }
+void GdbMonitor::PrintCrashReport() {
+  Monitor::PrintCrashReport();
+  PrintStopReply(stop_message_);
+}
 
 }  // namespace corpus_tests

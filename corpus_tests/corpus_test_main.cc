@@ -80,9 +80,8 @@ int main(int argc, char** argv) {
     }
     corpus_tests::SendInput(device.get(), input_type, input_data);
     if (monitor.DeviceCrashed()) {
-      std::cout << "DEVICE CRASHED!" << std::endl;
-      monitor.SaveCrashFile(input_type, input_path);
       monitor.PrintCrashReport();
+      monitor.SaveCrashFile(input_type, input_path);
       break;
     }
   }
