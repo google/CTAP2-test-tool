@@ -137,6 +137,7 @@ cc_library(
         ":device_tracker",
         ":fido2_commands",
         "//third_party/chromium_components_cbor:cbor",
+        "@com_google_absl//absl/strings",
         "@com_google_absl//absl/types:variant",
         "@com_google_glog//:glog",
     ],

@@ -19,7 +19,6 @@ cc_library(
     srcs = [
         "test_client_pin.cc",
         "test_series.cc",
-        "test_general.cc",
         "test_get_assertion.cc",
         "test_make_credential.cc",
         "test_reset.cc",
@@ -29,15 +28,75 @@ cc_library(
         "-Wno-return-type",
     ],
     deps = [
+        "//:command_state",
+        "//:device_interface",
+        "//:device_tracker",
+        "//src/tests:base",
+        "//src/tests:general",
+        "//third_party/chromium_components_cbor:cbor",
+    ],
+)
+
+cc_library(
+    name = "general",
+    srcs = ["general.cc"],
+    hdrs = ["general.h"],
+    copts = [
+        "-Wno-return-type",
+    ],
+    deps = [
+        "//:command_state",
+        "//:device_interface",
+        "//:device_tracker",
+        "//:fido2_commands",
+        "//src/tests:base",
+        "//src/tests:test_helpers",
+        "//third_party/chromium_components_cbor:cbor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:variant",
+    ],
+)
+
+cc_library(
+    name = "base",
+    srcs = ["base.cc"],
+    hdrs = ["base.h"],
+    copts = [
+        "-Wno-return-type",
+    ],
+    deps = [
+        "//:command_state",
+        "//:device_interface",
+        "//:device_tracker",
+        "@com_google_absl//absl/container:flat_hash_set",
+    ],
+)
+
+cc_test(
+    name = "base_test",
+    srcs = ["base_test.cc"],
+    deps = [
+        ":base",
+        "@com_google_googletest//:gtest_main",
+    ],
+    size = "small",
+)
+
+cc_library(
+    name = "test_helpers",
+    srcs = ["test_helpers.cc"],
+    hdrs = ["test_helpers.h"],
+    copts = [
+        "-Wno-return-type",
+    ],
+    deps = [
         "//:cbor_builders",
         "//:command_state",
-        "//:crypto_utility",
         "//:device_interface",
         "//:device_tracker",
         "//:fido2_commands",
         "//third_party/chromium_components_cbor:cbor",
         "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
         "@com_google_absl//absl/types:variant",
         "@com_google_glog//:glog",
     ],

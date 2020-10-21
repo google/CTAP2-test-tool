@@ -146,6 +146,27 @@ enum class ClientPinParameters : uint8_t {
   kPermissions = 0x09,
   kPermissionsRpId = 0x0A,
 };
+
+enum class InfoMember : uint8_t {
+  kVersions = 0x01,
+  kExtensions = 0x02,
+  kAaguid = 0x03,
+  kOptions = 0x04,
+  kMaxMsgSize = 0x05,
+  kPinUvAuthProtocols = 0x06,
+  kMaxCredentialCountInList = 0x07,
+  kMaxCredentialIdLength = 0x08,
+  kTransports = 0x09,
+  kAlgorithms = 0x0A,
+  kMaxSerializedLargeBlobArray = 0x0B,
+  // 0x0C is intentionally missing.
+  kMinPinLength = 0x0D,
+  kFirmwareVersion = 0x0E,
+  kMaxCredBlobLength = 0x0F,
+  kMaxRpIdsForSetMinPinLength = 0x10,
+  kPreferredPlatformUvAttempts = 0x11,
+  kUvModality = 0x12,
+};
 }  // namespace fido2_tests
 
 #endif  // CONSTANTS_H_

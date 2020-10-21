@@ -56,13 +56,21 @@ int main(int argc, char** argv) {
 
   fido2_tests::DeviceTracker tracker;
   std::unique_ptr<fido2_tests::DeviceInterface> device =
-      absl::make_unique<fido2_tests::hid::HidDevice>(&tracker, FLAGS_token_path,
-                                                     FLAGS_verbose);
+      std::make_unique<fido2_tests::hid::HidDevice>(&tracker, FLAGS_token_path,
+                                                    FLAGS_verbose);
   CHECK(fido2_tests::Status::kErrNone == device->Init())
       << "CTAPHID initialization failed";
   device->Wink();
   // Resets and initializes.
   fido2_tests::CommandState command_state(device.get(), &tracker);
+  CHECK(tracker.HasOption("rk"))
+      << "The test tool expects resident key support.";
+  CHECK(tracker.HasOption("up"))
+      << "The test tool expects user presence support.";
+
+  // Setup and run all tests, while tracking their results.
+  fido2_tests::runners::RunTests(device.get(), &tracker, &command_state);
+  command_state.Reset();
 
   fido2_tests::TestSeries test_series = fido2_tests::TestSeries();
 
@@ -100,7 +108,6 @@ int main(int argc, char** argv) {
 
   test_series.ResetDeletionTest(device.get(), &tracker, &command_state);
   test_series.ResetPhysicalPresenceTest(device.get(), &tracker, &command_state);
-  test_series.PersistenceTest(device.get(), &tracker, &command_state);
 
   test_series.MakeCredentialExcludeListTest(device.get(), &tracker,
                                             &command_state);
@@ -121,8 +128,6 @@ int main(int argc, char** argv) {
   test_series.GetAssertionPinAuthTest(device.get(), &tracker, &command_state);
   test_series.GetAssertionPhysicalPresenceTest(device.get(), &tracker,
                                                &command_state);
-
-  test_series.GetInfoTest(device.get(), &tracker, &command_state);
 
   test_series.ClientPinRequirementsTest(device.get(), &tracker, &command_state);
   test_series.ClientPinRequirements2Point1Test(device.get(), &tracker,

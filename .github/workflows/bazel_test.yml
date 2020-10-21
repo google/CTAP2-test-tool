@@ -31,7 +31,10 @@ jobs:
       - name: Install system libraries
         run: |
           sudo apt-get install libudev-dev
-      - name: Run gtest
+      - name: Run gtest on ./
         run: |
           bazel test --test_output=all --spawn_strategy=local --test_timeout=60 //:all
+      - name: Run gtest on src/tests/
+        run: |
+          bazel test --test_output=all --spawn_strategy=local --test_timeout=60 //src/tests:all
 

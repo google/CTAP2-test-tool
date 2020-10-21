@@ -16,6 +16,7 @@
 
 #include <iostream>
 
+#include "absl/strings/escaping.h"
 #include "absl/types/variant.h"
 #include "src/cbor_builders.h"
 #include "src/constants.h"
@@ -49,6 +50,16 @@ CommandState::CommandState(DeviceInterface* device,
   absl::variant<cbor::Value, Status> response =
       fido2_commands::GetInfoPositiveTest(device_, device_tracker_);
   AssertResponse(response, "GetInfo");
+
+  const auto& decoded_map = absl::get<cbor::Value>(response).GetMap();
+  auto map_iter =
+      decoded_map.find(cbor::Value(static_cast<uint8_t>(InfoMember::kAaguid)));
+  if (map_iter != decoded_map.end()) {
+    const cbor::Value::BinaryValue& aaguid_bytes =
+        map_iter->second.GetBytestring();
+    std::string aaguid_string(aaguid_bytes.begin(), aaguid_bytes.end());
+    device_tracker->SetAaguid(absl::BytesToHexString(aaguid_string));
+  }
 }
 
 void CommandState::PromptReplugAndInit() {

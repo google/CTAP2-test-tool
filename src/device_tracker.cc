@@ -109,6 +109,7 @@ bool DeviceTracker::HasOption(std::string_view option_name) {
 void DeviceTracker::SetProductName(std::string_view product_name) {
   product_name_ = product_name;
 }
+void DeviceTracker::SetAaguid(std::string_view aaguid) { aaguid_ = aaguid; }
 
 void DeviceTracker::AddObservation(const std::string& observation) {
   if (std::find(observations_.begin(), observations_.end(), observation) ==
@@ -130,11 +131,11 @@ void DeviceTracker::AssertCondition(bool condition, std::string_view message) {
     ReportFindings();
     SaveResultsToFile();
   }
-  CHECK(condition) << "Failed critical test: " << message;
+  CHECK(condition) << "Failed critical condition: " << message;
 }
 
 void DeviceTracker::AssertStatus(Status status, std::string_view message) {
-  AssertCondition(status == Status::kErrNone,
+  AssertCondition(CheckStatus(status),
                   absl::StrCat(message, " - returned status code ",
                                StatusToString(status)));
 }
@@ -142,11 +143,32 @@ void DeviceTracker::AssertStatus(Status status, std::string_view message) {
 void DeviceTracker::AssertResponse(
     const absl::variant<cbor::Value, Status>& returned_variant,
     std::string_view message) {
+  AssertCondition(CheckStatus(returned_variant), message);
+}
+
+bool DeviceTracker::CheckStatus(Status status) {
+  return status == Status::kErrNone;
+}
+
+bool DeviceTracker::CheckStatus(Status expected_status,
+                                Status returned_status) {
+  bool is_success = (expected_status == Status::kErrNone) ==
+                    (returned_status == Status::kErrNone);
+  if (is_success && expected_status != returned_status) {
+    AddObservation(absl::StrCat("Expected error code ",
+                                StatusToString(expected_status), ", got ",
+                                StatusToString(returned_status)));
+  }
+  return is_success;
+}
+
+bool DeviceTracker::CheckStatus(
+    const absl::variant<cbor::Value, Status>& returned_variant) {
   Status returned_status = Status::kErrNone;
   if (absl::holds_alternative<Status>(returned_variant)) {
     returned_status = absl::get<Status>(returned_variant);
   }
-  AssertStatus(returned_status, message);
+  return CheckStatus(returned_status);
 }
 
 void DeviceTracker::CheckAndReport(bool condition,
@@ -188,6 +210,22 @@ void DeviceTracker::CheckAndReport(Status expected_status,
                      ", got ", StatusToString(returned_status));
     PrintFailMessage(absl::StrCat("Failed test: ", fail_message));
     failed_tests_.push_back(fail_message);
+  }
+}
+
+void DeviceTracker::LogTest(std::string test_id, std::string test_description,
+                            std::optional<std::string> error_message) {
+  tests_.push_back(
+      TestResult{std::move(test_id), test_description, error_message});
+  // Backwards compatibility by using the old interface.
+  if (error_message.has_value()) {
+    std::string fail_message =
+        absl::StrCat(test_description, " - ", error_message.value());
+    PrintFailMessage(absl::StrCat("Failed test: ", fail_message));
+    failed_tests_.push_back(fail_message);
+  } else {
+    PrintSuccessMessage(absl::StrCat("Test successful: ", test_description));
+    successful_tests_.push_back(test_description);
   }
 }
 

@@ -23,6 +23,7 @@
 #include "src/constants.h"
 #include "src/crypto_utility.h"
 #include "src/fido2_commands.h"
+#include "src/tests/test_helpers.h"
 #include "src/tests/test_series.h"
 #include "third_party/chromium_components_cbor/writer.h"
 
