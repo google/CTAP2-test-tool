@@ -138,7 +138,7 @@ std::optional<std::string> ResetPhysicalPresenceTest::Execute(
   std::string rp_id = "presence.example.com";
   Status returned_status;
   constexpr absl::Duration reset_timeout_duration = absl::Milliseconds(10000);
-  absl::Time reset_timeout = absl::Now() + reset_timeout_duration;
+  absl::Time reset_deadline = absl::Now() + reset_timeout_duration;
 
   device_tracker->IgnoreNextTouchPrompt();
   test_helpers::PrintNoTouchPrompt();
@@ -149,10 +149,10 @@ std::optional<std::string> ResetPhysicalPresenceTest::Execute(
     return "Reset was allowed without touch.";
   }
 
-  if (reset_timeout > absl::Now()) {
+  if (reset_deadline > absl::Now()) {
     std::cout << "Please wait a few seconds for an internal timeout."
               << std::endl;
-    absl::SleepFor(reset_timeout - absl::Now());
+    absl::SleepFor(reset_deadline - absl::Now());
     std::cout << "Internal timeout elapsed." << std::endl;
   }
 
