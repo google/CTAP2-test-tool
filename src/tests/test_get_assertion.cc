@@ -348,6 +348,7 @@ void TestSeries::GetAssertionPhysicalPresenceTest(DeviceInterface* device,
   absl::variant<cbor::Value, Status> response;
 
   test_helpers::MakeTestCredential(device_tracker, command_state, rp_id, true);
+  device_tracker->IgnoreNextTouchPrompt();
   test_helpers::PrintNoTouchPrompt();
 
   GetAssertionCborBuilder get_assertion_builder;

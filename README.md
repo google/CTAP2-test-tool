@@ -49,6 +49,8 @@ At the moment, we only support USB HID as a transport. We test the commands from
 [CTAP 2.0](https://fidoalliance.org/specs/fido-v2.0-ps-20190130/fido-client-to-authenticator-protocol-v2.0-ps-20190130.pdf),
 but plan to add tests for supported extensions and
 [CTAP 2.1](https://fidoalliance.org/specs/fido2/fido-client-to-authenticator-protocol-v2.1-rd-20191217.html).
+The security key must support resident keys and user presence. Also, security
+keys with displays are untested so far.
 
 ### Results
 

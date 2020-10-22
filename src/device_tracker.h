@@ -61,6 +61,12 @@ class DeviceTracker {
   void SetProductName(std::string_view product_name);
   // Setter for the AAGUID, which is reported as a device identifier.
   void SetAaguid(std::string_view aaguid);
+  // The next time a touch prompt is received, it should be ignored. Call
+  // IsTouchPromptIgnored to consume.
+  void IgnoreNextTouchPrompt();
+  // Returns true if IgnoreNextTouchPrompt was called before, and then false
+  // until IgnoreNextTouchPrompt is called again.
+  bool IsTouchPromptIgnored();
   // Adds a string to the list of observations. Duplicates are ignored. Use this
   // function for merely informational comments.
   void AddObservation(const std::string& observation);
@@ -119,6 +125,7 @@ class DeviceTracker {
   CounterChecker counter_checker_;
   std::string product_name_;
   std::string aaguid_;
+  bool ignores_touch_prompt_;
   // We want the observations, problems and tests to be listed in order of
   // appearance.
   std::vector<std::string> observations_;

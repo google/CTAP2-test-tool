@@ -33,7 +33,7 @@ std::optional<std::string> GetInfoTest::Execute(
   absl::variant<cbor::Value, Status> response =
       fido2_commands::GetInfoPositiveTest(device, device_tracker);
   if (!device_tracker->CheckStatus(response)) {
-    return "failed to parse GetInfo response";
+    return "Failed to parse GetInfo response.";
   }
 
   const auto& decoded_map = absl::get<cbor::Value>(response).GetMap();
@@ -48,17 +48,17 @@ std::optional<std::string> GetInfoTest::Execute(
     }
   }
   if (!has_pin_protocol_1) {
-    return "no support for PIN protocol version 1";
+    return "PIN protocol version 1 is not supported.";
   }
   return std::nullopt;
 }
 
-PersistantCredentialsTest::PersistantCredentialsTest()
-    : BaseTest("persistant_credentials",
+PersistentCredentialsTest::PersistentCredentialsTest()
+    : BaseTest("persistent_credentials",
                "Tests whether credentials persist after replug.",
                {.has_pin = false}, {}) {}
 
-std::optional<std::string> PersistantCredentialsTest::Execute(
+std::optional<std::string> PersistentCredentialsTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
   std::string rp_id = "persistence.example.com";
@@ -66,11 +66,11 @@ std::optional<std::string> PersistantCredentialsTest::Execute(
 
   if (!device_tracker->CheckStatus(
           command_state->MakeTestCredential(rp_id, true))) {
-    return "cannot make credential for further tests";
+    return "Cannot make credential for further tests.";
   }
   response = command_state->MakeTestCredential(rp_id, false);
   if (!device_tracker->CheckStatus(response)) {
-    return "cannot make credential for further tests";
+    return "Cannot make credential for further tests.";
   }
   cbor::Value credential_response = std::move(absl::get<cbor::Value>(response));
 
@@ -81,7 +81,7 @@ std::optional<std::string> PersistantCredentialsTest::Execute(
   response = fido2_commands::GetAssertionPositiveTest(
       device, device_tracker, persistence_get_assertion_builder.GetCbor());
   if (!device_tracker->CheckStatus(response)) {
-    return "resident key did not persist after replug";
+    return "A resident key did not persist after replug.";
   }
 
   cbor::Value::BinaryValue credential_id =
@@ -90,26 +90,51 @@ std::optional<std::string> PersistantCredentialsTest::Execute(
   response = fido2_commands::GetAssertionPositiveTest(
       device, device_tracker, persistence_get_assertion_builder.GetCbor());
   if (!device_tracker->CheckStatus(response)) {
-    return "non-resident key did not persist after replug";
+    return "A non-resident key did not persist after replug.";
   }
   return std::nullopt;
 }
 
-PersistantPinRetriesTest::PersistantPinRetriesTest()
-    : BaseTest("persistant_pin_retries",
+PersistentPinRetriesTest::PersistentPinRetriesTest()
+    : BaseTest("persistent_pin_retries",
                "Tests whether PIN retries persist after replug.",
                {.has_pin = true}, {Tag::kClientPin}) {}
 
-std::optional<std::string> PersistantPinRetriesTest::Execute(
+std::optional<std::string> PersistentPinRetriesTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  command_state->AttemptGetAuthToken(test_helpers::BadPin());
+  if (device_tracker->CheckStatus(
+          command_state->AttemptGetAuthToken(test_helpers::BadPin()))) {
+    return "GetAuthToken did not fail with the wrong PIN.";
+  }
   int reduced_counter = test_helpers::GetPinRetries(device, device_tracker);
 
   command_state->PromptReplugAndInit();
 
   if (test_helpers::GetPinRetries(device, device_tracker) != reduced_counter) {
-    return "PIN retries changed after replug";
+    return "PIN retries changed after replug.";
+  }
+  return std::nullopt;
+}
+
+RegeneratesPinAuthTest::RegeneratesPinAuthTest()
+    : BaseTest("regenerates_pin_auth",
+               "Tests whether the PIN auth token regenerates after replug.",
+               {.has_pin = true}, {Tag::kClientPin}) {}
+
+std::optional<std::string> RegeneratesPinAuthTest::Execute(
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    CommandState* command_state) const {
+  cbor::Value::BinaryValue old_auth_token =
+      command_state->GetCurrentAuthToken();
+
+  command_state->PromptReplugAndInit();
+
+  if (!device_tracker->CheckStatus(command_state->GetAuthToken())) {
+    return "Getting the auth token failed unexpectedly.";
+  }
+  if (command_state->GetCurrentAuthToken() == old_auth_token) {
+    return "Auth token was not regenerated after replug.";
   }
   return std::nullopt;
 }

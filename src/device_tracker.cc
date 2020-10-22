@@ -59,6 +59,7 @@ void PrintFailMessage(std::string_view message) {
 DeviceTracker::DeviceTracker()
     : key_checker_(std::vector<std::vector<uint8_t>>()),
       product_name_(kFileName),
+      ignores_touch_prompt_(false),
       is_initialized_(false) {}
 
 void DeviceTracker::Initialize(const cbor::Value::ArrayValue& versions,
@@ -111,6 +112,14 @@ void DeviceTracker::SetProductName(std::string_view product_name) {
 }
 
 void DeviceTracker::SetAaguid(std::string_view aaguid) { aaguid_ = aaguid; }
+
+void DeviceTracker::IgnoreNextTouchPrompt() { ignores_touch_prompt_ = true; }
+
+bool DeviceTracker::IsTouchPromptIgnored() {
+  bool reponse = ignores_touch_prompt_;
+  ignores_touch_prompt_ = false;
+  return reponse;
+}
 
 void DeviceTracker::AddObservation(const std::string& observation) {
   if (std::find(observations_.begin(), observations_.end(), observation) ==

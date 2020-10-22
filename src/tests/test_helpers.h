@@ -33,6 +33,10 @@ cbor::Value::BinaryValue BadPin();
 // [1] https://www.w3.org/TR/webauthn/#sec-authenticator-data
 cbor::Value::BinaryValue ExtractCredentialId(const cbor::Value& response);
 
+// Sends a ClientPin command to get the PIN retries.
+absl::variant<cbor::Value, Status> GetPinRetriesResponse(
+    DeviceInterface* device, DeviceTracker* device_tracker);
+
 // Extracts the PIN retries from an authenticator client PIN response.
 int ExtractPinRetries(const cbor::Value& response);
 

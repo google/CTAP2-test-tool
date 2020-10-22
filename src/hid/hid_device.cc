@@ -259,7 +259,9 @@ Status HidDevice::ExchangeCbor(Command command,
     if (keepalive_response == KeepaliveStatus::kStatusUpNeeded &&
         !has_sent_prompt) {
       has_sent_prompt = true;
-      PromptUser();
+      if (!tracker_->IsTouchPromptIgnored()) {
+        PromptUser();
+      }
     }
     status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
     if (status != Status::kErrNone) return status;

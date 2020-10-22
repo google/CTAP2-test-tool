@@ -129,9 +129,9 @@ int ExtractPinRetries(const cbor::Value& response) {
 
 void PrintNoTouchPrompt() {
   std::cout << "===========================================================\n"
-            << "The next test checks if timeouts work properly. This time,\n"
-            << "please do not touch the key, regardless all prompts, for 30\n"
-            << "seconds. Check if you see a flashing LED on the device.\n"
+            << "The next test checks if timeouts work properly. Please do\n"
+            << "not touch your security key until the test finishes. You\n"
+            << "should see a flashing LED on the device, please ignore it.\n"
             << "===========================================================\n";
 }
 
@@ -328,12 +328,18 @@ void TestCredentialDescriptorsArrayForCborDepth(
   }
 }
 
-int GetPinRetries(DeviceInterface* device, DeviceTracker* device_tracker) {
+absl::variant<cbor::Value, Status> GetPinRetriesResponse(
+    DeviceInterface* device, DeviceTracker* device_tracker) {
   AuthenticatorClientPinCborBuilder get_retries_builder;
   get_retries_builder.AddDefaultsForGetPinRetries();
+  return fido2_commands::AuthenticatorClientPinPositiveTest(
+      device, device_tracker, get_retries_builder.GetCbor());
+}
+
+int GetPinRetries(DeviceInterface* device, DeviceTracker* device_tracker) {
   absl::variant<cbor::Value, Status> response =
-      fido2_commands::AuthenticatorClientPinPositiveTest(
-          device, device_tracker, get_retries_builder.GetCbor());
+      GetPinRetriesResponse(device, device_tracker);
+  // TODO(kaczmarczyck) check with specification
   if (absl::holds_alternative<Status>(response) &&
       absl::get<Status>(response) == Status::kErrPinBlocked) {
     std::cout << "getPinRetries was blocked instead of returning 0.\n"
