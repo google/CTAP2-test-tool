@@ -27,7 +27,7 @@ class BlackboxMonitor : public Monitor {
   BlackboxMonitor(fido2_tests::DeviceInterface* device,
                   fido2_tests::DeviceTracker* device_tracker);
   // Attaches the monitor to a device for further crash detection by
-  // resetting the device and setting up an initial pin token.
+  // setting up an initial pin token.
   bool Attach() override;
   // Checks for an occured failure in the device through the identification of a
   // hang (no response) or a reboot after crash by comparing the pin token of
@@ -35,8 +35,7 @@ class BlackboxMonitor : public Monitor {
   bool DeviceCrashed() override;
 
  private:
-  // Resets the device and other class members.
-  void Reset();
+  // TODO(mingxguo): the following methods need refactoring with master branch.
   // Gets the shared secret from the device.
   void ComputeSharedSecret();
   // Sets up a default pin on the device.

@@ -24,25 +24,9 @@
 
 namespace corpus_tests {
 
-const cbor::Value::BinaryValue kDefaultPin = {0x10, 0x11, 0x12, 0x13};
+// Default pin = 1234
+const cbor::Value::BinaryValue kDefaultPin = {0x31, 0x32, 0x33, 0x34};
 constexpr size_t kPinByteLength = 64;
-
-void BlackboxMonitor::Reset() {
-  std::cout << "Please replug the device, then hit enter." << std::endl;
-  std::cin.ignore();
-  CHECK(fido2_tests::Status::kErrNone == device_->Init())
-      << "CTAPHID initialization failed";
-  absl::variant<cbor::Value, fido2_tests::Status> response =
-      fido2_tests::fido2_commands::ResetPositiveTest(device_);
-
-  CHECK(!absl::holds_alternative<fido2_tests::Status>(response))
-      << "Device reset failed - returned status code "
-      << StatusToString(absl::get<fido2_tests::Status>(response));
-
-  initial_pin_token_ = cbor::Value::BinaryValue();
-  shared_secret_ = cbor::Value::BinaryValue();
-  platform_cose_key_ = cbor::Value::MapValue();
-}
 
 void BlackboxMonitor::ComputeSharedSecret() {
   fido2_tests::AuthenticatorClientPinCborBuilder key_agreement_builder;
@@ -115,7 +99,6 @@ BlackboxMonitor::BlackboxMonitor(fido2_tests::DeviceInterface* device,
 }
 
 bool BlackboxMonitor::Attach() {
-  Reset();
   ComputeSharedSecret();
   SetDefaultPin();
   std::optional<cbor::Value::BinaryValue> pin_token = GetPinToken();
