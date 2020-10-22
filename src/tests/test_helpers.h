@@ -60,12 +60,14 @@ cbor::Value MakeTestCredential(DeviceTracker* device_tracker,
 void TestBadParameterTypes(DeviceInterface* device,
                            DeviceTracker* device_tracker, Command command,
                            CborBuilder* builder);
+
 // Tries to remove each parameter once. Make sure to pass the appropriate
 // CborBuilder for your command. The necessary parameters are inferred through
 // the currently present builder entries.
 void TestMissingParameters(DeviceInterface* device,
                            DeviceTracker* device_tracker, Command command,
                            CborBuilder* builder);
+
 // Tries to insert types other than the correct one into map entries. Those
 // maps themselves are values of the command parameter map. If
 // has_wrapping_array is true, the inner map is used as an array element
@@ -77,6 +79,7 @@ void TestBadParametersInInnerMap(DeviceInterface* device,
                                  CborBuilder* builder, int outer_map_key,
                                  const cbor::Value::MapValue& inner_map,
                                  bool has_wrapping_array);
+
 // Tries to insert types other than the correct one into array elements. Those
 // arrays themselves are values of the command parameter map.
 void TestBadParametersInInnerArray(DeviceInterface* device,
@@ -84,6 +87,7 @@ void TestBadParametersInInnerArray(DeviceInterface* device,
                                    Command command, CborBuilder* builder,
                                    int outer_map_key,
                                    const cbor::Value& array_element);
+
 // Tries to insert a map or an array as a transport in an array of public key
 // credential descriptors. Both excludeList in MakeCredential and allowList in
 // GetAssertion expect this kind of value and share this test. Authenticators
@@ -97,12 +101,14 @@ void TestCredentialDescriptorsArrayForCborDepth(
 
 // Gets and checks the PIN retry counter response from the authenticator.
 int GetPinRetries(DeviceInterface* device, DeviceTracker* device_tracker);
+
 // Checks if the PIN we currently assume is set works for getting an auth
 // token. This way, we don't have to trust only the returned status code
 // after a SetPin or ChangePin command. It does not actually return an auth
 // token, use GetAuthToken() in that case.
 void CheckPinByGetAuthToken(DeviceTracker* device_tracker,
                             CommandState* command_state);
+
 // Checks if the PIN is not currently set by trying to make a credential.
 // The MakeCredential command should fail when the authenticator is PIN
 // protected. Even though this test could fail in case of a bad implementation

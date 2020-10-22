@@ -33,6 +33,7 @@ const std::vector<std::unique_ptr<BaseTest>>& GetTests() {
 void RunTests(DeviceInterface* device, DeviceTracker* device_tracker,
               CommandState* command_state) {
   for (const auto& test : GetTests()) {
+    // TODO(kaczmarczyck) compare tags and info in device_tracker
     test->Setup(command_state);
     std::optional<std::string> error_message =
         test->Execute(device, device_tracker, command_state);

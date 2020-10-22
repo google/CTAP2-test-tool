@@ -25,10 +25,11 @@
 namespace fido2_tests {
 namespace runners {
 
-// Returns a list of all tests.
+// Returns a list of all tests. Please register all implemented tests here.
 const std::vector<std::unique_ptr<BaseTest>>& GetTests();
 
-// Runs all tests.
+// Runs all tests. This includes setup, and checking if they are suitable for a
+// given authenticator by comparing device information and tags.
 void RunTests(DeviceInterface* device, DeviceTracker* device_tracker,
               CommandState* command_state);
 

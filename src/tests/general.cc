@@ -25,7 +25,7 @@ namespace fido2_tests {
 
 GetInfoTest::GetInfoTest()
     : BaseTest("get_info", "Tests the return values of GetInfo.",
-               Preconditions{false}, {Tag::kClientPin}) {}
+               {.has_pin = false}, {Tag::kClientPin}) {}
 
 std::optional<std::string> GetInfoTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
@@ -56,7 +56,7 @@ std::optional<std::string> GetInfoTest::Execute(
 PersistantCredentialsTest::PersistantCredentialsTest()
     : BaseTest("persistant_credentials",
                "Tests whether credentials persist after replug.",
-               Preconditions{false}, {}) {}
+               {.has_pin = false}, {}) {}
 
 std::optional<std::string> PersistantCredentialsTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
@@ -98,14 +98,11 @@ std::optional<std::string> PersistantCredentialsTest::Execute(
 PersistantPinRetriesTest::PersistantPinRetriesTest()
     : BaseTest("persistant_pin_retries",
                "Tests whether PIN retries persist after replug.",
-               Preconditions{false}, {Tag::kClientPin}) {}
+               {.has_pin = true}, {Tag::kClientPin}) {}
 
 std::optional<std::string> PersistantPinRetriesTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  if (!device_tracker->CheckStatus(command_state->SetPin())) {
-    return "cannot set pin for further tests";
-  }
   command_state->AttemptGetAuthToken(test_helpers::BadPin());
   int reduced_counter = test_helpers::GetPinRetries(device, device_tracker);
 

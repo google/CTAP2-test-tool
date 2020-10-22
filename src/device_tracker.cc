@@ -109,6 +109,7 @@ bool DeviceTracker::HasOption(std::string_view option_name) {
 void DeviceTracker::SetProductName(std::string_view product_name) {
   product_name_ = product_name;
 }
+
 void DeviceTracker::SetAaguid(std::string_view aaguid) { aaguid_ = aaguid; }
 
 void DeviceTracker::AddObservation(const std::string& observation) {

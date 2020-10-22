@@ -22,17 +22,26 @@
 
 namespace fido2_tests {
 
+// Contains information about the device state a test requires to run correctly.
 struct Preconditions {
   bool has_pin;
 };
 
+// Describes what features a test uses. Can be used to filter tests or display
+// results grouped by tag.
 enum class Tag { kClientPin, kFido2Point1 };
 
+// All tests inherit this base class to have the same interface to run them.
+// Run tests by first calling Setup, then Execute.
 class BaseTest {
  public:
+  // A subclass is expected to pass in values describing its properties.
   BaseTest(std::string test_id, std::string test_description,
            Preconditions preconditions, absl::flat_hash_set<Tag> tags);
   virtual ~BaseTest() = default;
+  // Executes the test code. Returns std::nullopt if the test was successful, or
+  // an error message if it failed. As a side effect, it can change the device
+  // and command state. Also, more information can be logged in device_tracker.
   virtual std::optional<std::string> Execute(
       DeviceInterface* device, DeviceTracker* device_tracker,
       CommandState* command_state) const = 0;
@@ -46,12 +55,13 @@ class BaseTest {
   bool HasTag(Tag tag) const;
 
  private:
-  std::string test_id_;
-  std::string test_description_;
-  Preconditions preconditions_;
-  absl::flat_hash_set<Tag> tags_;
+  const std::string test_id_;
+  const std::string test_description_;
+  const Preconditions preconditions_;
+  const absl::flat_hash_set<Tag> tags_;
 };
 
+// This convenience macro defines a test subclass to make headers more readable.
 #define TEST_CLASS(name)                                        \
   class name : public BaseTest {                                \
    public:                                                      \
@@ -59,7 +69,7 @@ class BaseTest {
     std::optional<std::string> Execute(                         \
         DeviceInterface* device, DeviceTracker* device_tracker, \
         CommandState* command_state) const override;            \
-  };
+  }
 
 }  // namespace fido2_tests
 
