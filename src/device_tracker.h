@@ -25,6 +25,13 @@
 
 namespace fido2_tests {
 
+// Contains all information that is logged a test.
+struct TestResult {
+  std::string test_id;
+  std::string test_description;
+  std::optional<std::string> error_message;
+};
+
 // Tracks all interesting capabilities and findings during test execution. This
 // includes all global state, i.e. properties that can not be changed through
 // CTAP commands. You can manually add observations or problems. When executing
@@ -52,6 +59,8 @@ class DeviceTracker {
   bool HasOption(std::string_view option_name);
   // Setter for the product_name, which is used as a results file name.
   void SetProductName(std::string_view product_name);
+  // Setter for the AAGUID, which is reported as a device identifier.
+  void SetAaguid(std::string_view aaguid);
   // Adds a string to the list of observations. Duplicates are ignored. Use this
   // function for merely informational comments.
   void AddObservation(const std::string& observation);
@@ -68,6 +77,13 @@ class DeviceTracker {
   void AssertResponse(
       const absl::variant<cbor::Value, Status>& returned_variant,
       std::string_view message);
+  // Returns whether the status is a success.
+  bool CheckStatus(Status status);
+  // Returns if the expected and returned status are both an error or both not
+  // an error. If both are different errors, report an observation.
+  bool CheckStatus(Status expected_status, Status returned_status);
+  // Returns whether the response is a value or the success status.
+  bool CheckStatus(const absl::variant<cbor::Value, Status>& returned_variant);
   // Checks a general condition, reporting the result and writing statistics.
   void CheckAndReport(bool condition, const std::string& test_name);
   // As above, but checks specifically whether the variant is a CBOR value.
@@ -79,6 +95,9 @@ class DeviceTracker {
   // counts as passed, but the report contains a warning.
   void CheckAndReport(Status expected_status, Status returned_status,
                       const std::string& test_name);
+  // Logs a test and its result.
+  void LogTest(std::string test_id, std::string test_description,
+               std::optional<std::string> error_message);
   // Returns a reference to the KeyChecker instance.
   KeyChecker* GetKeyChecker();
   // Returns a reference to the CounterChecker instance.
@@ -99,10 +118,12 @@ class DeviceTracker {
   KeyChecker key_checker_;
   CounterChecker counter_checker_;
   std::string product_name_;
+  std::string aaguid_;
   // We want the observations, problems and tests to be listed in order of
   // appearance.
   std::vector<std::string> observations_;
   std::vector<std::string> problems_;
+  std::vector<TestResult> tests_;
   std::vector<std::string> successful_tests_;
   std::vector<std::string> failed_tests_;
   absl::flat_hash_set<std::string> versions_;

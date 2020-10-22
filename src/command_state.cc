@@ -16,6 +16,7 @@
 
 #include <iostream>
 
+#include "absl/strings/escaping.h"
 #include "absl/types/variant.h"
 #include "src/cbor_builders.h"
 #include "src/constants.h"
@@ -25,13 +26,6 @@
 namespace fido2_tests {
 namespace {
 constexpr size_t kPinByteLength = 64;
-
-void AssertResponse(const absl::variant<cbor::Value, Status>& returned_variant,
-                    std::string_view hint) {
-  CHECK(!absl::holds_alternative<Status>(returned_variant))
-      << "Failed test setup: " << hint << " - returned status code "
-      << StatusToString(absl::get<Status>(returned_variant));
-}
 }  // namespace
 
 #define OK_OR_RETURN(x)               \
@@ -48,7 +42,17 @@ CommandState::CommandState(DeviceInterface* device,
   Reset();
   absl::variant<cbor::Value, Status> response =
       fido2_commands::GetInfoPositiveTest(device_, device_tracker_);
-  AssertResponse(response, "GetInfo");
+  device_tracker_->AssertResponse(response, "GetInfo");
+
+  const auto& decoded_map = absl::get<cbor::Value>(response).GetMap();
+  if (auto map_iter = decoded_map.find(
+          cbor::Value(static_cast<uint8_t>(InfoMember::kAaguid)));
+      map_iter != decoded_map.end()) {
+    const cbor::Value::BinaryValue& aaguid_bytes =
+        map_iter->second.GetBytestring();
+    std::string aaguid_string(aaguid_bytes.begin(), aaguid_bytes.end());
+    device_tracker->SetAaguid(absl::BytesToHexString(aaguid_string));
+  }
 }
 
 void CommandState::PromptReplugAndInit() {
@@ -67,7 +71,7 @@ void CommandState::Reset() {
   PromptReplugAndInit();
   absl::variant<cbor::Value, Status> response =
       fido2_commands::ResetPositiveTest(device_);
-  AssertResponse(response, "Reset");
+  device_tracker_->AssertResponse(response, "Reset");
 
   platform_cose_key_ = cbor::Value::MapValue();
   shared_secret_ = cbor::Value::BinaryValue();
@@ -78,7 +82,7 @@ void CommandState::Reset() {
 void CommandState::Prepare(bool set_uv) {
   if (set_uv) {
     if (pin_utf8_.empty()) {
-      AssertResponse(SetPin(), "set PIN");
+      device_tracker_->AssertResponse(SetPin(), "set PIN");
     }
   } else {
     if (!pin_utf8_.empty()) {

@@ -128,5 +128,22 @@ TEST(DeviceTracker, TestGenerateResultsJson) {
   EXPECT_EQ(output, expected_output);
 }
 
+TEST(DeviceTracker, TestCheckStatus) {
+  DeviceTracker device_tracker = DeviceTracker();
+  EXPECT_TRUE(device_tracker.CheckStatus(Status::kErrNone));
+  EXPECT_FALSE(device_tracker.CheckStatus(Status::kErrOther));
+  EXPECT_TRUE(device_tracker.CheckStatus(Status::kErrNone, Status::kErrNone));
+  EXPECT_TRUE(device_tracker.CheckStatus(Status::kErrOther, Status::kErrOther));
+  EXPECT_TRUE(device_tracker.CheckStatus(Status::kErrInvalidCommand,
+                                         Status::kErrOther));
+  EXPECT_FALSE(device_tracker.CheckStatus(Status::kErrNone, Status::kErrOther));
+  absl::variant<cbor::Value, Status> variant_value = cbor::Value();
+  EXPECT_TRUE(device_tracker.CheckStatus(variant_value));
+  absl::variant<cbor::Value, Status> variant_success = Status::kErrNone;
+  EXPECT_TRUE(device_tracker.CheckStatus(variant_success));
+  absl::variant<cbor::Value, Status> variant_fail = Status::kErrOther;
+  EXPECT_FALSE(device_tracker.CheckStatus(variant_fail));
+}
+
 }  // namespace
 }  // namespace fido2_tests
