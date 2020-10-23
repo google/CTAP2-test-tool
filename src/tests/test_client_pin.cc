@@ -354,3 +354,4 @@ void TestSeries::ClientPinRetriesTest(DeviceInterface* device,
 }
 
 }  // namespace fido2_tests
+

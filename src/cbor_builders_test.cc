@@ -102,3 +102,4 @@ TEST(CborBuilders, TestClientPinCborBuilder) {
 
 }  // namespace
 }  // namespace fido2_tests
+

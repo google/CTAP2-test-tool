@@ -371,3 +371,4 @@ void CheckPinAbsenceByMakeCredential(DeviceInterface* device,
 
 }  // namespace test_helpers
 }  // namespace fido2_tests
+

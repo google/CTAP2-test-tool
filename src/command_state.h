@@ -95,3 +95,4 @@ class CommandState {
 }  // namespace fido2_tests
 
 #endif  // COMMAND_STATE_H_
+

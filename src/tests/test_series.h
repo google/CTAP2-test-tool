@@ -206,3 +206,4 @@ class TestSeries {
 }  // namespace fido2_tests
 
 #endif  // TESTS_TEST_SERIES_H_
+

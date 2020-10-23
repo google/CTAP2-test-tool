@@ -857,3 +857,4 @@ Status NonCborNegativeTest(DeviceInterface* device,
 
 }  // namespace fido2_commands
 }  // namespace fido2_tests
+

@@ -131,3 +131,4 @@ class HidDevice : public DeviceInterface {
 }  // namespace fido2_tests
 
 #endif  // HID_HID_DEVICE_H_
+

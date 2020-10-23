@@ -140,3 +140,4 @@ std::optional<std::string> RegeneratesPinAuthTest::Execute(
 }
 
 }  // namespace fido2_tests
+

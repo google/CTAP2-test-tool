@@ -80,3 +80,4 @@ Status NonCborNegativeTest(DeviceInterface* device,
 }  // namespace fido2_tests
 
 #endif  // FIDO2_COMMANDS_H_
+

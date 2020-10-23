@@ -74,3 +74,4 @@ class BaseTest {
 }  // namespace fido2_tests
 
 #endif  // TESTS_BASE_H_
+

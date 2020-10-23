@@ -251,3 +251,4 @@ std::vector<uint8_t> Sha256Hash(const std::vector<uint8_t>& message) {
 
 }  // namespace crypto_utility
 }  // namespace fido2_tests
+

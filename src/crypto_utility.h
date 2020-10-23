@@ -73,3 +73,4 @@ std::vector<uint8_t> Sha256Hash(const std::vector<uint8_t>& message);
 }  // namespace fido2_tests
 
 #endif  // CRYPTO_UTILITY_H_
+
