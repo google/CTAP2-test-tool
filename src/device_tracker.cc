@@ -18,8 +18,11 @@
 #include <fstream>
 #include <iostream>
 
+#include "absl/time/clock.h"
 #include "src/parameter_check.h"
 #include "third_party/chromium_components_cbor/values.h"
+
+extern const char build_scm_revision[];
 
 namespace fido2_tests {
 namespace {
@@ -39,15 +42,15 @@ std::string CreateSaveFileDirectory() {
   return results_dir;
 }
 
-void PrintSuccessMessage(const std::string& message) {
+void PrintSuccessMessage(std::string_view message) {
   std::cout << "\x1b[0;32m" << message << "\x1b[0m" << std::endl;
 }
 
-void PrintWarningMessage(const std::string& message) {
+void PrintWarningMessage(std::string_view message) {
   std::cout << "\x1b[0;33m" << message << "\x1b[0m" << std::endl;
 }
 
-void PrintFailMessage(const std::string& message) {
+void PrintFailMessage(std::string_view message) {
   std::cout << "\x1b[0;31m" << message << "\x1b[0m" << std::endl;
 }
 
@@ -56,6 +59,7 @@ void PrintFailMessage(const std::string& message) {
 DeviceTracker::DeviceTracker()
     : key_checker_(std::vector<std::vector<uint8_t>>()),
       product_name_(kFileName),
+      ignores_touch_prompt_(false),
       is_initialized_(false) {}
 
 void DeviceTracker::Initialize(const cbor::Value::ArrayValue& versions,
@@ -103,8 +107,18 @@ bool DeviceTracker::HasOption(std::string_view option_name) {
   return options_.contains(option_name);
 }
 
-void DeviceTracker::SetProductName(const std::string& product_name) {
+void DeviceTracker::SetProductName(std::string_view product_name) {
   product_name_ = product_name;
+}
+
+void DeviceTracker::SetAaguid(std::string_view aaguid) { aaguid_ = aaguid; }
+
+void DeviceTracker::IgnoreNextTouchPrompt() { ignores_touch_prompt_ = true; }
+
+bool DeviceTracker::IsTouchPromptIgnored() {
+  bool reponse = ignores_touch_prompt_;
+  ignores_touch_prompt_ = false;
+  return reponse;
 }
 
 void DeviceTracker::AddObservation(const std::string& observation) {
@@ -120,6 +134,51 @@ void DeviceTracker::AddProblem(const std::string& problem) {
       problems_.end()) {
     problems_.push_back(problem);
   }
+}
+
+void DeviceTracker::AssertCondition(bool condition, std::string_view message) {
+  if (!condition) {
+    ReportFindings();
+    SaveResultsToFile();
+  }
+  CHECK(condition) << "Failed critical condition: " << message;
+}
+
+void DeviceTracker::AssertStatus(Status status, std::string_view message) {
+  AssertCondition(CheckStatus(status),
+                  absl::StrCat(message, " - returned status code ",
+                               StatusToString(status)));
+}
+
+void DeviceTracker::AssertResponse(
+    const absl::variant<cbor::Value, Status>& returned_variant,
+    std::string_view message) {
+  AssertCondition(CheckStatus(returned_variant), message);
+}
+
+bool DeviceTracker::CheckStatus(Status status) {
+  return status == Status::kErrNone;
+}
+
+bool DeviceTracker::CheckStatus(Status expected_status,
+                                Status returned_status) {
+  bool is_success = (expected_status == Status::kErrNone) ==
+                    (returned_status == Status::kErrNone);
+  if (is_success && expected_status != returned_status) {
+    AddObservation(absl::StrCat("Expected error code ",
+                                StatusToString(expected_status), ", got ",
+                                StatusToString(returned_status)));
+  }
+  return is_success;
+}
+
+bool DeviceTracker::CheckStatus(
+    const absl::variant<cbor::Value, Status>& returned_variant) {
+  Status returned_status = Status::kErrNone;
+  if (absl::holds_alternative<Status>(returned_variant)) {
+    returned_status = absl::get<Status>(returned_variant);
+  }
+  return CheckStatus(returned_status);
 }
 
 void DeviceTracker::CheckAndReport(bool condition,
@@ -164,21 +223,37 @@ void DeviceTracker::CheckAndReport(Status expected_status,
   }
 }
 
+void DeviceTracker::LogTest(std::string test_id, std::string test_description,
+                            std::optional<std::string> error_message) {
+  tests_.push_back(
+      TestResult{std::move(test_id), test_description, error_message});
+  // Backwards compatibility by using the old interface.
+  if (error_message.has_value()) {
+    std::string fail_message =
+        absl::StrCat(test_description, " - ", error_message.value());
+    PrintFailMessage(absl::StrCat("Failed test: ", fail_message));
+    failed_tests_.push_back(fail_message);
+  } else {
+    PrintSuccessMessage(absl::StrCat("Test successful: ", test_description));
+    successful_tests_.push_back(test_description);
+  }
+}
+
 KeyChecker* DeviceTracker::GetKeyChecker() { return &key_checker_; }
 
 CounterChecker* DeviceTracker::GetCounterChecker() { return &counter_checker_; }
 
 void DeviceTracker::ReportFindings() const {
   std::cout << counter_checker_.ReportFindings() << "\n\n";
-  for (const std::string& observation : observations_) {
+  for (std::string_view observation : observations_) {
     std::cout << observation << "\n";
   }
   std::cout << std::endl;
-  for (const std::string& problem : problems_) {
+  for (std::string_view problem : problems_) {
     PrintWarningMessage(problem);
   }
   std::cout << std::endl;
-  for (const std::string& test : failed_tests_) {
+  for (std::string_view test : failed_tests_) {
     PrintFailMessage(test);
   }
   int successful_test_count = successful_tests_.size();
@@ -188,30 +263,40 @@ void DeviceTracker::ReportFindings() const {
             << " tests." << std::endl;
 }
 
-nlohmann::json DeviceTracker::GenerateResultsJson() {
+nlohmann::json DeviceTracker::GenerateResultsJson(
+    std::string_view commit_hash, std::string_view time_string) {
   int successful_test_count = successful_tests_.size();
   int failed_test_count = failed_tests_.size();
   int test_count = successful_test_count + failed_test_count;
 
   nlohmann::json results = {
-      {"Passed tests", successful_test_count},
-      {"Total tests", test_count},
-      {"Failed tests", failed_tests_},
-      {"Reported problems", problems_},
-      {"Reported observations", observations_},
-      {"Counter", counter_checker_.ReportFindings()},
+      {"passed_test_count", successful_test_count},
+      {"total_test_count", test_count},
+      {"failed_tests", failed_tests_},
+      {"problems", problems_},
+      {"observations", observations_},
+      {"counter", counter_checker_.ReportFindings()},
+      {"date", time_string},
+      {"commit", commit_hash},
   };
   return results;
 }
 
 void DeviceTracker::SaveResultsToFile() {
-  std::filesystem::path results_path =
-      absl::StrCat(CreateSaveFileDirectory(), product_name_, kFileType);
+  absl::Time now = absl::Now();
+  absl::TimeZone local = absl::LocalTimeZone();
+  std::string time_string = absl::FormatTime("%Y-%m-%d", now, local);
+
+  std::filesystem::path results_path = absl::StrCat(
+      CreateSaveFileDirectory(), product_name_, "_", time_string, kFileType);
   std::ofstream results_file;
   results_file.open(results_path);
   CHECK(results_file.is_open()) << "Unable to open file: " << results_path;
 
-  results_file << std::setw(2) << GenerateResultsJson() << std::endl;
+  results_file << std::setw(2)
+               << GenerateResultsJson(build_scm_revision, time_string)
+               << std::endl;
 }
 
 }  // namespace fido2_tests
+

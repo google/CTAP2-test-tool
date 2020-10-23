@@ -53,3 +53,4 @@ class BlackboxMonitor : public Monitor {
 }  // namespace corpus_tests
 
 #endif  // BLACKBOX_MONITOR_H_
+

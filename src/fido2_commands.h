@@ -37,7 +37,8 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
 absl::variant<cbor::Value, Status> GetNextAssertionPositiveTest(
     DeviceInterface* device, DeviceTracker* device_tracker,
     const cbor::Value& request);
-absl::variant<cbor::Value, Status> GetInfoPositiveTest(DeviceInterface* device);
+absl::variant<cbor::Value, Status> GetInfoPositiveTest(
+    DeviceInterface* device, DeviceTracker* device_tracker);
 absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
     DeviceInterface* device, DeviceTracker* device_tracker,
     const cbor::Value& request);
@@ -79,3 +80,4 @@ Status NonCborNegativeTest(DeviceInterface* device,
 }  // namespace fido2_tests
 
 #endif  // FIDO2_COMMANDS_H_
+

@@ -88,3 +88,4 @@ void GdbMonitor::PrintCrashReport() {
 }
 
 }  // namespace corpus_tests
+

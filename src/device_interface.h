@@ -44,3 +44,4 @@ class DeviceInterface {
 }  // namespace fido2_tests
 
 #endif  // DEVICE_INTERFACE_H_
+

@@ -66,3 +66,4 @@ class RemoteSerialProtocol {
 }  // namespace corpus_tests
 
 #endif  // GDB_RSP_H_
+

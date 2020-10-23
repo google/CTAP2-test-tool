@@ -292,3 +292,4 @@ TEST(Cortexm4GdbMonitor, TestPrintHfsrRegister) {
 
 }  // namespace
 }  // namespace corpus_tests
+

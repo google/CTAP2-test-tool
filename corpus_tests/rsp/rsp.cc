@@ -127,3 +127,4 @@ bool RemoteSerialProtocol::ReadAcknowledgement() {
 
 }  // namespace rsp
 }  // namespace corpus_tests
+

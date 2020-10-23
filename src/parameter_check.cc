@@ -81,3 +81,4 @@ std::string_view CounterChecker::ReportFindings() const {
 }
 
 }  // namespace fido2_tests
+

@@ -44,3 +44,4 @@ class Monitor {
 }  // namespace corpus_tests
 
 #endif  // MONITOR_H_
+

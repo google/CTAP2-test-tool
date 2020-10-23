@@ -115,3 +115,4 @@ bool BlackboxMonitor::DeviceCrashed() {
 }
 
 }  // namespace corpus_tests
+

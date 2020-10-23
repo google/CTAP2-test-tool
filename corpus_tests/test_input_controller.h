@@ -67,3 +67,4 @@ class CorpusIterator {
 }  // namespace corpus_tests
 
 #endif  // TEST_INPUT_CONTROLLER_H_
+

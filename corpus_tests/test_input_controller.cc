@@ -129,3 +129,4 @@ fido2_tests::Status SendInput(fido2_tests::DeviceInterface* device,
 }
 
 }  // namespace corpus_tests
+

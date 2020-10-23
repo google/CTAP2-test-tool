@@ -69,3 +69,4 @@ class CounterChecker {
 }  // namespace fido2_tests
 
 #endif  // PARAMETER_CHECK_H_
+

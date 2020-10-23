@@ -64,7 +64,7 @@ std::vector<uint8_t> LeftHmacSha256(const std::vector<uint8_t>& secret,
 std::vector<uint8_t> LeftSha256Hash(const std::vector<uint8_t>& message);
 
 // Returns the SHA256 of given message of type string.
-std::vector<uint8_t> Sha256Hash(const std::string& message);
+std::vector<uint8_t> Sha256Hash(std::string_view message);
 
 // Returns the SHA256 of given message of type byte vector.
 std::vector<uint8_t> Sha256Hash(const std::vector<uint8_t>& message);
@@ -73,3 +73,4 @@ std::vector<uint8_t> Sha256Hash(const std::vector<uint8_t>& message);
 }  // namespace fido2_tests
 
 #endif  // CRYPTO_UTILITY_H_
+
