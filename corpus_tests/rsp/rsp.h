@@ -18,8 +18,9 @@
 #include <optional>
 #include <vector>
 
-#include "rsp_packet.h"
+#include "corpus_tests/rsp/rsp_packet.h"
 
+namespace corpus_tests {
 namespace rsp {
 
 // Implements a GDB Remote Serial Protocol (RSP) client through
@@ -57,10 +58,11 @@ class RemoteSerialProtocol {
   // was acknowledged.
   bool ReadAcknowledgement();
 
-  int socket_;
+  int socket_ = -1;
   std::vector<char> recv_buffer_;
 };
 
 }  // namespace rsp
+}  // namespace corpus_tests
 
 #endif  // GDB_RSP_H_

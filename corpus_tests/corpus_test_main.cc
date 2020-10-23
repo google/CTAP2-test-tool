@@ -14,7 +14,7 @@
 
 #include <iostream>
 
-#include "corpus_tests/monitor.h"
+#include "corpus_tests/monitor/cortexm4_gdb_monitor.h"
 #include "corpus_tests/test_input_controller.h"
 #include "gflags/gflags.h"
 #include "glog/logging.h"
@@ -65,10 +65,8 @@ int main(int argc, char** argv) {
   CHECK(fido2_tests::Status::kErrNone == device->Init())
       << "CTAPHID initialization failed";
 
-  corpus_tests::Monitor monitor;
-  CHECK(monitor.Attach(device.get(), FLAGS_port))
-      << "Monitor failed to attach!";
-  CHECK(monitor.Start()) << "Monitor failed to start!";
+  corpus_tests::Cortexm4GdbMonitor monitor(FLAGS_port);
+  CHECK(monitor.Attach()) << "Monitor failed to attach!";
 
   std::string corpus_dir = FLAGS_corpus_path;
   if (const char* env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) {
@@ -82,9 +80,8 @@ int main(int argc, char** argv) {
     }
     corpus_tests::SendInput(device.get(), input_type, input_data);
     if (monitor.DeviceCrashed()) {
-      std::cout << "DEVICE CRASHED!" << std::endl;
-      monitor.SaveCrashFile(input_type, input_path);
       monitor.PrintCrashReport();
+      monitor.SaveCrashFile(input_type, input_path);
       break;
     }
   }
