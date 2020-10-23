@@ -106,9 +106,6 @@ int main(int argc, char** argv) {
                                                     &command_state);
   test_series.ClientPinGetUVRetriesTest(device.get(), &tracker, &command_state);
 
-  test_series.ResetDeletionTest(device.get(), &tracker, &command_state);
-  test_series.ResetPhysicalPresenceTest(device.get(), &tracker, &command_state);
-
   test_series.MakeCredentialExcludeListTest(device.get(), &tracker,
                                             &command_state);
   test_series.MakeCredentialCoseAlgorithmTest(device.get(), &tracker,

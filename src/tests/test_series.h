@@ -201,17 +201,6 @@ class TestSeries {
   void ClientPinRetriesTest(DeviceInterface* device,
                             DeviceTracker* device_tracker,
                             CommandState* command_state);
-
-  // Tests for Reset.
-
-  // Tests if the state on the device is wiped out.
-  // Replugging the device before calling the function is necessary.
-  void ResetDeletionTest(DeviceInterface* device, DeviceTracker* device_tracker,
-                         CommandState* command_state);
-  // Tests if requirements for resetting are enforced.
-  void ResetPhysicalPresenceTest(DeviceInterface* device,
-                                 DeviceTracker* device_tracker,
-                                 CommandState* command_state);
 };
 
 }  // namespace fido2_tests

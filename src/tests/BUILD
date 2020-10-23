@@ -21,7 +21,6 @@ cc_library(
         "test_series.cc",
         "test_get_assertion.cc",
         "test_make_credential.cc",
-        "test_reset.cc",
     ],
     hdrs = ["test_series.h"],
     copts = [
@@ -33,6 +32,7 @@ cc_library(
         "//:device_tracker",
         "//src/tests:base",
         "//src/tests:general",
+        "//src/tests:reset",
         "//third_party/chromium_components_cbor:cbor",
     ],
 )
@@ -53,6 +53,25 @@ cc_library(
         "//src/tests:test_helpers",
         "//third_party/chromium_components_cbor:cbor",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:variant",
+    ],
+)
+
+cc_library(
+    name = "reset",
+    srcs = ["reset.cc"],
+    hdrs = ["reset.h"],
+    copts = [
+        "-Wno-return-type",
+    ],
+    deps = [
+        "//:command_state",
+        "//:device_interface",
+        "//:device_tracker",
+        "//:fido2_commands",
+        "//src/tests:base",
+        "//src/tests:test_helpers",
+        "//third_party/chromium_components_cbor:cbor",
         "@com_google_absl//absl/types:variant",
     ],
 )

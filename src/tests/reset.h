@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TESTS_GENERAL_H_
-#define TESTS_GENERAL_H_
+#ifndef TESTS_RESET_H_
+#define TESTS_RESET_H_
 
 #include "src/command_state.h"
 #include "src/device_interface.h"
@@ -22,19 +22,15 @@
 
 namespace fido2_tests {
 
-// Checks if the GetInfo command has valid output implicitly. Also checks for
-// support of PIN protocol version 1, because it is used throughout all tests.
-TEST_CLASS(GetInfoTest);
+// Tests if credentials on the device are wiped out after reset.
+TEST_CLASS(DeleteCredentialsTest);
 
-// Tests if credentials persist after replugging.
-TEST_CLASS(PersistentCredentialsTest);
+// Tests if a PIN on the device is wiped out after reset.
+TEST_CLASS(DeletePinTest);
 
-// Tests if PIN retries persist after replugging.
-TEST_CLASS(PersistentPinRetriesTest);
-
-// Tests if the auth token regenerates after replugging.
-TEST_CLASS(RegeneratesPinAuthTest);
+// Tests if requirements for resetting are enforced.
+TEST_CLASS(ResetPhysicalPresenceTest);
 
 }  // namespace fido2_tests
 
-#endif  // TESTS_GENERAL_H_
+#endif  // TESTS_RESET_H_

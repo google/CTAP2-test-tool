@@ -15,6 +15,7 @@
 #include "src/tests/test_series.h"
 
 #include "src/tests/general.h"
+#include "src/tests/reset.h"
 
 namespace fido2_tests {
 namespace runners {
@@ -23,8 +24,12 @@ const std::vector<std::unique_ptr<BaseTest>>& GetTests() {
   static const auto* const tests = [] {
     auto* test_list = new std::vector<std::unique_ptr<BaseTest>>;
     test_list->push_back(std::make_unique<GetInfoTest>());
-    test_list->push_back(std::make_unique<PersistantCredentialsTest>());
-    test_list->push_back(std::make_unique<PersistantPinRetriesTest>());
+    test_list->push_back(std::make_unique<PersistentCredentialsTest>());
+    test_list->push_back(std::make_unique<PersistentPinRetriesTest>());
+    test_list->push_back(std::make_unique<RegeneratesPinAuthTest>());
+    test_list->push_back(std::make_unique<DeleteCredentialsTest>());
+    test_list->push_back(std::make_unique<DeletePinTest>());
+    test_list->push_back(std::make_unique<ResetPhysicalPresenceTest>());
     return test_list;
   }();
   return *tests;

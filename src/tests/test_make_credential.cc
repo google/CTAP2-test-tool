@@ -526,6 +526,7 @@ void TestSeries::MakeCredentialPhysicalPresenceTest(
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
 
+  device_tracker->IgnoreNextTouchPrompt();
   test_helpers::PrintNoTouchPrompt();
 
   MakeCredentialCborBuilder make_credential_builder;
