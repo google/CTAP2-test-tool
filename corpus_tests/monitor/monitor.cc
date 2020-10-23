@@ -63,3 +63,4 @@ void Monitor::SaveCrashFile(InputType input_type,
 }
 
 }  // namespace corpus_tests
+

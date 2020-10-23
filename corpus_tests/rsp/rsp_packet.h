@@ -56,3 +56,4 @@ class RspPacket {
 }  // namespace corpus_tests
 
 #endif  // GDB_RSP_PACKET_H_
+
