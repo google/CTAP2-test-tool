@@ -65,7 +65,7 @@ void PromptUser() {
 
 // This function outputs the vendor & product ID for a HID device at a given
 // path, for example "/dev/hidraw4".
-std::pair<uint16_t, uint16_t> ReadDeviceIdentifiers(std::string pathname) {
+std::pair<uint16_t, uint16_t> ReadDeviceIdentifiers(std::string_view pathname) {
   hid_device_info* devs = hid_enumerate(0, 0);  // 0 means all devices
   std::pair<uint16_t, uint16_t> vendor_product_id(0, 0);
 
@@ -135,10 +135,10 @@ bool IsKnownStatusByte(uint8_t status_byte) {
 }
 }  // namespace
 
-HidDevice::HidDevice(DeviceTracker* tracker, const std::string& pathname)
+HidDevice::HidDevice(DeviceTracker* tracker, std::string_view pathname)
     : HidDevice(tracker, pathname, /* verbose_logging = */ false) {}
 
-HidDevice::HidDevice(DeviceTracker* tracker, const std::string& pathname,
+HidDevice::HidDevice(DeviceTracker* tracker, std::string_view pathname,
                      bool verbose_logging)
     : tracker_(tracker),
       verbose_logging_(verbose_logging),
@@ -259,7 +259,9 @@ Status HidDevice::ExchangeCbor(Command command,
     if (keepalive_response == KeepaliveStatus::kStatusUpNeeded &&
         !has_sent_prompt) {
       has_sent_prompt = true;
-      PromptUser();
+      if (!tracker_->IsTouchPromptIgnored()) {
+        PromptUser();
+      }
     }
     status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
     if (status != Status::kErrNone) return status;
@@ -414,13 +416,13 @@ Status HidDevice::ExecuteWink() {
   return status;
 }
 
-void HidDevice::Log(const std::string& message) const {
+void HidDevice::Log(std::string_view message) const {
   if (verbose_logging_) {
     std::cout << message << std::endl;
   }
 }
 
-void HidDevice::Log(const std::string& direction, Frame* frame) const {
+void HidDevice::Log(std::string_view direction, Frame* frame) const {
   if (!verbose_logging_) {
     return;
   }
@@ -525,5 +527,19 @@ void PrintFidoDevices() {
   hid_free_enumeration(devs);
 }
 
+std::string FindFirstFidoDevicePath() {
+  hid_device_info* devs = hid_enumerate(0, 0);  // 0 means all devices.
+  std::string device_path;
+  for (hid_device_info* cur_dev = devs; cur_dev; cur_dev = cur_dev->next) {
+    if (cur_dev->usage_page == 0xf1d0 /* FIDO specific usage page*/) {
+      device_path = cur_dev->path;
+      break;
+    }
+  }
+  hid_free_enumeration(devs);
+  return device_path;
+}
+
 }  // namespace hid
 }  // namespace fido2_tests
+

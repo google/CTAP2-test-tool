@@ -14,6 +14,8 @@
 
 # Test suite for FIDO 2 authenticators
 
+package(default_visibility = ["//visibility:public"])
+
 # Windows is untested so far.
 cc_library(
     name = "hid_device",
@@ -51,6 +53,16 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "cbor_builders_test",
+    srcs = ["src/cbor_builders_test.cc"],
+    deps = [
+        ":cbor_builders",
+        "@com_google_googletest//:gtest_main",
+    ],
+    size = "small",
+)
+
 cc_library(
     name = "constants",
     srcs = ["src/constants.cc"],
@@ -79,8 +91,10 @@ cc_library(
     deps = [
         ":constants",
         ":parameter_check",
+        ":stamp",
         "//third_party/chromium_components_cbor:cbor",
         "@com_github_nlohmann_json//:json",
+        "@com_google_absl//absl/time",
     ],
 )
 
@@ -113,6 +127,24 @@ cc_library(
 )
 
 cc_library(
+    name = "command_state",
+    srcs = ["src/command_state.cc"],
+    hdrs = ["src/command_state.h"],
+    deps = [
+        ":constants",
+        ":crypto_utility",
+        ":cbor_builders",
+        ":device_interface",
+        ":device_tracker",
+        ":fido2_commands",
+        "//third_party/chromium_components_cbor:cbor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:variant",
+        "@com_google_glog//:glog",
+    ],
+)
+
+cc_library(
     name = "parameter_check",
     srcs = ["src/parameter_check.cc"],
     hdrs = ["src/parameter_check.h"],
@@ -124,34 +156,19 @@ cc_library(
 )
 
 cc_library(
-    name = "test_series",
-    srcs = ["src/test_series.cc"],
-    hdrs = ["src/test_series.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
-    deps = [
-        ":cbor_builders",
-        ":crypto_utility",
-        ":device_interface",
-        ":device_tracker",
-        ":fido2_commands",
-        "//third_party/chromium_components_cbor:cbor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
-        "@com_google_absl//absl/types:variant",
-        "@com_google_glog//:glog",
-    ],
+    name = "stamp",
+    linkstamp = "src/stamp.cc"
 )
 
 cc_binary(
     name = "fido2_conformance",
     srcs = ["src/fido2_conformance_main.cc"],
     deps = [
+        ":command_state",
         ":device_tracker",
         ":hid_device",
         ":parameter_check",
-        ":test_series",
+        "//src/tests:test_series",
         "@com_github_gflags_gflags//:gflags",
         "@com_google_glog//:glog",
     ],
@@ -254,3 +271,4 @@ cc_test(
     ],
     size = "small",
 )
+

@@ -18,6 +18,12 @@ alias clang-format=clang-format-9
 
 clang-format --version
 
-find . -name '*.h' -print0 -o -name '*.cc' -print0 -o -path './third_party' \
-  -prune -false | xargs -0 -n 1 clang-format --verbose -i
+# Recursively covers the same paths as clang-format-show-diff.sh. Breaks on
+# whitespace.
+for FILE in $(find . -name '*.h' -o -name '*.cc' -o \
+                     -path './third_party' -prune -false); do
+  # Run clang-format, then append a newline.
+  clang-format --verbose -i "${FILE}"
+  echo "" >> "${FILE}"
+done
 

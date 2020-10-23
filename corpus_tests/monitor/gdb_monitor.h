@@ -52,3 +52,4 @@ class GdbMonitor : public Monitor {
 }  // namespace corpus_tests
 
 #endif  // GDB_MONITOR_H_
+

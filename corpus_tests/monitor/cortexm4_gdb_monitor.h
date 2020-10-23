@@ -54,3 +54,4 @@ class Cortexm4GdbMonitor : public GdbMonitor {
 }  // namespace corpus_tests
 
 #endif  // CORTEXM4_GDB_MONITOR_H_
+

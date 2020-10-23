@@ -32,27 +32,6 @@ namespace fido2_commands {
 using ByteVector = std::vector<uint8_t>;
 
 namespace {
-enum class InfoMember : uint8_t {
-  kVersions = 0x01,
-  kExtensions = 0x02,
-  kAaguid = 0x03,
-  kOptions = 0x04,
-  kMaxMsgSize = 0x05,
-  kPinUvAuthProtocols = 0x06,
-  kMaxCredentialCountInList = 0x07,
-  kMaxCredentialIdLength = 0x08,
-  kTransports = 0x09,
-  kAlgorithms = 0x0A,
-  kMaxSerializedLargeBlobArray = 0x0B,
-  // 0x0C is intentionally missing.
-  kMinPinLength = 0x0D,
-  kFirmwareVersion = 0x0E,
-  kMaxCredBlobLength = 0x0F,
-  kMaxRpIdsForSetMinPinLength = 0x10,
-  kPreferredPlatformUvAttempts = 0x11,
-  kUvModality = 0x12,
-};
-
 void CompareExtensions(const cbor::Value& request, int map_key,
                        const ByteVector& extension_data) {
   if (extension_data.empty()) {
@@ -140,9 +119,10 @@ size_t PubKeyDuplicateCheck(KeyChecker* key_checker,
 std::string ExtractRpIdFromMakeCredentialRequest(const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(cbor::Value(2));
-  CHECK(req_iter != request_map.end()) << "2 not in request - TEST SUITE BUG";
-  CHECK(req_iter->second.is_map()) << "entry 2 is not a map - TEST SUITE BUG";
+  auto req_iter = request_map.find(
+      cbor::Value(static_cast<int>(MakeCredentialParameters::kRp)));
+  CHECK(req_iter != request_map.end()) << "RP not in request - TEST SUITE BUG";
+  CHECK(req_iter->second.is_map()) << "RP is not a map - TEST SUITE BUG";
   const auto& inner_map = req_iter->second.GetMap();
   auto rp_entity_iter = inner_map.find(cbor::Value("id"));
   CHECK(rp_entity_iter != inner_map.end())
@@ -155,10 +135,12 @@ std::string ExtractRpIdFromMakeCredentialRequest(const cbor::Value& request) {
 std::string ExtractRpIdFromGetAssertionRequest(const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(cbor::Value(1));
-  CHECK(req_iter != request_map.end()) << "1 not in request - TEST SUITE BUG";
+  auto req_iter = request_map.find(
+      cbor::Value(static_cast<int>(GetAssertionParameters::kRpId)));
+  CHECK(req_iter != request_map.end())
+      << "RP ID not in request - TEST SUITE BUG";
   CHECK(req_iter->second.is_string())
-      << "entry 2 is not a string - TEST SUITE BUG";
+      << "RP ID is not a string - TEST SUITE BUG";
   return req_iter->second.GetString();
 }
 
@@ -166,10 +148,12 @@ PinSubCommand ExtractSubCommandFromClientPinRequest(
     const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(cbor::Value(2));
-  CHECK(req_iter != request_map.end()) << "2 not in request - TEST SUITE BUG";
+  auto req_iter = request_map.find(
+      cbor::Value(static_cast<int>(ClientPinParameters::kSubCommand)));
+  CHECK(req_iter != request_map.end())
+      << "subcommand not in request - TEST SUITE BUG";
   CHECK(req_iter->second.is_unsigned())
-      << "entry 2 is not an unsigned - TEST SUITE BUG";
+      << "subcommand is not an unsigned - TEST SUITE BUG";
   return static_cast<PinSubCommand>(req_iter->second.GetUnsigned());
 }
 
@@ -177,10 +161,12 @@ cbor::Value::BinaryValue ExtractUniqueCredentialFromAllowList(
     const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(cbor::Value(3));
-  CHECK(req_iter != request_map.end()) << "3 not in request - TEST SUITE BUG";
+  auto req_iter = request_map.find(
+      cbor::Value(static_cast<int>(GetAssertionParameters::kAllowList)));
+  CHECK(req_iter != request_map.end())
+      << "allow list not in request - TEST SUITE BUG";
   CHECK(req_iter->second.is_array())
-      << "entry 3 is not an array - TEST SUITE BUG";
+      << "allow list is not an array - TEST SUITE BUG";
   CHECK_EQ(req_iter->second.GetArray().size(), 1u)
       << "allow list length is not 1";
   const auto& cred_descriptor_entry = req_iter->second.GetArray()[0];
@@ -199,18 +185,19 @@ cbor::Value::BinaryValue ExtractUniqueCredentialFromAllowList(
 bool ExtractUpOptionFromGetAssertionRequest(const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(cbor::Value(5));
+  auto req_iter = request_map.find(
+      cbor::Value(static_cast<int>(GetAssertionParameters::kOptions)));
   if (req_iter == request_map.end()) {
     return true;
   }
-  CHECK(req_iter->second.is_map()) << "entry 5 is not a map - TEST SUITE BUG";
+  CHECK(req_iter->second.is_map()) << "options are not a map - TEST SUITE BUG";
   const auto& inner_map = req_iter->second.GetMap();
   auto options_iter = inner_map.find(cbor::Value("up"));
   if (options_iter == inner_map.end()) {
     return true;
   }
   CHECK(options_iter->second.is_bool())
-      << "\"up\" is not a boolean - TEST SUITE BUG";
+      << "option \"up\" is not a boolean - TEST SUITE BUG";
   return options_iter->second.GetBool();
 }
 }  // namespace
@@ -260,7 +247,8 @@ absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
   uint8_t flags = auth_data[32];
   // MakeCredential always checks user presence, regardless of verification.
   CHECK(flags & 0x01) << "user presence flag was not set";
-  if (IsKeyInRequest(request, 8)) {
+  if (IsKeyInRequest(request, static_cast<int>(
+                                  MakeCredentialParameters::kPinUvAuthParam))) {
     CHECK(flags & 0x04) << "no user verification flag despite auth token";
   }
 
@@ -292,7 +280,9 @@ absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
   CHECK(has_extension_flag == (cose_key_size < cose_key.size()))
       << "extension flag not matching response";
   ByteVector extension_data(cose_key.begin() + cose_key_size, cose_key.end());
-  CompareExtensions(request, 6, extension_data);
+  CompareExtensions(request,
+                    static_cast<int>(MakeCredentialParameters::kExtensions),
+                    extension_data);
 
   map_iter = decoded_map.find(cbor::Value(3));
   CHECK(map_iter != decoded_map.end())
@@ -393,7 +383,8 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
   // Contrary to MakeCredential, explicitly setting "up" to false is okay.
   CHECK(flags & 0x05 || !requires_up) << "silent assertion not requested";
   // GetAssertion does not need a user presence after verification.
-  if (IsKeyInRequest(request, 6)) {
+  if (IsKeyInRequest(
+          request, static_cast<int>(GetAssertionParameters::kPinUvAuthParam))) {
     CHECK(flags & 0x04) << "no user verification flag despite auth token";
   }
 
@@ -407,7 +398,9 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
   CHECK(has_extension_flag == (extension_data_size > 0))
       << "extension flag not matching response";
   ByteVector extension_data(auth_data.begin() + 37, auth_data.end());
-  CompareExtensions(request, 4, extension_data);
+  CompareExtensions(request,
+                    static_cast<int>(GetAssertionParameters::kExtensions),
+                    extension_data);
 
   map_iter = decoded_map.find(cbor::Value(3));
   CHECK(map_iter != decoded_map.end())
@@ -475,7 +468,7 @@ absl::variant<cbor::Value, Status> GetNextAssertionPositiveTest(
 }
 
 absl::variant<cbor::Value, Status> GetInfoPositiveTest(
-    DeviceInterface* device) {
+    DeviceInterface* device, DeviceTracker* device_tracker) {
   ByteVector req_cbor;
   ByteVector resp_cbor;
   Status status = device->ExchangeCbor(Command::kAuthenticatorGetInfo, req_cbor,
@@ -503,6 +496,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
   }
   CHECK(versions_set.find("FIDO_2_0") != versions_set.end())
       << "versions does not contain \"FIDO_2_0\"";
+  const cbor::Value::ArrayValue& versions = map_iter->second.GetArray();
 
   map_iter = decoded_map.find(
       cbor::Value(static_cast<uint8_t>(InfoMember::kExtensions)));
@@ -516,6 +510,10 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
       extensions_set.insert(extension.GetString());
     }
   }
+  cbor::Value::ArrayValue empty_extensions;
+  const cbor::Value::ArrayValue& extensions = map_iter != decoded_map.end()
+                                                  ? map_iter->second.GetArray()
+                                                  : empty_extensions;
 
   map_iter =
       decoded_map.find(cbor::Value(static_cast<uint8_t>(InfoMember::kAaguid)));
@@ -532,6 +530,9 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
       CHECK(options_iter.second.is_bool()) << "option value is not a boolean";
     }
   }
+  cbor::Value::MapValue empty_options;
+  const cbor::Value::MapValue& options =
+      map_iter != decoded_map.end() ? map_iter->second.GetMap() : empty_options;
 
   map_iter = decoded_map.find(
       cbor::Value(static_cast<uint8_t>(InfoMember::kMaxMsgSize)));
@@ -545,8 +546,8 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_array())
         << "pinUvAuthProtocols entry is not an array";
-    for (const auto& extension : map_iter->second.GetArray()) {
-      CHECK(extension.is_unsigned())
+    for (const auto& protocol : map_iter->second.GetArray()) {
+      CHECK(protocol.is_unsigned())
           << "pinUvAuthProtocols elements are not unsigned";
     }
   }
@@ -666,6 +667,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
         << "there are unspecified map keys";
   }
 
+  device_tracker->Initialize(versions, extensions, options);
   return decoded_response->Clone();
 }
 
@@ -855,3 +857,4 @@ Status NonCborNegativeTest(DeviceInterface* device,
 
 }  // namespace fido2_commands
 }  // namespace fido2_tests
+
