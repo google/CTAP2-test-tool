@@ -49,3 +49,4 @@ void RunTests(DeviceInterface* device, DeviceTracker* device_tracker,
 
 }  // namespace runners
 }  // namespace fido2_tests
+

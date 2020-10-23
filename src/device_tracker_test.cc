@@ -147,3 +147,4 @@ TEST(DeviceTracker, TestCheckStatus) {
 
 }  // namespace
 }  // namespace fido2_tests
+

@@ -34,3 +34,4 @@ TEST_CLASS(ResetPhysicalPresenceTest);
 }  // namespace fido2_tests
 
 #endif  // TESTS_RESET_H_
+

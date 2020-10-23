@@ -364,3 +364,4 @@ void TestSeries::GetAssertionPhysicalPresenceTest(DeviceInterface* device,
 // TODO(kaczmarczyck) check returned signature crypto
 
 }  // namespace fido2_tests
+

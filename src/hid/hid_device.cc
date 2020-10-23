@@ -542,3 +542,4 @@ std::string FindFirstFidoDevicePath() {
 
 }  // namespace hid
 }  // namespace fido2_tests
+

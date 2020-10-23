@@ -636,3 +636,4 @@ void TestSeries::MakeCredentialHmacSecretTest(DeviceInterface* device,
 }
 
 }  // namespace fido2_tests
+

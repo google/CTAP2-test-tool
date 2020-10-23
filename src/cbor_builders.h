@@ -185,3 +185,4 @@ class AuthenticatorClientPinCborBuilder : public CborBuilder {
 }  // namespace fido2_tests
 
 #endif  // CBOR_BUILDERS_H_
+

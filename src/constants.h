@@ -170,3 +170,4 @@ enum class InfoMember : uint8_t {
 }  // namespace fido2_tests
 
 #endif  // CONSTANTS_H_
+

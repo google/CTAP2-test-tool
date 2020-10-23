@@ -129,3 +129,4 @@ std::string CommandToString(Command command) {
   }
 }
 }  // namespace fido2_tests
+

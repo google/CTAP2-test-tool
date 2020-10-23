@@ -41,3 +41,4 @@ TEST(DeviceTracker, TestExampleSubclass) {
 
 }  // namespace
 }  // namespace fido2_tests
+

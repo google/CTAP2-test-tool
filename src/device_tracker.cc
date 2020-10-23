@@ -299,3 +299,4 @@ void DeviceTracker::SaveResultsToFile() {
 }
 
 }  // namespace fido2_tests
+

@@ -166,3 +166,4 @@ std::optional<std::string> ResetPhysicalPresenceTest::Execute(
 }
 
 }  // namespace fido2_tests
+

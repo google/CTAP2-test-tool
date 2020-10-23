@@ -286,3 +286,4 @@ cbor::Value::BinaryValue CommandState::GetCurrentAuthToken() {
 }
 
 }  // namespace fido2_tests
+

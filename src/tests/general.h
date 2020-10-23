@@ -38,3 +38,4 @@ TEST_CLASS(RegeneratesPinAuthTest);
 }  // namespace fido2_tests
 
 #endif  // TESTS_GENERAL_H_
+

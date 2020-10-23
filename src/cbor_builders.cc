@@ -390,3 +390,4 @@ void AuthenticatorClientPinCborBuilder::AddDefaultsForGetUvRetries() {
 }
 
 }  // namespace fido2_tests
+

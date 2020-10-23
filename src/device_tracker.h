@@ -144,3 +144,4 @@ class DeviceTracker {
 }  // namespace fido2_tests
 
 #endif  // DEVICE_TRACKER_H_
+

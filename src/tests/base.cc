@@ -34,3 +34,4 @@ std::string BaseTest::GetDescription() const { return test_description_; }
 bool BaseTest::HasTag(Tag tag) const { return tags_.contains(tag); }
 
 }  // namespace fido2_tests
+
