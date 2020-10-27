@@ -48,7 +48,6 @@ cc_library(
     srcs = ["blackbox_monitor.cc"],
     hdrs = ["blackbox_monitor.h"],
     deps = [
-        "//:hid_device",
         "//src/monitors:monitor",
         "//:command_state",
     ],

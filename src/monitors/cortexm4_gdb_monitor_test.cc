@@ -292,4 +292,3 @@ TEST(Cortexm4GdbMonitor, TestPrintHfsrRegister) {
 
 }  // namespace
 }  // namespace fido2_tests
-

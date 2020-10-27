@@ -15,7 +15,7 @@
 #ifndef BLACKBOX_MONITOR_H_
 #define BLACKBOX_MONITOR_H_
 
-#include "src/hid/hid_device.h"
+#include "src/command_state.h"
 #include "src/monitors/monitor.h"
 #include "third_party/chromium_components_cbor/values.h"
 
@@ -24,33 +24,19 @@ namespace fido2_tests {
 // A Monitor that detects a hang or a reboot after crash on the given device.
 class BlackboxMonitor : public Monitor {
  public:
-  BlackboxMonitor(fido2_tests::DeviceInterface* device,
-                  fido2_tests::DeviceTracker* device_tracker);
-  // Attaches the monitor to a device for further crash detection by
-  // setting up an initial pin token.
-  bool Attach() override;
+  BlackboxMonitor(CommandState* command_state);
+  // Prepares for further crash detection by setting up an initial pin token.
+  void Prepare() override;
   // Checks for an occured failure in the device through the identification of a
   // hang (no response) or a reboot after crash by comparing the pin token of
   // the security key.
   bool DeviceCrashed() override;
 
  private:
-  // TODO(mingxguo): the following methods need refactoring with master branch.
-  // Gets the shared secret from the device.
-  void ComputeSharedSecret();
-  // Sets up a default pin on the device.
-  void SetDefaultPin();
-  // Returns the pin token of the device if operation successful.
-  std::optional<cbor::Value::BinaryValue> GetPinToken();
-
-  fido2_tests::DeviceInterface* device_;
-  fido2_tests::DeviceTracker* device_tracker_;
+  CommandState* command_state_;
   cbor::Value::BinaryValue initial_pin_token_;
-  cbor::Value::BinaryValue shared_secret_;
-  cbor::Value::MapValue platform_cose_key_;
 };
 
 }  // namespace fido2_tests
 
 #endif  // BLACKBOX_MONITOR_H_
-

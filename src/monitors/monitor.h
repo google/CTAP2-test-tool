@@ -21,8 +21,9 @@ namespace fido2_tests {
 
 // Base class that tracks crashes on a given device.
 // Example:
-//   corpus_tests::Monitor monitor;
+//   fido2_tests::Monitor monitor;
 //   monitor.Attach();
+//   monitor.Prepare();
 //   if (monitor.DeviceCrashed()) {
 //     monitor.PrintCrashReport();
 //     monitor.SaveCrashFile();
@@ -31,17 +32,19 @@ class Monitor {
  public:
   // Attaches the monitor to a device if needed. By default it's not necessary.
   virtual bool Attach() { return true; };
+  // Prepares the necessary steps to monitor the device.
+  virtual void Prepare(){};
   // Checks for an occured failure in the device. Every derived monitor should
   // provide an implementation of this function.
   virtual bool DeviceCrashed() = 0;
   // Prints some information about the produced crash on the device
   // and/or the state of the device.
   virtual void PrintCrashReport();
-  // Saves the given file crashing the device in the artifacts directory.
-  void SaveCrashFile(InputType input_type, std::string_view const& input_path);
+  // Saves the given file crashing the device in the artifacts directory. Returns the path
+  // of the saved file.
+  std::string SaveCrashFile(InputType input_type, std::string_view const& input_path);
 };
 
 }  // namespace fido2_tests
 
 #endif  // MONITOR_H_
-
