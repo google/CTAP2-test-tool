@@ -31,6 +31,7 @@ namespace fido2_tests {
 class Monitor {
  public:
   Monitor(CommandState* command_state);
+  virtual ~Monitor() = default;
   // Attaches the monitor to a device if needed. By default it's not necessary.
   virtual bool Attach() { return true; };
   // Prepares the necessary steps to monitor the device. By default it requires
