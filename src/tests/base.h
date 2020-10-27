@@ -29,7 +29,7 @@ struct Preconditions {
 
 // Describes what features a test uses. Can be used to filter tests or display
 // results grouped by tag.
-enum class Tag { kClientPin, kFido2Point1 };
+enum class Tag { kClientPin, kFido2Point1, kHmacSecret };
 
 // All tests inherit this base class to have the same interface to run them.
 // Run tests by first calling Setup, then Execute.
@@ -53,6 +53,11 @@ class BaseTest {
   std::string GetDescription() const;
   // Checks if the test has a specific tag.
   bool HasTag(Tag tag) const;
+  // Generates an example relying party ID for tests. It is best practise to use
+  // this RP ID outside of special tests to have less interference between
+  // tests. The returned value is consistent between calls and unique for a test
+  // ID.
+  std::string RpId() const;
 
  private:
   const std::string test_id_;

@@ -37,6 +37,7 @@ TEST(DeviceTracker, TestExampleSubclass) {
   EXPECT_EQ(example_test.GetDescription(), "Tests nothing.");
   EXPECT_TRUE(example_test.HasTag(Tag::kClientPin));
   EXPECT_FALSE(example_test.HasTag(Tag::kFido2Point1));
+  EXPECT_EQ(example_test.RpId(), "example.example.com");
 }
 
 }  // namespace

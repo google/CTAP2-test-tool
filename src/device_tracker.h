@@ -25,7 +25,7 @@
 
 namespace fido2_tests {
 
-// Contains all information that is logged a test.
+// Contains all information that is logged in a test.
 struct TestResult {
   std::string test_id;
   std::string test_description;

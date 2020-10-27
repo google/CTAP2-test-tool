@@ -19,8 +19,6 @@ cc_library(
     srcs = [
         "test_client_pin.cc",
         "test_series.cc",
-        "test_get_assertion.cc",
-        "test_make_credential.cc",
     ],
     hdrs = ["test_series.h"],
     copts = [
@@ -32,6 +30,8 @@ cc_library(
         "//:device_tracker",
         "//src/tests:base",
         "//src/tests:general",
+        "//src/tests:get_assertion",
+        "//src/tests:make_credential",
         "//src/tests:reset",
         "//third_party/chromium_components_cbor:cbor",
     ],
@@ -46,6 +46,51 @@ cc_library(
     ],
     deps = [
         "//:command_state",
+        "//:constants",
+        "//:device_interface",
+        "//:device_tracker",
+        "//:fido2_commands",
+        "//src/tests:base",
+        "//src/tests:test_helpers",
+        "//third_party/chromium_components_cbor:cbor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:variant",
+    ],
+)
+
+cc_library(
+    name = "get_assertion",
+    srcs = ["get_assertion.cc"],
+    hdrs = ["get_assertion.h"],
+    copts = [
+        "-Wno-return-type",
+    ],
+    deps = [
+        "//:cbor_builders",
+        "//:command_state",
+        "//:constants",
+        "//:device_interface",
+        "//:device_tracker",
+        "//:fido2_commands",
+        "//src/tests:base",
+        "//src/tests:test_helpers",
+        "//third_party/chromium_components_cbor:cbor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:variant",
+    ],
+)
+
+cc_library(
+    name = "make_credential",
+    srcs = ["make_credential.cc"],
+    hdrs = ["make_credential.h"],
+    copts = [
+        "-Wno-return-type",
+    ],
+    deps = [
+        "//:cbor_builders",
+        "//:command_state",
+        "//:constants",
         "//:device_interface",
         "//:device_tracker",
         "//:fido2_commands",
@@ -66,6 +111,7 @@ cc_library(
     ],
     deps = [
         "//:command_state",
+        "//:constants",
         "//:device_interface",
         "//:device_tracker",
         "//:fido2_commands",
@@ -88,6 +134,7 @@ cc_library(
         "//:device_interface",
         "//:device_tracker",
         "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/strings",
     ],
 )
 

@@ -61,14 +61,12 @@ PersistentCredentialsTest::PersistentCredentialsTest()
 std::optional<std::string> PersistentCredentialsTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  std::string rp_id = "persistence.example.com";
-  absl::variant<cbor::Value, Status> response;
-
   if (!device_tracker->CheckStatus(
-          command_state->MakeTestCredential(rp_id, true))) {
+          command_state->MakeTestCredential(RpId(), true))) {
     return "Cannot make credential for further tests.";
   }
-  response = command_state->MakeTestCredential(rp_id, false);
+  absl::variant<cbor::Value, Status> response =
+      command_state->MakeTestCredential(RpId(), false);
   if (!device_tracker->CheckStatus(response)) {
     return "Cannot make credential for further tests.";
   }
@@ -77,7 +75,7 @@ std::optional<std::string> PersistentCredentialsTest::Execute(
   command_state->PromptReplugAndInit();
 
   GetAssertionCborBuilder persistence_get_assertion_builder;
-  persistence_get_assertion_builder.AddDefaultsForRequiredFields(rp_id);
+  persistence_get_assertion_builder.AddDefaultsForRequiredFields(RpId());
   response = fido2_commands::GetAssertionPositiveTest(
       device, device_tracker, persistence_get_assertion_builder.GetCbor());
   if (!device_tracker->CheckStatus(response)) {

@@ -75,6 +75,50 @@ TEST(DeviceTracker, TestAddProblem) {
   EXPECT_EQ(output, expected_output);
 }
 
+TEST(DeviceTracker, TestCheckStatusOneArgument) {
+  DeviceTracker device_tracker = DeviceTracker();
+  testing::internal::CaptureStdout();
+  EXPECT_TRUE(device_tracker.CheckStatus(Status::kErrNone));
+  EXPECT_FALSE(device_tracker.CheckStatus(Status::kErrOther));
+  std::string output = testing::internal::GetCapturedStdout();
+  std::string expected_output =
+      "The failing error code is `CTAP1_ERR_OTHER`.\n";
+  EXPECT_EQ(output, expected_output);
+}
+
+TEST(DeviceTracker, TestCheckStatusTwoArguments) {
+  DeviceTracker device_tracker = DeviceTracker();
+  testing::internal::CaptureStdout();
+  EXPECT_TRUE(device_tracker.CheckStatus(Status::kErrNone, Status::kErrNone));
+  EXPECT_TRUE(device_tracker.CheckStatus(Status::kErrOther, Status::kErrOther));
+  EXPECT_TRUE(device_tracker.CheckStatus(Status::kErrOther,
+                                         Status::kErrInvalidCommand));
+  EXPECT_FALSE(device_tracker.CheckStatus(Status::kErrOther, Status::kErrNone));
+  std::string output = testing::internal::GetCapturedStdout();
+  std::string output1 =
+      "Expected error code `CTAP1_ERR_OTHER`, got "
+      "`CTAP1_ERR_INVALID_COMMAND`.\n";
+  std::string output2 =
+      "Expected error code `CTAP1_ERR_OTHER`, got `CTAP2_OK`.\n";
+  std::string expected_output = absl::StrCat(output1, output2);
+  EXPECT_EQ(output, expected_output);
+}
+
+TEST(DeviceTracker, TestCheckStatusVariant) {
+  DeviceTracker device_tracker = DeviceTracker();
+  testing::internal::CaptureStdout();
+  absl::variant<cbor::Value, Status> value_variant = cbor::Value();
+  EXPECT_TRUE(device_tracker.CheckStatus(value_variant));
+  absl::variant<cbor::Value, Status> success_status_variant = Status::kErrNone;
+  EXPECT_TRUE(device_tracker.CheckStatus(success_status_variant));
+  absl::variant<cbor::Value, Status> fail_status_variant = Status::kErrOther;
+  EXPECT_FALSE(device_tracker.CheckStatus(fail_status_variant));
+  std::string output = testing::internal::GetCapturedStdout();
+  std::string expected_output =
+      "The failing error code is `CTAP1_ERR_OTHER`.\n";
+  EXPECT_EQ(output, expected_output);
+}
+
 TEST(DeviceTracker, TestCheckAndReport) {
   DeviceTracker device_tracker = DeviceTracker();
   device_tracker.CheckAndReport(false, "FALSE_TEST");

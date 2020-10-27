@@ -124,6 +124,7 @@ bool DeviceTracker::IsTouchPromptIgnored() {
 void DeviceTracker::AddObservation(const std::string& observation) {
   if (std::find(observations_.begin(), observations_.end(), observation) ==
       observations_.end()) {
+    std::cout << observation << std::endl;
     observations_.push_back(observation);
   }
 }
@@ -157,19 +158,23 @@ void DeviceTracker::AssertResponse(
 }
 
 bool DeviceTracker::CheckStatus(Status status) {
-  return status == Status::kErrNone;
+  bool ok = status == Status::kErrNone;
+  if (!ok) {
+    AddObservation(absl::StrCat("The failing error code is `",
+                                StatusToString(status), "`."));
+  }
+  return ok;
 }
 
 bool DeviceTracker::CheckStatus(Status expected_status,
                                 Status returned_status) {
-  bool is_success = (expected_status == Status::kErrNone) ==
-                    (returned_status == Status::kErrNone);
-  if (is_success && expected_status != returned_status) {
-    AddObservation(absl::StrCat("Expected error code ",
-                                StatusToString(expected_status), ", got ",
-                                StatusToString(returned_status)));
+  if (expected_status != returned_status) {
+    AddObservation(absl::StrCat("Expected error code `",
+                                StatusToString(expected_status), "`, got `",
+                                StatusToString(returned_status), "`."));
   }
-  return is_success;
+  return (expected_status == Status::kErrNone) ==
+         (returned_status == Status::kErrNone);
 }
 
 bool DeviceTracker::CheckStatus(
