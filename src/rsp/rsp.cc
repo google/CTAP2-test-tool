@@ -127,4 +127,3 @@ bool RemoteSerialProtocol::ReadAcknowledgement() {
 
 }  // namespace rsp
 }  // namespace fido2_tests
-

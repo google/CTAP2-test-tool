@@ -65,4 +65,3 @@ TEST(RspPacket, TestToString) {
 }  // namespace
 }  // namespace rsp
 }  // namespace fido2_tests
-

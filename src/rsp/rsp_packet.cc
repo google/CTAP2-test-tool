@@ -63,4 +63,3 @@ std::string RspPacket::ToString() const {
 
 }  // namespace rsp
 }  // namespace fido2_tests
-
