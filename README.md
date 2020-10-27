@@ -1,3 +1,5 @@
+# <img alt="Test Tool logo" src="docs/img/logo.svg" width="200px">
+
 ## CTAP2 test tool
 
 The test suite intents to make it easier for developers to find bugs in their
