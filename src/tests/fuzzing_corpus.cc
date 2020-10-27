@@ -17,7 +17,7 @@
 #include <iostream>
 
 #include "src/constants.h"
-#include "src/test_input_controller.h"
+#include "src/corpus_controller.h"
 
 namespace fido2_tests {
 namespace {
@@ -33,7 +33,7 @@ std::optional<std::string> Execute(fido2_tests::InputType input_type,
   // Prepares the monitor for this test cycle.
   CHECK(monitor->Prepare()) << "Monitor preparation failed!";
   while (corpus_iterator.HasNextInput()) {
-    auto [input_type, input_data, input_path] = corpus_iterator.GetNextInput();
+    auto [input_data, input_path] = corpus_iterator.GetNextInput();
     // std::cout << "Running file " << input_path << std::endl;
     fido2_tests::SendInput(device, input_type, input_data);
     if (monitor->DeviceCrashed()) {

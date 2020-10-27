@@ -15,6 +15,7 @@
 #ifndef MONITOR_H_
 #define MONITOR_H_
 
+#include "src/command_state.h"
 #include "src/corpus_controller.h"
 
 namespace fido2_tests {
