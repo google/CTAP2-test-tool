@@ -42,12 +42,19 @@ std::string CreateArtifactsSubdirectory(const std::string_view& subdirectory) {
 
 }  // namespace
 
+Monitor::Monitor(CommandState* command_state) : command_state_(command_state) {}
+
+bool Monitor::Prepare() {
+  command_state_->PromptReplugAndInit();
+  return true;
+}
+
 void Monitor::PrintCrashReport() {
   std::cout << "DEVICE CRASHED!" << std::endl;
 }
 
 std::string Monitor::SaveCrashFile(InputType input_type,
-                            const std::string_view& input_path) {
+                                   const std::string_view& input_path) {
   std::string input_name =
       static_cast<std::vector<std::string>>(absl::StrSplit(input_path, '/'))
           .back();

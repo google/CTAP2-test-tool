@@ -38,8 +38,8 @@ constexpr int kRetries = 10;
 // Default field width used for printing registers.
 constexpr int kFieldWidth = 40;
 
-Cortexm4GdbMonitor::Cortexm4GdbMonitor(int port)
-    : GdbMonitor(port), rsp_client_(GdbMonitor::GetRspClient()) {}
+Cortexm4GdbMonitor::Cortexm4GdbMonitor(CommandState* command_state, int port)
+    : GdbMonitor(command_state, port), rsp_client_(GdbMonitor::GetRspClient()) {}
 
 void Cortexm4GdbMonitor::PrintOneRegister(
     const std::string_view& register_packet,

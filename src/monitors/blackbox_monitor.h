@@ -26,7 +26,7 @@ class BlackboxMonitor : public Monitor {
  public:
   BlackboxMonitor(CommandState* command_state);
   // Prepares for further crash detection by setting up an initial pin token.
-  void Prepare() override;
+  bool Prepare() override;
   // Checks for an occured failure in the device through the identification of a
   // hang (no response) or a reboot after crash by comparing the pin token of
   // the security key.

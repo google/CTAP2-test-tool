@@ -30,19 +30,25 @@ namespace fido2_tests {
 //   }
 class Monitor {
  public:
+  Monitor(CommandState* command_state);
   // Attaches the monitor to a device if needed. By default it's not necessary.
   virtual bool Attach() { return true; };
-  // Prepares the necessary steps to monitor the device.
-  virtual void Prepare(){};
+  // Prepares the necessary steps to monitor the device. By default it requires
+  // replugging the device.
+  virtual bool Prepare();
   // Checks for an occured failure in the device. Every derived monitor should
   // provide an implementation of this function.
   virtual bool DeviceCrashed() = 0;
   // Prints some information about the produced crash on the device
   // and/or the state of the device.
   virtual void PrintCrashReport();
-  // Saves the given file crashing the device in the artifacts directory. Returns the path
-  // of the saved file.
-  std::string SaveCrashFile(InputType input_type, std::string_view const& input_path);
+  // Saves the given file crashing the device in the artifacts directory.
+  // Returns the path of the saved file.
+  std::string SaveCrashFile(InputType input_type,
+                            std::string_view const& input_path);
+
+ private:
+  CommandState* command_state_;
 };
 
 }  // namespace fido2_tests

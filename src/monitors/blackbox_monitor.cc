@@ -28,21 +28,12 @@ namespace fido2_tests {
 const cbor::Value::BinaryValue kDefaultPin = {0x31, 0x32, 0x33, 0x34};
 constexpr size_t kPinByteLength = 64;
 
-void BlackboxMonitor::ComputeSharedSecret() {
-  fido2_tests::AuthenticatorClientPinCborBuilder key_agreement_builder;
-  key_agreement_builder.AddDefaultsForGetKeyAgreement();
-  absl::variant<cbor::Value, fido2_tests::Status> key_response =
-      fido2_tests::fido2_commands::AuthenticatorClientPinPositiveTest(
-          device_, device_tracker_, key_agreement_builder.GetCbor());
-
-  CHECK(!absl::holds_alternative<fido2_tests::Status>(key_response))
-      << "Key agreement failed - returned status code "
-      << StatusToString(absl::get<fido2_tests::Status>(key_response));
-
-  const auto& key_agreement_map = absl::get<cbor::Value>(key_response).GetMap();
-  auto map_iter = key_agreement_map.find(cbor::Value(1));
-  shared_secret_ = fido2_tests::crypto_utility::CompleteEcdhHandshake(
-      map_iter->second.GetMap(), &platform_cose_key_);
+bool BlackboxMonitor::Prepare() {
+  bool ok = command_state_->GetAuthToken() == Status::kErrNone;
+  if (ok) {
+    initial_pin_token_ = command_state_->GetCurrentAuthToken();
+  }
+  return ok;
 }
 
 void BlackboxMonitor::SetDefaultPin() {

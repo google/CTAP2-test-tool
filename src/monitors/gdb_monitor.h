@@ -24,12 +24,14 @@ namespace fido2_tests {
 // serial protocol server on the target.
 class GdbMonitor : public Monitor {
  public:
-  GdbMonitor(int port);
+  GdbMonitor(CommandState* command_state, int port);
   // Attaches the monitor to a device by connecting to the port
-  // device's GDB server is listening to, and sends "continue" command
+  // device's GDB server is listening to.
+  bool Attach() override;
+  // Prepares the monitor by sending "continue" command
   // to the target. This will execute the program until a
   // crash triggers a breakpoint.
-  bool Attach() override;
+  bool Prepare() override;
   // Checks for an occured failure in the device by attempting to
   // receive data from the RSP server.
   bool DeviceCrashed() override;
