@@ -40,3 +40,4 @@ class BlackboxMonitor : public Monitor {
 }  // namespace fido2_tests
 
 #endif  // BLACKBOX_MONITOR_H_
+

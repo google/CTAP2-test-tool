@@ -82,3 +82,4 @@ std::optional<std::string> GetAssertionCorpusTest::Execute(
 }
 
 }  // namespace fido2_tests
+

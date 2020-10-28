@@ -66,3 +66,4 @@ class RemoteSerialProtocol {
 }  // namespace fido2_tests
 
 #endif  // GDB_RSP_H_
+

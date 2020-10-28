@@ -54,3 +54,4 @@ class GdbMonitor : public Monitor {
 }  // namespace fido2_tests
 
 #endif  // GDB_MONITOR_H_
+

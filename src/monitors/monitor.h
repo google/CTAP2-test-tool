@@ -56,3 +56,4 @@ class Monitor {
 }  // namespace fido2_tests
 
 #endif  // MONITOR_H_
+

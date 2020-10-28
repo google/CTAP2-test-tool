@@ -62,3 +62,4 @@ TEST(GdbMonitor, TestPrintStopReply) {
 
 }  // namespace
 }  // namespace fido2_tests
+

@@ -39,7 +39,8 @@ constexpr int kRetries = 10;
 constexpr int kFieldWidth = 40;
 
 Cortexm4GdbMonitor::Cortexm4GdbMonitor(CommandState* command_state, int port)
-    : GdbMonitor(command_state, port), rsp_client_(GdbMonitor::GetRspClient()) {}
+    : GdbMonitor(command_state, port),
+      rsp_client_(GdbMonitor::GetRspClient()) {}
 
 void Cortexm4GdbMonitor::PrintOneRegister(
     const std::string_view& register_packet,

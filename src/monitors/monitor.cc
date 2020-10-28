@@ -71,3 +71,4 @@ std::string Monitor::SaveCrashFile(InputType input_type,
 }
 
 }  // namespace fido2_tests
+

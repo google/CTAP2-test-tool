@@ -21,6 +21,7 @@
 #include "src/device_tracker.h"
 #include "src/hid/hid_device.h"
 #include "src/parameter_check.h"
+#include "src/tests/base.h"
 #include "src/tests/test_series.h"
 
 DEFINE_string(
@@ -69,7 +70,9 @@ int main(int argc, char** argv) {
       << "The test tool expects user presence support.";
 
   // Setup and run all tests, while tracking their results.
-  fido2_tests::runners::RunTests(device.get(), &tracker, &command_state);
+  const std::vector<std::unique_ptr<fido2_tests::BaseTest>>& tests =
+      fido2_tests::runners::GetTests();
+  fido2_tests::runners::RunTests(device.get(), &tracker, &command_state, tests);
   command_state.Reset();
 
   fido2_tests::TestSeries test_series = fido2_tests::TestSeries();

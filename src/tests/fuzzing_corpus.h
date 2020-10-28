@@ -54,3 +54,4 @@ class GetAssertionCorpusTest : public BaseTest {
 }  // namespace fido2_tests
 
 #endif  // FUZZING_CORPUS_H_
+
