@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "corpus_tests/test_input_controller.h"
+#include "src/corpus_controller.h"
 
 #include <filesystem>
 #include <fstream>
@@ -22,7 +22,7 @@
 #include "absl/strings/str_split.h"
 #include "glog/logging.h"
 
-namespace corpus_tests {
+namespace fido2_tests {
 namespace {
 
 // Helper function that returns the specific type of cbor parameter inputs.
@@ -128,5 +128,5 @@ fido2_tests::Status SendInput(fido2_tests::DeviceInterface* device,
   }
 }
 
-}  // namespace corpus_tests
+}  // namespace fido2_tests
 

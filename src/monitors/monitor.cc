@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "corpus_tests/monitor/monitor.h"
+#include "src/monitors/monitor.h"
 
 #include <filesystem>
 #include <iostream>
@@ -21,7 +21,7 @@
 #include "absl/strings/str_split.h"
 #include "glog/logging.h"
 
-namespace corpus_tests {
+namespace fido2_tests {
 namespace {
 constexpr std::string_view kRelativeDir = "corpus_tests/artifacts";
 
@@ -62,5 +62,5 @@ void Monitor::SaveCrashFile(InputType input_type,
   }
 }
 
-}  // namespace corpus_tests
+}  // namespace fido2_tests
 

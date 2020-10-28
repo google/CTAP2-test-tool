@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "corpus_tests/monitor/blackbox_monitor.h"
+#include "src/monitors/blackbox_monitor.h"
 
 #include <iostream>
 #include <optional>
@@ -22,7 +22,7 @@
 #include "src/crypto_utility.h"
 #include "src/fido2_commands.h"
 
-namespace corpus_tests {
+namespace fido2_tests {
 
 // Default pin = 1234
 const cbor::Value::BinaryValue kDefaultPin = {0x31, 0x32, 0x33, 0x34};
@@ -114,5 +114,5 @@ bool BlackboxMonitor::DeviceCrashed() {
   return !pin_token.has_value() || pin_token.value() != initial_pin_token_;
 }
 
-}  // namespace corpus_tests
+}  // namespace fido2_tests
 

@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "corpus_tests/monitor/gdb_monitor.h"
+#include "src/monitors/gdb_monitor.h"
 
 #include <iostream>
 
 #include "gtest/gtest.h"
 
-namespace corpus_tests {
+namespace fido2_tests {
 namespace {
 
 TEST(GdbMonitor, TestPrintStopReply) {
@@ -61,5 +61,5 @@ TEST(GdbMonitor, TestPrintStopReply) {
 }
 
 }  // namespace
-}  // namespace corpus_tests
+}  // namespace fido2_tests
 

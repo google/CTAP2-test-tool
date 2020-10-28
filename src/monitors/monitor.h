@@ -15,9 +15,9 @@
 #ifndef MONITOR_H_
 #define MONITOR_H_
 
-#include "corpus_tests/test_input_controller.h"
+#include "src/corpus_controller.h"
 
-namespace corpus_tests {
+namespace fido2_tests {
 
 // Base class that tracks crashes on a given device.
 // Example:
@@ -41,7 +41,7 @@ class Monitor {
   void SaveCrashFile(InputType input_type, std::string_view const& input_path);
 };
 
-}  // namespace corpus_tests
+}  // namespace fido2_tests
 
 #endif  // MONITOR_H_
 

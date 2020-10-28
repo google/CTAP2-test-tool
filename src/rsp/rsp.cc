@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "corpus_tests/rsp/rsp.h"
+#include "src/rsp/rsp.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -26,9 +26,9 @@
 #include <string>
 #include <vector>
 
-#include "corpus_tests/rsp/rsp_packet.h"
+#include "src/rsp/rsp_packet.h"
 
-namespace corpus_tests {
+namespace fido2_tests {
 namespace rsp {
 namespace {
 
@@ -75,8 +75,8 @@ bool RemoteSerialProtocol::Terminate() { return (close(socket_) != -1); }
 bool RemoteSerialProtocol::SendPacket(RspPacket packet, int retries /* = 1 */) {
   char const* buf = packet.ToString().c_str();
   for (int i = 0; i < retries; ++i) {
-    int aux = send(socket_, buf, strlen(buf), 0);
-    if (aux == strlen(buf) && ReadAcknowledgement()) {
+    ssize_t aux = send(socket_, buf, strlen(buf), 0);
+    if (aux == static_cast<ssize_t>(strlen(buf)) && ReadAcknowledgement()) {
       return true;
     }
   }
@@ -126,5 +126,5 @@ bool RemoteSerialProtocol::ReadAcknowledgement() {
 }
 
 }  // namespace rsp
-}  // namespace corpus_tests
+}  // namespace fido2_tests
 

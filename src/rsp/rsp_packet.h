@@ -17,7 +17,7 @@
 
 #include <string>
 
-namespace corpus_tests {
+namespace fido2_tests {
 namespace rsp {
 
 // Represents a subset of RSP packets specified in
@@ -53,7 +53,7 @@ class RspPacket {
 };
 
 }  // namespace rsp
-}  // namespace corpus_tests
+}  // namespace fido2_tests
 
 #endif  // GDB_RSP_PACKET_H_
 

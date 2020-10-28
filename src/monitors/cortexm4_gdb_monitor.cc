@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "corpus_tests/monitor/cortexm4_gdb_monitor.h"
+#include "src/monitors/cortexm4_gdb_monitor.h"
 
 #include <arpa/inet.h>
 
@@ -21,7 +21,7 @@
 
 #include "absl/strings/str_cat.h"
 
-namespace corpus_tests {
+namespace fido2_tests {
 
 // Memory addresses of the status registers for fault exceptions.
 constexpr std::string_view kConfigurableFaultStatusRegister = "e000ed28";
@@ -208,5 +208,5 @@ void Cortexm4GdbMonitor::PrintCrashReport() {
   }
 }
 
-}  // namespace corpus_tests
+}  // namespace fido2_tests
 
