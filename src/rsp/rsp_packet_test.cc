@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "corpus_tests/rsp/rsp_packet.h"
+#include "src/rsp/rsp_packet.h"
 
 #include <iostream>
 
 #include "gtest/gtest.h"
 
-namespace corpus_tests {
+namespace fido2_tests {
 namespace rsp {
 namespace {
 
@@ -64,5 +64,5 @@ TEST(RspPacket, TestToString) {
 
 }  // namespace
 }  // namespace rsp
-}  // namespace corpus_tests
+}  // namespace fido2_tests
 

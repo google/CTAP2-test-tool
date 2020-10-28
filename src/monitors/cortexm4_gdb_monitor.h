@@ -15,9 +15,9 @@
 #ifndef CORTEXM4_GDB_MONITOR_H_
 #define CORTEXM4_GDB_MONITOR_H_
 
-#include "corpus_tests/monitor/gdb_monitor.h"
+#include "src/monitors/gdb_monitor.h"
 
-namespace corpus_tests {
+namespace fido2_tests {
 
 // A GdbMonitor specific to the Cortex m4 architecture, capable of
 // a more detailed crash report.
@@ -51,7 +51,7 @@ class Cortexm4GdbMonitor : public GdbMonitor {
   rsp::RemoteSerialProtocol& rsp_client_;
 };
 
-}  // namespace corpus_tests
+}  // namespace fido2_tests
 
 #endif  // CORTEXM4_GDB_MONITOR_H_
 

@@ -160,6 +160,16 @@ cc_library(
     linkstamp = "src/stamp.cc"
 )
 
+cc_library(
+    name = "corpus_controller",
+    srcs = ["src/corpus_controller.cc"],
+    hdrs = ["src/corpus_controller.h"],
+    deps = [
+        ":device_interface",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
 cc_binary(
     name = "fido2_conformance",
     srcs = ["src/fido2_conformance_main.cc"],
@@ -174,101 +184,16 @@ cc_binary(
     ],
 )
 
-cc_library(
-    name = "rsp_packet",
-    srcs = ["corpus_tests/rsp/rsp_packet.cc"],
-    hdrs = ["corpus_tests/rsp/rsp_packet.h"],
-    deps = ["@com_google_absl//absl/strings"]
-)
-
-cc_test(
-    name = "rsp_packet_test",
-    srcs = ["corpus_tests/rsp/rsp_packet_test.cc"],
-    deps = [
-        ":rsp_packet",
-        "@com_google_googletest//:gtest_main",
-    ],
-    size = "small",
-)
-
-cc_library(
-    name = "rsp",
-    srcs = ["corpus_tests/rsp/rsp.cc"],
-    hdrs = ["corpus_tests/rsp/rsp.h"],
-    deps = [
-        ":rsp_packet",
-        "@com_google_glog//:glog",
-    ]
-)
-
-cc_library(
-    name = "monitor",
-    srcs = ["corpus_tests/monitor/monitor.cc"],
-    hdrs = ["corpus_tests/monitor/monitor.h"],
-    deps = [
-        ":test_input_controller"
-    ],
-)
-
-cc_library(
-    name = "gdb_monitor",
-    srcs = ["corpus_tests/monitor/gdb_monitor.cc"],
-    hdrs = ["corpus_tests/monitor/gdb_monitor.h"],
-    deps = [
-        ":monitor",
-        ":rsp"
-    ],
-)
-
-cc_library(
-    name = "cortexm4_gdb_monitor",
-    srcs = ["corpus_tests/monitor/cortexm4_gdb_monitor.cc"],
-    hdrs = ["corpus_tests/monitor/cortexm4_gdb_monitor.h"],
-    deps = [
-        ":gdb_monitor",
-    ],
-)
-
-cc_library(
-    name = "test_input_controller",
-    srcs = ["corpus_tests/test_input_controller.cc"],
-    hdrs = ["corpus_tests/test_input_controller.h"],
-    deps = [
-        ":device_interface",
-        "@com_google_absl//absl/strings",
-    ],
-)
-
 cc_binary(
     name = "corpus_test",
-    srcs = ["corpus_tests/corpus_test_main.cc"],
+    srcs = ["src/corpus_test_main.cc"],
     deps = [
-        ":cortexm4_gdb_monitor",
-        ":test_input_controller",
-        ":hid_device",
+        ":command_state",
         ":constants",
+        ":corpus_controller",
+        ":hid_device",
+        "//src/monitors:cortexm4_gdb_monitor",
         "@com_github_gflags_gflags//:gflags",
         "@com_google_glog//:glog",
     ],
 )
-
-cc_test(
-    name = "cortexm4_gdb_monitor_test",
-    srcs = ["corpus_tests/monitor/cortexm4_gdb_monitor_test.cc"],
-    deps = [
-        ":cortexm4_gdb_monitor",
-        "@com_google_googletest//:gtest_main",
-    ],
-    size = "small",
-)
-
-cc_test(
-    name = "gdb_monitor_test",
-    srcs = ["corpus_tests/monitor/gdb_monitor_test.cc"],
-    deps = [
-        ":gdb_monitor",
-        "@com_google_googletest//:gtest_main",
-    ],
-    size = "small",
-)
-

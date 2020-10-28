@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TEST_INPUT_CONTROLLER_H_
-#define TEST_INPUT_CONTROLLER_H_
+#ifndef CORPUS_CONTROLLER_H_
+#define CORPUS_CONTROLLER_H_
 
 #include <filesystem>
 #include <tuple>
@@ -21,7 +21,7 @@
 
 #include "src/device_interface.h"
 
-namespace corpus_tests {
+namespace fido2_tests {
 
 // Possible input types.
 enum InputType {
@@ -64,7 +64,7 @@ class CorpusIterator {
   std::filesystem::directory_iterator current_input_;
 };
 
-}  // namespace corpus_tests
+}  // namespace fido2_tests
 
-#endif  // TEST_INPUT_CONTROLLER_H_
+#endif  // CORPUS_CONTROLLER_H_
 

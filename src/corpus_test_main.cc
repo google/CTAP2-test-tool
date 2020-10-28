@@ -14,12 +14,12 @@
 
 #include <iostream>
 
-#include "corpus_tests/monitor/cortexm4_gdb_monitor.h"
-#include "corpus_tests/test_input_controller.h"
 #include "gflags/gflags.h"
 #include "glog/logging.h"
 #include "src/constants.h"
+#include "src/corpus_controller.h"
 #include "src/hid/hid_device.h"
+#include "src/monitors/cortexm4_gdb_monitor.h"
 
 static bool ValidatePort(const char* flagname, gflags::int32 value) {
   if (value > 0 && value < 65535) {
@@ -65,20 +65,20 @@ int main(int argc, char** argv) {
   CHECK(fido2_tests::Status::kErrNone == device->Init())
       << "CTAPHID initialization failed";
 
-  corpus_tests::Cortexm4GdbMonitor monitor(FLAGS_port);
+  fido2_tests::Cortexm4GdbMonitor monitor(FLAGS_port);
   CHECK(monitor.Attach()) << "Monitor failed to attach!";
 
   std::string corpus_dir = FLAGS_corpus_path;
   if (const char* env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) {
     corpus_dir = absl::StrCat(env_dir, "/", FLAGS_corpus_path);
   }
-  corpus_tests::CorpusIterator corpus_iterator(corpus_dir);
+  fido2_tests::CorpusIterator corpus_iterator(corpus_dir);
   while (corpus_iterator.HasNextInput()) {
     auto [input_type, input_data, input_path] = corpus_iterator.GetNextInput();
     if (FLAGS_verbose) {
       std::cout << "Running file " << input_path << std::endl;
     }
-    corpus_tests::SendInput(device.get(), input_type, input_data);
+    fido2_tests::SendInput(device.get(), input_type, input_data);
     if (monitor.DeviceCrashed()) {
       monitor.PrintCrashReport();
       monitor.SaveCrashFile(input_type, input_path);

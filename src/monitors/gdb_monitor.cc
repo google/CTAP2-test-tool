@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "corpus_tests/monitor/gdb_monitor.h"
+#include "src/monitors/gdb_monitor.h"
 
 #include <iostream>
 
@@ -20,7 +20,7 @@
 #include "absl/strings/str_split.h"
 #include "glog/logging.h"
 
-namespace corpus_tests {
+namespace fido2_tests {
 
 GdbMonitor::GdbMonitor(int port) : port_(port) {}
 
@@ -87,5 +87,5 @@ void GdbMonitor::PrintCrashReport() {
   PrintStopReply(stop_message_);
 }
 
-}  // namespace corpus_tests
+}  // namespace fido2_tests
 

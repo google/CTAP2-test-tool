@@ -15,11 +15,11 @@
 #ifndef BLACKBOX_MONITOR_H_
 #define BLACKBOX_MONITOR_H_
 
-#include "corpus_tests/monitor/monitor.h"
 #include "src/hid/hid_device.h"
+#include "src/monitors/monitor.h"
 #include "third_party/chromium_components_cbor/values.h"
 
-namespace corpus_tests {
+namespace fido2_tests {
 
 // A Monitor that detects a hang or a reboot after crash on the given device.
 class BlackboxMonitor : public Monitor {
@@ -41,7 +41,7 @@ class BlackboxMonitor : public Monitor {
   // Sets up a default pin on the device.
   void SetDefaultPin();
   // Returns the pin token of the device if operation successful.
-  std::optional<cbor::Value::BinaryValue> GetAuthToken();
+  std::optional<cbor::Value::BinaryValue> GetPinToken();
 
   fido2_tests::DeviceInterface* device_;
   fido2_tests::DeviceTracker* device_tracker_;
@@ -50,7 +50,7 @@ class BlackboxMonitor : public Monitor {
   cbor::Value::MapValue platform_cose_key_;
 };
 
-}  // namespace corpus_tests
+}  // namespace fido2_tests
 
 #endif  // BLACKBOX_MONITOR_H_
 

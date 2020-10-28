@@ -18,9 +18,9 @@
 #include <optional>
 #include <vector>
 
-#include "corpus_tests/rsp/rsp_packet.h"
+#include "src/rsp/rsp_packet.h"
 
-namespace corpus_tests {
+namespace fido2_tests {
 namespace rsp {
 
 // Implements a GDB Remote Serial Protocol (RSP) client through
@@ -63,7 +63,7 @@ class RemoteSerialProtocol {
 };
 
 }  // namespace rsp
-}  // namespace corpus_tests
+}  // namespace fido2_tests
 
 #endif  // GDB_RSP_H_
 

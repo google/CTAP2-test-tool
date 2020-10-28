@@ -15,10 +15,10 @@
 #ifndef GDB_MONITOR_H_
 #define GDB_MONITOR_H_
 
-#include "corpus_tests/monitor/monitor.h"
-#include "corpus_tests/rsp/rsp.h"
+#include "src/monitors/monitor.h"
+#include "src/rsp/rsp.h"
 
-namespace corpus_tests {
+namespace fido2_tests {
 
 // A Monitor that detects crashes by communicating with a GDB remote
 // serial protocol server on the target.
@@ -49,7 +49,7 @@ class GdbMonitor : public Monitor {
   std::string stop_message_;
 };
 
-}  // namespace corpus_tests
+}  // namespace fido2_tests
 
 #endif  // GDB_MONITOR_H_
 
