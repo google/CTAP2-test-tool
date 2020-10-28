@@ -15,10 +15,14 @@
 
 # This script runs the fuzzing tool with a predefined corpus located at the
 # relative path "corpus_tests/test_corpus/", using a black box monitor.
-# To provide a custom corpus or change the monitor, please run 
-# `bazel run //:corpus_test` with the desired arguments.
+# Command line arguments:
+# 1. Path of the device.
+# 2. Path of the test corpus.
+# 3. Monitor type.
+# 4. Connection port for the GDB server, if it's used.
 
-# The underscore is the magic path that uses the first device found. You can
-# also pass the desired path as a command line argument.
 path=${1:-_}
-bazel run //:corpus_test -- --token_path="$path"
+corpus=${2:-corpus_tests/test_corpus/}
+monitor=${3:-blackbox}
+port=${4:-2331}
+bazel run //:corpus_test -- --token_path="$path" --corpus_path="$corpus" --monitor="$monitor" --port="$port"

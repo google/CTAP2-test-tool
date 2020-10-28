@@ -15,12 +15,8 @@
 #include "src/monitors/blackbox_monitor.h"
 
 #include <iostream>
-#include <optional>
 
 #include "glog/logging.h"
-#include "src/cbor_builders.h"
-#include "src/crypto_utility.h"
-#include "src/fido2_commands.h"
 
 namespace fido2_tests {
 
@@ -35,73 +31,11 @@ bool BlackboxMonitor::Prepare() {
   return ok;
 }
 
-void BlackboxMonitor::SetDefaultPin() {
-  CHECK(kDefaultPin.size() >= 4 && kDefaultPin.size() <= 63)
-      << "PIN requirements not fulfilled - TEST SUITE BUG";
-  cbor::Value::BinaryValue new_padded_pin(kPinByteLength, 0);
-  std::copy(kDefaultPin.begin(), kDefaultPin.end(), new_padded_pin.begin());
-  cbor::Value::BinaryValue new_pin_enc =
-      fido2_tests::crypto_utility::Aes256CbcEncrypt(shared_secret_,
-                                                    new_padded_pin);
-  cbor::Value::BinaryValue pin_auth =
-      fido2_tests::crypto_utility::LeftHmacSha256(shared_secret_, new_pin_enc);
-
-  fido2_tests::AuthenticatorClientPinCborBuilder set_pin_builder;
-  set_pin_builder.AddDefaultsForSetPin(platform_cose_key_, pin_auth,
-                                       new_pin_enc);
-  absl::variant<cbor::Value, fido2_tests::Status> set_pin_response =
-      fido2_tests::fido2_commands::AuthenticatorClientPinPositiveTest(
-          device_, device_tracker_, set_pin_builder.GetCbor());
-  CHECK(!absl::holds_alternative<fido2_tests::Status>(set_pin_response))
-      << "Set default pin failed - returned status code "
-      << StatusToString(absl::get<fido2_tests::Status>(set_pin_response));
-}
-
-std::optional<cbor::Value::BinaryValue> BlackboxMonitor::GetPinToken() {
-  fido2_tests::AuthenticatorClientPinCborBuilder pin_token_builder;
-  cbor::Value::BinaryValue pin_hash_enc =
-      fido2_tests::crypto_utility::Aes256CbcEncrypt(
-          shared_secret_,
-          fido2_tests::crypto_utility::LeftSha256Hash(kDefaultPin));
-  pin_token_builder.AddDefaultsForGetPinUvAuthTokenUsingPin(platform_cose_key_,
-                                                            pin_hash_enc);
-  absl::variant<cbor::Value, fido2_tests::Status> pin_token_response =
-      fido2_tests::fido2_commands::AuthenticatorClientPinPositiveTest(
-          device_, device_tracker_, pin_token_builder.GetCbor());
-
-  if (absl::holds_alternative<fido2_tests::Status>(pin_token_response)) {
-    return {};
-  }
-  const auto& pin_token_map =
-      absl::get<cbor::Value>(pin_token_response).GetMap();
-  auto map_iter = pin_token_map.find(cbor::Value(2));
-  cbor::Value::BinaryValue encrypted_token = map_iter->second.GetBytestring();
-  return fido2_tests::crypto_utility::Aes256CbcDecrypt(shared_secret_,
-                                                       encrypted_token);
-}
-
-BlackboxMonitor::BlackboxMonitor(fido2_tests::DeviceInterface* device,
-                                 fido2_tests::DeviceTracker* device_tracker)
-    : device_(device), device_tracker_(device_tracker) {
-  initial_pin_token_ = cbor::Value::BinaryValue();
-  shared_secret_ = cbor::Value::BinaryValue();
-  platform_cose_key_ = cbor::Value::MapValue();
-}
-
-bool BlackboxMonitor::Attach() {
-  ComputeSharedSecret();
-  SetDefaultPin();
-  std::optional<cbor::Value::BinaryValue> pin_token = GetPinToken();
-  if (!pin_token.has_value()) {
-    return false;
-  }
-  initial_pin_token_ = pin_token.value();
-  return true;
-}
-
 bool BlackboxMonitor::DeviceCrashed() {
-  std::optional<cbor::Value::BinaryValue> pin_token = GetPinToken();
-  return !pin_token.has_value() || pin_token.value() != initial_pin_token_;
+  if (command_state_->GetAuthToken() != Status::kErrNone) {
+    return true;
+  }
+  return command_state_->GetCurrentAuthToken() != initial_pin_token_;
 }
 
 }  // namespace fido2_tests

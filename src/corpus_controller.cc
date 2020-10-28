@@ -19,80 +19,31 @@
 #include <iostream>
 #include <vector>
 
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
 #include "glog/logging.h"
 
 namespace fido2_tests {
-namespace {
 
-// Helper function that returns the specific type of cbor parameter inputs.
-InputType GetCborInputType(std::vector<absl::string_view> subdirectory_name) {
-  if (subdirectory_name.size() > 1 &&
-      subdirectory_name[1] == "MakeCredentialParameters") {
-    return InputType::kCborMakeCredentialParameter;
-  }
-  if (subdirectory_name.size() > 1 &&
-      subdirectory_name[1] == "GetAssertionParameters") {
-    return InputType::kCborGetAssertionParameter;
-  }
-  // TODO (#27): support more types.
-  return InputType::kCborRaw;
-}
-
-// Helper function that returns the type of contained inputs based on the
-// subdirectory name.
-InputType GetInputType(std::string_view subdirectory_name) {
-  std::vector<absl::string_view> name_splits =
-      absl::StrSplit(subdirectory_name, '_');
-  if (name_splits.size() > 0 && name_splits[0] == "Cbor") {
-    return GetCborInputType(name_splits);
-  }
-  // TODO (#27): support more types.
-  return InputType::kRawBytes;
-}
-
-}  // namespace
-
-void CorpusIterator::UpdateInputPointer() {
-  std::filesystem::directory_iterator end;
-  while (current_input_ == end) {
-    ++current_subdirectory_;
-    if (current_subdirectory_ == end) {
-      break;
-    }
-    if (current_subdirectory_->is_directory()) {
-      current_input_ = std::filesystem::directory_iterator(
-          current_subdirectory_->path().string());
-    }
-  }
-}
-
-CorpusIterator::CorpusIterator(std::string_view corpus_path) {
-  current_subdirectory_ = std::filesystem::directory_iterator(corpus_path);
-  if (current_subdirectory_ != std::filesystem::directory_iterator() &&
-      current_subdirectory_->is_directory()) {
-    current_input_ = std::filesystem::directory_iterator(
-        current_subdirectory_->path().string());
-    UpdateInputPointer();
-  }
+CorpusIterator::CorpusIterator(InputType input_type,
+                               const std::string_view& base_corpus_path) {
+  std::string test_corpus_path =
+      absl::StrCat(base_corpus_path, InputTypeToDirectoryName(input_type), "/");
+  current_input_ = std::filesystem::directory_iterator(test_corpus_path);
+  current_input_type_ = input_type;
 }
 
 bool CorpusIterator::HasNextInput() {
   return current_input_ != std::filesystem::directory_iterator();
 }
 
-std::tuple<InputType, std::vector<uint8_t>, std::string>
-CorpusIterator::GetNextInput() {
+std::tuple<std::vector<uint8_t>, std::string> CorpusIterator::GetNextInput() {
   std::string input_path = current_input_->path();
   std::ifstream file(current_input_->path(), std::ios::in | std::ios::binary);
   std::vector<uint8_t> input_data = std::vector<uint8_t>(
       (std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-  std::vector<absl::string_view> path_splits =
-      absl::StrSplit(current_subdirectory_->path().string(), '/');
-  InputType input_type = GetInputType(path_splits.back());
   ++current_input_;
-  UpdateInputPointer();
-  return {input_type, input_data, input_path};
+  return {input_data, input_path};
 }
 
 std::string InputTypeToDirectoryName(InputType input_type) {
@@ -109,22 +60,19 @@ std::string InputTypeToDirectoryName(InputType input_type) {
   }
 }
 
-fido2_tests::Status SendInput(fido2_tests::DeviceInterface* device,
-                              InputType input_type,
-                              std::vector<uint8_t> const& input) {
+Status SendInput(DeviceInterface* device, InputType input_type,
+                 std::vector<uint8_t> const& input) {
   std::vector<uint8_t> response;
   // TODO(#27): Extend when more input types are supported.
   switch (input_type) {
     case InputType::kCborMakeCredentialParameter:
-      return device->ExchangeCbor(
-          fido2_tests::Command::kAuthenticatorMakeCredential, input, false,
-          &response);
+      return device->ExchangeCbor(Command::kAuthenticatorMakeCredential, input,
+                                  false, &response);
     case InputType::kCborGetAssertionParameter:
-      return device->ExchangeCbor(
-          fido2_tests::Command::kAuthenticatorGetAssertion, input, false,
-          &response);
+      return device->ExchangeCbor(Command::kAuthenticatorGetAssertion, input,
+                                  false, &response);
     default:
-      return fido2_tests::Status::kErrOther;
+      return Status::kErrOther;
   }
 }
 
