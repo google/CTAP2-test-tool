@@ -37,4 +37,10 @@ jobs:
       - name: Run gtest on src/tests/
         run: |
           bazel test --test_output=all --spawn_strategy=local --test_timeout=60 //src/tests:all
+      - name: Run gtest on src/rsp/
+        run: |
+          bazel test --test_output=all --spawn_strategy=local --test_timeout=60 //src/rsp:all
+      - name: Run gtest on src/monitors/
+        run: |
+          bazel test --test_output=all --spawn_strategy=local --test_timeout=60 //src/monitors:all
 
