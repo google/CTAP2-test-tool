@@ -58,7 +58,6 @@ void RunTests(DeviceInterface* device, DeviceTracker* device_tracker,
   for (const auto& test : tests) {
     // TODO(kaczmarczyck) compare tags and info in device_tracker
     test->Setup(command_state);
-    std::cout << "running test " << test->GetId() << std::endl;
     std::optional<std::string> error_message =
         test->Execute(device, device_tracker, command_state);
     device_tracker->LogTest(test->GetId(), test->GetDescription(),

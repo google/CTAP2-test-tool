@@ -24,9 +24,8 @@
 
 namespace fido2_tests {
 
-// Default pin = 1234
-const cbor::Value::BinaryValue kDefaultPin = {0x31, 0x32, 0x33, 0x34};
-constexpr size_t kPinByteLength = 64;
+BlackboxMonitor::BlackboxMonitor(CommandState* command_state)
+    : Monitor(command_state), command_state_(command_state) {}
 
 bool BlackboxMonitor::Prepare() {
   bool ok = command_state_->GetAuthToken() == Status::kErrNone;
