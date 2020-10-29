@@ -25,8 +25,7 @@ namespace fido2_tests {
 // Default number of retries.
 constexpr int kRetries = 10;
 
-GdbMonitor::GdbMonitor(CommandState* command_state, int port)
-    : Monitor(command_state), port_(port) {}
+GdbMonitor::GdbMonitor(int port) : port_(port) {}
 
 void GdbMonitor::PrintStopReply(const std::string_view& response) {
   if (response.empty()) {
@@ -74,13 +73,13 @@ bool GdbMonitor::Attach() {
   return rsp_client_.Initialize() && rsp_client_.Connect(port_);
 }
 
-bool GdbMonitor::Prepare() {
-  Monitor::Prepare();
+bool GdbMonitor::Prepare(CommandState* command_state) {
+  command_state->PromptReplugAndInit();
   return rsp_client_.SendPacket(rsp::RspPacket(rsp::RspPacket::Continue),
                                 kRetries);
 }
 
-bool GdbMonitor::DeviceCrashed() {
+bool GdbMonitor::DeviceCrashed(CommandState* command_state) {
   auto response = rsp_client_.ReceivePacket();
   if (!response.has_value()) {
     return false;

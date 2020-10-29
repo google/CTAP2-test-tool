@@ -14,6 +14,7 @@
 
 #include <iostream>
 
+#include "absl/container/flat_hash_set.h"
 #include "gflags/gflags.h"
 #include "glog/logging.h"
 #include "src/command_state.h"
@@ -26,22 +27,14 @@
 #include "src/tests/base.h"
 #include "src/tests/test_series.h"
 
-const std::vector<std::string> kSupportedMonitors = {"blackbox", "cortexm4_gdb",
-                                                     "gdb"};
-
 static bool ValidatePort(const char* flagname, gflags::int32 value) {
-  if (value > 0 && value < 65535) {
-    return true;
-  }
-  return false;
+  return value > 0 && value < 65535;
 }
 
 static bool ValidateMonitor(const char* flagname, const std::string& value) {
-  if (std::find(kSupportedMonitors.begin(), kSupportedMonitors.end(), value) !=
-      kSupportedMonitors.end()) {
-    return true;
-  }
-  return false;
+  absl::flat_hash_set<std::string> kSupportedMonitors = {"blackbox",
+                                                         "cortexm4_gdb", "gdb"};
+  return kSupportedMonitors.contains(value);
 }
 
 DEFINE_string(
@@ -87,19 +80,20 @@ int main(int argc, char** argv) {
   CHECK(fido2_tests::Status::kErrNone == device->Init())
       << "CTAPHID initialization failed";
   device->Wink();
-  fido2_tests::CommandState command_state(device.get(), &tracker);
 
   std::unique_ptr<fido2_tests::Monitor> monitor;
   if (FLAGS_monitor == "blackbox") {
-    monitor = std::make_unique<fido2_tests::BlackboxMonitor>(&command_state);
+    monitor = std::make_unique<fido2_tests::BlackboxMonitor>();
   } else if (FLAGS_monitor == "cortexm4_gdb") {
-    monitor = std::make_unique<fido2_tests::Cortexm4GdbMonitor>(&command_state,
-                                                                FLAGS_port);
-  } else {  // FLAGS_monitor == "gdb"
-    monitor =
-        std::make_unique<fido2_tests::GdbMonitor>(&command_state, FLAGS_port);
+    monitor = std::make_unique<fido2_tests::Cortexm4GdbMonitor>(FLAGS_port);
+  } else if (FLAGS_monitor == "gdb") {
+    monitor = std::make_unique<fido2_tests::GdbMonitor>(FLAGS_port);
+  } else {
+    CHECK(false) << "unreachable else - TEST SUITE BUG";
   }
   CHECK(monitor->Attach()) << "Monitor failed to attach!";
+
+  fido2_tests::CommandState command_state(device.get(), &tracker);
 
   std::string corpus_dir = FLAGS_corpus_path;
   if (const char* env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) {
@@ -112,7 +106,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\nRESULTS" << std::endl;
   tracker.ReportFindings();
-  tracker.SaveResultsToFile();
+  tracker.SaveResultsToFile("fuzzing_results/");
   return 0;
 }
 

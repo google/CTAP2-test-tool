@@ -30,7 +30,6 @@ CorpusIterator::CorpusIterator(InputType input_type,
   std::string test_corpus_path =
       absl::StrCat(base_corpus_path, InputTypeToDirectoryName(input_type), "/");
   current_input_ = std::filesystem::directory_iterator(test_corpus_path);
-  current_input_type_ = input_type;
 }
 
 bool CorpusIterator::HasNextInput() {

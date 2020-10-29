@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef FUZZING_CORPUS_H_
-#define FUZZING_CORPUS_H_
+#ifndef TESTS_FUZZING_CORPUS_H_
+#define TESTS_FUZZING_CORPUS_H_
 
 #include "src/command_state.h"
 #include "src/device_interface.h"
@@ -31,6 +31,7 @@ class MakeCredentialCorpusTest : public BaseTest {
   std::optional<std::string> Execute(
       DeviceInterface* device, DeviceTracker* device_tracker,
       CommandState* command_state) const override;
+  void Setup(CommandState* command_state) const override;
 
  private:
   fido2_tests::Monitor* monitor_;
@@ -45,6 +46,7 @@ class GetAssertionCorpusTest : public BaseTest {
   std::optional<std::string> Execute(
       DeviceInterface* device, DeviceTracker* device_tracker,
       CommandState* command_state) const override;
+  void Setup(CommandState* command_state) const override;
 
  private:
   fido2_tests::Monitor* monitor_;
@@ -53,5 +55,5 @@ class GetAssertionCorpusTest : public BaseTest {
 
 }  // namespace fido2_tests
 
-#endif  // FUZZING_CORPUS_H_
+#endif  // TESTS_FUZZING_CORPUS_H_
 

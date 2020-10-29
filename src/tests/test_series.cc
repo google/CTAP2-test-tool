@@ -14,8 +14,6 @@
 
 #include "src/tests/test_series.h"
 
-#include <iostream>
-
 #include "src/tests/fuzzing_corpus.h"
 #include "src/tests/general.h"
 #include "src/tests/reset.h"

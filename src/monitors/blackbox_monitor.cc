@@ -20,22 +20,19 @@
 
 namespace fido2_tests {
 
-BlackboxMonitor::BlackboxMonitor(CommandState* command_state)
-    : Monitor(command_state), command_state_(command_state) {}
-
-bool BlackboxMonitor::Prepare() {
-  bool ok = command_state_->GetAuthToken() == Status::kErrNone;
+bool BlackboxMonitor::Prepare(CommandState* command_state) {
+  bool ok = command_state->GetAuthToken() == Status::kErrNone;
   if (ok) {
-    initial_pin_token_ = command_state_->GetCurrentAuthToken();
+    initial_pin_token_ = command_state->GetCurrentAuthToken();
   }
   return ok;
 }
 
-bool BlackboxMonitor::DeviceCrashed() {
-  if (command_state_->GetAuthToken() != Status::kErrNone) {
+bool BlackboxMonitor::DeviceCrashed(CommandState* command_state) {
+  if (command_state->GetAuthToken() != Status::kErrNone) {
     return true;
   }
-  return command_state_->GetCurrentAuthToken() != initial_pin_token_;
+  return command_state->GetCurrentAuthToken() != initial_pin_token_;
 }
 
 }  // namespace fido2_tests

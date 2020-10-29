@@ -24,16 +24,14 @@ namespace fido2_tests {
 // A Monitor that detects a hang or a reboot after crash on the given device.
 class BlackboxMonitor : public Monitor {
  public:
-  BlackboxMonitor(CommandState* command_state);
   // Prepares for further crash detection by setting up an initial pin token.
-  bool Prepare() override;
+  bool Prepare(CommandState* command_state) override;
   // Checks for an occured failure in the device through the identification of a
   // hang (no response) or a reboot after crash by comparing the pin token of
   // the security key.
-  bool DeviceCrashed() override;
+  bool DeviceCrashed(CommandState* command_state) override;
 
  private:
-  CommandState* command_state_;
   cbor::Value::BinaryValue initial_pin_token_;
 };
 

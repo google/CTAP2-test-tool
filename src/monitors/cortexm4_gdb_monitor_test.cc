@@ -22,7 +22,7 @@ namespace fido2_tests {
 namespace {
 
 TEST(Cortexm4GdbMonitor, TestPrintOneRegister) {
-  Cortexm4GdbMonitor monitor(nullptr, 0);
+  Cortexm4GdbMonitor monitor(0);
   std::string register_packet = "00000000";
   std::string expected_output =
       "R0                                      0x00000000\n";
@@ -59,7 +59,7 @@ TEST(Cortexm4GdbMonitor, TestPrintOneRegister) {
 }
 
 TEST(Cortexm4GdbMonitor, TestPrintGeneralRegisters) {
-  Cortexm4GdbMonitor monitor(nullptr, 0);
+  Cortexm4GdbMonitor monitor(0);
   std::string register_packet = "00000000";
   std::string expected_output =
       "Error reading general registers. Got unexpected response: 00000000\n";
@@ -114,7 +114,7 @@ TEST(Cortexm4GdbMonitor, TestPrintGeneralRegisters) {
 }
 
 TEST(Cortexm4GdbMonitor, TestPrintOneFlag) {
-  Cortexm4GdbMonitor monitor(nullptr, 0);
+  Cortexm4GdbMonitor monitor(0);
   uint32_t register_value = 0;
   register_value |= 1 << 5;
   register_value |= 1 << 27;  // bit 5, 27 set, rest unset
@@ -145,7 +145,7 @@ TEST(Cortexm4GdbMonitor, TestPrintOneFlag) {
 }
 
 TEST(Cortexm4GdbMonitor, TestPrintCfsrRegister) {
-  Cortexm4GdbMonitor monitor(nullptr, 0);
+  Cortexm4GdbMonitor monitor(0);
   uint32_t register_value = 0;  // all bits unset
   std::string expected_output =
       "Instruction Access Violation:           false\n"
@@ -257,7 +257,7 @@ TEST(Cortexm4GdbMonitor, TestPrintCfsrRegister) {
 }
 
 TEST(Cortexm4GdbMonitor, TestPrintHfsrRegister) {
-  Cortexm4GdbMonitor monitor(nullptr, 0);
+  Cortexm4GdbMonitor monitor(0);
   uint32_t register_value = 0;  // all bits unset
   std::string expected_output =
       "Bus Fault on Vector Table Read:         false\n"

@@ -46,7 +46,7 @@ class BaseTest {
       DeviceInterface* device, DeviceTracker* device_tracker,
       CommandState* command_state) const = 0;
   // Adjusts comand_state to match the preconditions.
-  void Setup(CommandState* command_state) const;
+  virtual void Setup(CommandState* command_state) const;
   // Gets the test ID.
   std::string GetId() const;
   // Gets the test description.

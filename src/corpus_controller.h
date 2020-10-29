@@ -56,7 +56,6 @@ class CorpusIterator {
   std::tuple<std::vector<uint8_t>, std::string> GetNextInput();
 
  private:
-  InputType current_input_type_;
   std::filesystem::directory_iterator current_input_;
 };
 

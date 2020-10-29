@@ -198,6 +198,7 @@ cc_binary(
         "//src/tests:test_series",
         "//src/tests:base",
         "@com_github_gflags_gflags//:gflags",
+        "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_glog//:glog",
     ],
 )

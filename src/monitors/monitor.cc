@@ -42,13 +42,6 @@ std::string CreateArtifactsSubdirectory(const std::string_view& subdirectory) {
 
 }  // namespace
 
-Monitor::Monitor(CommandState* command_state) : command_state_(command_state) {}
-
-bool Monitor::Prepare() {
-  command_state_->PromptReplugAndInit();
-  return true;
-}
-
 void Monitor::PrintCrashReport() {
   std::cout << "DEVICE CRASHED!" << std::endl;
 }
@@ -61,10 +54,11 @@ std::string Monitor::SaveCrashFile(InputType input_type,
   std::filesystem::path save_path = absl::StrCat(
       CreateArtifactsSubdirectory(InputTypeToDirectoryName(input_type)), "/",
       input_name);
-  if (!std::filesystem::copy_file(
-          input_path, save_path,
-          std::filesystem::copy_options::skip_existing)) {
-    CHECK(std::filesystem::exists(save_path)) << "Unable to save file!";
+  if (input_path != save_path) {
+    CHECK(std::filesystem::copy_file(
+        input_path, save_path,
+        std::filesystem::copy_options::overwrite_existing))
+        << "Unable to save file!";
   }
   std::cout << "Saving file to " << save_path << std::endl;
   return save_path.string();

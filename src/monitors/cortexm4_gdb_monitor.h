@@ -23,7 +23,7 @@ namespace fido2_tests {
 // a more detailed crash report.
 class Cortexm4GdbMonitor : public GdbMonitor {
  public:
-  Cortexm4GdbMonitor(CommandState* command_state, int port);
+  Cortexm4GdbMonitor(int port);
   // Prints the general registers and fault status of the
   // cortex m4 architecture.
   void PrintCrashReport() override;

@@ -43,9 +43,6 @@ cc_library(
     name = "fuzzing_corpus",
     srcs = ["fuzzing_corpus.cc"],
     hdrs = ["fuzzing_corpus.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
     deps = [
         "//:command_state",
         "//:device_interface",

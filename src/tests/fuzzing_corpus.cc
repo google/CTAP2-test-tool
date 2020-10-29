@@ -24,19 +24,20 @@ namespace {
 // Runs all files of the given type, which should be stored in a folder inside
 // the corpus under a naming convention (see src/test_input_controller.h). When
 // the monitor detects a crash, stops execution.
-std::optional<std::string> Execute(fido2_tests::InputType input_type,
-                                   DeviceInterface* device,
-                                   fido2_tests::Monitor* monitor,
+std::optional<std::string> Execute(DeviceInterface* device,
+                                   CommandState* command_state,
+                                   Monitor* monitor, InputType input_type,
                                    const std::string_view& base_corpus_path) {
-  fido2_tests::CorpusIterator corpus_iterator(input_type, base_corpus_path);
+  CorpusIterator corpus_iterator(input_type, base_corpus_path);
   int passed_test_files = 0;
-  // Prepares the monitor for this test cycle.
-  CHECK(monitor->Prepare()) << "Monitor preparation failed!";
+  std::cout << std::endl << std::endl << std::endl;
   while (corpus_iterator.HasNextInput()) {
     auto [input_data, input_path] = corpus_iterator.GetNextInput();
-    // std::cout << "Running file " << input_path << std::endl;
-    fido2_tests::SendInput(device, input_type, input_data);
-    if (monitor->DeviceCrashed()) {
+    // Move cursor up 2 lines, erase the line and brings cursor to the beginning
+    // of line.
+    std::cout << "\033[A\033[A\33[2K\rRunning file " << input_path << std::endl;
+    SendInput(device, input_type, input_data);
+    if (monitor->DeviceCrashed(command_state)) {
       monitor->PrintCrashReport();
       std::string save_path = monitor->SaveCrashFile(input_type, input_path);
       return absl::StrCat("Saved crash input to ", save_path,
@@ -47,10 +48,15 @@ std::optional<std::string> Execute(fido2_tests::InputType input_type,
   return std::nullopt;
 }
 
+void Setup(CommandState* command_state, Monitor* monitor) {
+  // Prepares the monitor for this test cycle.
+  CHECK(monitor->Prepare(command_state)) << "Monitor preparation failed!";
+}
+
 }  // namespace
 
 MakeCredentialCorpusTest::MakeCredentialCorpusTest(
-    fido2_tests::Monitor* monitor, const std::string_view& base_corpus_path)
+    Monitor* monitor, const std::string_view& base_corpus_path)
     : BaseTest("make_credential_corpus",
                "Tests the corpus of ctap make credential commands.",
                {.has_pin = false}, {Tag::kClientPin}),
@@ -60,13 +66,18 @@ MakeCredentialCorpusTest::MakeCredentialCorpusTest(
 std::optional<std::string> MakeCredentialCorpusTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  return ::fido2_tests::Execute(
-      fido2_tests::InputType::kCborMakeCredentialParameter, device, monitor_,
-      base_corpus_path_);
+  return ::fido2_tests::Execute(device, command_state, monitor_,
+                                InputType::kCborMakeCredentialParameter,
+                                base_corpus_path_);
+}
+
+void MakeCredentialCorpusTest::Setup(CommandState* command_state) const {
+  BaseTest::Setup(command_state);
+  ::fido2_tests::Setup(command_state, monitor_);
 }
 
 GetAssertionCorpusTest::GetAssertionCorpusTest(
-    fido2_tests::Monitor* monitor, const std::string_view& base_corpus_path)
+    Monitor* monitor, const std::string_view& base_corpus_path)
     : BaseTest("get_assertion_corpus",
                "Tests the corpus of ctap get assertion commands.",
                {.has_pin = false}, {Tag::kClientPin}),
@@ -76,9 +87,14 @@ GetAssertionCorpusTest::GetAssertionCorpusTest(
 std::optional<std::string> GetAssertionCorpusTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  return ::fido2_tests::Execute(
-      fido2_tests::InputType::kCborGetAssertionParameter, device, monitor_,
-      base_corpus_path_);
+  return ::fido2_tests::Execute(device, command_state, monitor_,
+                                InputType::kCborGetAssertionParameter,
+                                base_corpus_path_);
+}
+
+void GetAssertionCorpusTest::Setup(CommandState* command_state) const {
+  BaseTest::Setup(command_state);
+  ::fido2_tests::Setup(command_state, monitor_);
 }
 
 }  // namespace fido2_tests
