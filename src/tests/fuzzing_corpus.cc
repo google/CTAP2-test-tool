@@ -16,6 +16,7 @@
 
 #include <iostream>
 
+#include "absl/strings/str_split.h"
 #include "src/constants.h"
 #include "src/corpus_controller.h"
 
@@ -30,12 +31,15 @@ std::optional<std::string> Execute(DeviceInterface* device,
                                    const std::string_view& base_corpus_path) {
   CorpusIterator corpus_iterator(input_type, base_corpus_path);
   int passed_test_files = 0;
-  std::cout << std::endl << std::endl << std::endl;
+  std::cout << "\n|--- Processing corpus "
+            << InputTypeToDirectoryName(input_type) << " ---|\n\n\n";
   while (corpus_iterator.HasNextInput()) {
     auto [input_data, input_path] = corpus_iterator.GetNextInput();
-    // Move cursor up 2 lines, erase the line and brings cursor to the beginning
-    // of line.
-    std::cout << "\033[A\033[A\33[2K\rRunning file " << input_path << std::endl;
+    std::string input_name =
+        static_cast<std::vector<std::string>>(absl::StrSplit(input_path, '/'))
+            .back();
+    // Rewrites the last line of output.
+    std::cout << "\033[A\33[2K\rRunning file " << input_name << std::endl;
     SendInput(device, input_type, input_data);
     if (monitor->DeviceCrashed(command_state)) {
       monitor->PrintCrashReport();
