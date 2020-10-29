@@ -727,9 +727,9 @@ std::optional<std::string> MakeCredentialFullStoreTest::Execute(
       return "Filling the key store failed with an unexpected error.";
     }
   } else {
-    device_tracker->AddObservation(
-        absl::StrCat("The test for full store errors was aborted after ",
-                     kNumCredentials, " credentials were successfully created."));
+    device_tracker->AddObservation(absl::StrCat(
+        "The test for full store errors was aborted after ", kNumCredentials,
+        " credentials were successfully created."));
   }
 
   command_state->Reset();
