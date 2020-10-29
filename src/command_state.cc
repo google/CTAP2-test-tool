@@ -81,9 +81,7 @@ void CommandState::Reset() {
 
 void CommandState::Prepare(bool set_uv) {
   if (set_uv) {
-    if (pin_utf8_.empty()) {
-      device_tracker_->AssertResponse(SetPin(), "set PIN");
-    }
+    device_tracker_->AssertResponse(GetAuthToken(), "refresh auth token");
   } else {
     if (!pin_utf8_.empty()) {
       Reset();
@@ -233,7 +231,9 @@ Status CommandState::AttemptChangePin(
 }
 
 Status CommandState::GetAuthToken(bool set_pin_if_necessary) {
-  OK_OR_RETURN(SetPin());
+  if (set_pin_if_necessary) {
+    OK_OR_RETURN(SetPin());
+  }
 
   AuthenticatorClientPinCborBuilder pin_token_builder;
   cbor::Value::BinaryValue pin_hash_enc = crypto_utility::Aes256CbcEncrypt(

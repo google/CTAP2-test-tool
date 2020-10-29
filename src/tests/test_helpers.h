@@ -51,7 +51,8 @@ cbor::Value MakeTestCredential(DeviceTracker* device_tracker,
                                const std::string& rp_id,
                                bool use_residential_key);
 
-// The following helper functions are used to test input parameters.
+// The following helper functions are used to test input parameters. All return
+// an error message, if a test fails.
 
 // Tries to insert types other than the correct one into the CBOR builder.
 // Make sure to pass the appropriate CborBuilder for your command. The correct
@@ -59,18 +60,20 @@ cbor::Value MakeTestCredential(DeviceTracker* device_tracker,
 // include other types than maps for the command and inner types of maps and
 // the first element of an inner array (assuming all array elements have the
 // same type). If that first element happens to be a map, its entries are also
-// checked. Even though this seems like an arbitrary choice at first, it
-// covers most of the CTAP input.
-void TestBadParameterTypes(DeviceInterface* device,
-                           DeviceTracker* device_tracker, Command command,
-                           CborBuilder* builder);
+// checked. Even though this seems like an arbitrary choice, it covers most of
+// the CTAP input.
+std::optional<std::string> TestBadParameterTypes(DeviceInterface* device,
+                                                 DeviceTracker* device_tracker,
+                                                 Command command,
+                                                 CborBuilder* builder);
 
 // Tries to remove each parameter once. Make sure to pass the appropriate
 // CborBuilder for your command. The necessary parameters are inferred through
 // the currently present builder entries.
-void TestMissingParameters(DeviceInterface* device,
-                           DeviceTracker* device_tracker, Command command,
-                           CborBuilder* builder);
+std::optional<std::string> TestMissingParameters(DeviceInterface* device,
+                                                 DeviceTracker* device_tracker,
+                                                 Command command,
+                                                 CborBuilder* builder);
 
 // Tries to insert types other than the correct one into map entries. Those
 // maps themselves are values of the command parameter map. If
@@ -78,26 +81,23 @@ void TestMissingParameters(DeviceInterface* device,
 // instead. To sum it up, the data structure tested can look like this:
 // command:outer_map_key->inner_map[key]->wrongly_typed_value or
 // command:outer_map_key->[inner_map[key]->wrongly_typed_value].
-void TestBadParametersInInnerMap(DeviceInterface* device,
-                                 DeviceTracker* device_tracker, Command command,
-                                 CborBuilder* builder, int outer_map_key,
-                                 const cbor::Value::MapValue& inner_map,
-                                 bool has_wrapping_array);
+std::optional<std::string> TestBadParametersInInnerMap(
+    DeviceInterface* device, DeviceTracker* device_tracker, Command command,
+    CborBuilder* builder, int outer_map_key,
+    const cbor::Value::MapValue& inner_map, bool has_wrapping_array);
 
 // Tries to insert types other than the correct one into array elements. Those
 // arrays themselves are values of the command parameter map.
-void TestBadParametersInInnerArray(DeviceInterface* device,
-                                   DeviceTracker* device_tracker,
-                                   Command command, CborBuilder* builder,
-                                   int outer_map_key,
-                                   const cbor::Value& array_element);
+std::optional<std::string> TestBadParametersInInnerArray(
+    DeviceInterface* device, DeviceTracker* device_tracker, Command command,
+    CborBuilder* builder, int outer_map_key, const cbor::Value& array_element);
 
 // Tries to insert a map or an array as a transport in an array of public key
 // credential descriptors. Both excludeList in MakeCredential and allowList in
 // GetAssertion expect this kind of value and share this test. Authenticators
 // must ignore unknown items in the transports list, so unexpected types are
 // untested. For arrays and maps though, the maximum nesting depth is reached.
-void TestCredentialDescriptorsArrayForCborDepth(
+std::optional<std::string> TestCredentialDescriptorsArrayForCborDepth(
     DeviceInterface* device, DeviceTracker* device_tracker, Command command,
     CborBuilder* builder, int map_key, const std::string& rp_id);
 

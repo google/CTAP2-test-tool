@@ -29,9 +29,6 @@ DEFINE_string(
 
 DEFINE_bool(verbose, false, "Printing debug logs, i.e. transmitted packets.");
 
-DEFINE_int32(num_credentials, 50,
-             "Maximum number of created credentials to test the key store.");
-
 // Calling this function first connects to the device and then executes all test
 // series listed.
 //
@@ -74,26 +71,6 @@ int main(int argc, char** argv) {
 
   fido2_tests::TestSeries test_series = fido2_tests::TestSeries();
 
-  test_series.MakeCredentialBadParameterTypesTest(device.get(), &tracker,
-                                                  &command_state);
-  test_series.MakeCredentialMissingParameterTest(device.get(), &tracker,
-                                                 &command_state);
-  test_series.MakeCredentialRelyingPartyEntityTest(device.get(), &tracker,
-                                                   &command_state);
-  test_series.MakeCredentialUserEntityTest(device.get(), &tracker,
-                                           &command_state);
-  test_series.MakeCredentialExcludeListCredentialDescriptorTest(
-      device.get(), &tracker, &command_state);
-  test_series.MakeCredentialExtensionsTest(device.get(), &tracker,
-                                           &command_state);
-  test_series.GetAssertionBadParameterTypesTest(device.get(), &tracker,
-                                                &command_state);
-  test_series.GetAssertionMissingParameterTest(device.get(), &tracker,
-                                               &command_state);
-  test_series.GetAssertionAllowListCredentialDescriptorTest(
-      device.get(), &tracker, &command_state);
-  test_series.GetAssertionExtensionsTest(device.get(), &tracker,
-                                         &command_state);
   test_series.ClientPinGetPinRetriesTest(device.get(), &tracker,
                                          &command_state);
   test_series.ClientPinGetKeyAgreementTest(device.get(), &tracker,
@@ -106,32 +83,10 @@ int main(int argc, char** argv) {
                                                     &command_state);
   test_series.ClientPinGetUVRetriesTest(device.get(), &tracker, &command_state);
 
-  test_series.MakeCredentialExcludeListTest(device.get(), &tracker,
-                                            &command_state);
-  test_series.MakeCredentialCoseAlgorithmTest(device.get(), &tracker,
-                                              &command_state);
-  test_series.MakeCredentialOptionsTest(device.get(), &tracker, &command_state);
-  test_series.MakeCredentialPinAuthTest(device.get(), &tracker, &command_state);
-  test_series.MakeCredentialMultipleKeysTest(
-      device.get(), &tracker, &command_state, FLAGS_num_credentials);
-  test_series.MakeCredentialPhysicalPresenceTest(device.get(), &tracker,
-                                                 &command_state);
-  test_series.MakeCredentialDisplayNameEncodingTest(device.get(), &tracker,
-                                                    &command_state);
-
-  test_series.GetAssertionOptionsTest(device.get(), &tracker, &command_state);
-  test_series.GetAssertionResidentialKeyTest(device.get(), &tracker,
-                                             &command_state);
-  test_series.GetAssertionPinAuthTest(device.get(), &tracker, &command_state);
-  test_series.GetAssertionPhysicalPresenceTest(device.get(), &tracker,
-                                               &command_state);
-
   test_series.ClientPinRequirementsTest(device.get(), &tracker, &command_state);
   test_series.ClientPinRequirements2Point1Test(device.get(), &tracker,
                                                &command_state);
   test_series.ClientPinRetriesTest(device.get(), &tracker, &command_state);
-  test_series.MakeCredentialHmacSecretTest(device.get(), &tracker,
-                                           &command_state);
 
   std::cout << "\nRESULTS" << std::endl;
   tracker.ReportFindings();
