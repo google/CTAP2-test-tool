@@ -729,7 +729,7 @@ std::optional<std::string> MakeCredentialFullStoreTest::Execute(
   } else {
     device_tracker->AddObservation(
         absl::StrCat("The test for full store errors was aborted after ",
-                     kNumCredentials, " were successfully created."));
+                     kNumCredentials, " credentials were successfully created."));
   }
 
   command_state->Reset();

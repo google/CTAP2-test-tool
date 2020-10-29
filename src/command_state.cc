@@ -81,9 +81,7 @@ void CommandState::Reset() {
 
 void CommandState::Prepare(bool set_uv) {
   if (set_uv) {
-    if (pin_utf8_.empty()) {
-      device_tracker_->AssertResponse(GetAuthToken(), "set PIN");
-    }
+    device_tracker_->AssertResponse(GetAuthToken(), "refresh auth token");
   } else {
     if (!pin_utf8_.empty()) {
       Reset();

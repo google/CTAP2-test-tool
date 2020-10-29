@@ -552,7 +552,7 @@ std::optional<std::string> GetAssertionPinAuthTest::Execute(
 GetAssertionPinAuthMissingParameterTest::
     GetAssertionPinAuthMissingParameterTest()
     : BaseTest(
-          "get_assertion_missing_parameter",
+          "get_assertion_pin_auth_missing_parameter",
           "Tests if client PIN fails with missing parameters in GetAssertion.",
           {.has_pin = true}, {Tag::kClientPin}) {}
 
