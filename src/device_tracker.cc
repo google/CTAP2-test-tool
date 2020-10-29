@@ -168,13 +168,16 @@ bool DeviceTracker::CheckStatus(Status status) {
 
 bool DeviceTracker::CheckStatus(Status expected_status,
                                 Status returned_status) {
+  if (expected_status == Status::kErrNone) {
+    // Use the one argument function to print the correct observation.
+    return CheckStatus(returned_status);
+  }
   if (expected_status != returned_status) {
     AddObservation(absl::StrCat("Expected error code `",
                                 StatusToString(expected_status), "`, got `",
                                 StatusToString(returned_status), "`."));
   }
-  return (expected_status == Status::kErrNone) ==
-         (returned_status == Status::kErrNone);
+  return returned_status != Status::kErrNone;
 }
 
 bool DeviceTracker::CheckStatus(

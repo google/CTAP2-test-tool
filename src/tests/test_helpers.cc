@@ -89,13 +89,14 @@ std::string CborToString(const std::string& name_prefix,
   }
 }
 
-#define NONE_OR_RETURN(x)                           \
-  ({                                                \
-    std::optional<std::string> error_message = (x); \
-    if (error_message.has_value()) {                \
-      return error_message;                         \
-    }                                               \
-  })
+// Returns an optional's string value, if it exists..
+#define NONE_OR_RETURN(x)                             \
+  do {                                                \
+    std::optional<std::string> __error_message = (x); \
+    if (__error_message.has_value()) {                \
+      return __error_message;                         \
+    }                                                 \
+  } while (0)
 
 }  // namespace
 
