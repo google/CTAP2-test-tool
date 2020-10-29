@@ -33,7 +33,7 @@ constexpr std::string_view kFileType = ".json";
 // the path if that directory already exists. Fails if the directory wasn't
 // created successfully.
 std::string CreateSaveFileDirectory(std::string_view directory) {
-  std::string results_dir = {directory.begin(), directory.end()};
+  std::string results_dir = std::string(directory);
   if (const char* env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) {
     results_dir = absl::StrCat(env_dir, "/", results_dir);
   }

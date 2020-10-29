@@ -22,6 +22,14 @@
 
 namespace fido2_tests {
 namespace {
+
+// Prints a line stating the file being run, rewriting the last line of output.
+void PrintRunningFile(std::string_view file_name) {
+  // \033[A moves the cursor up 1 line, \33[2K erase the line and \r brings the
+  // cursor to the beginning of line.
+  std::cout << "\033[A\33[2K\rRunning file " << file_name << std::endl;
+}
+
 // Runs all files of the given type, which should be stored in a folder inside
 // the corpus under a naming convention (see src/test_input_controller.h). When
 // the monitor detects a crash, stops execution.
@@ -38,8 +46,7 @@ std::optional<std::string> Execute(DeviceInterface* device,
     std::string input_name =
         static_cast<std::vector<std::string>>(absl::StrSplit(input_path, '/'))
             .back();
-    // Rewrites the last line of output.
-    std::cout << "\033[A\33[2K\rRunning file " << input_name << std::endl;
+    PrintRunningFile(input_name);
     SendInput(device, input_type, input_data);
     if (monitor->DeviceCrashed(command_state)) {
       monitor->PrintCrashReport();
