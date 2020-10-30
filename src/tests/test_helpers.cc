@@ -141,16 +141,6 @@ bool IsFido2Point1Complicant(DeviceTracker* device_tracker) {
   return device_tracker->HasVersion("FIDO_2_1_PRE");
 }
 
-cbor::Value MakeTestCredential(DeviceTracker* device_tracker,
-                               CommandState* command_state,
-                               const std::string& rp_id,
-                               bool use_residential_key) {
-  absl::variant<cbor::Value, Status> response =
-      command_state->MakeTestCredential(rp_id, use_residential_key);
-  device_tracker->AssertResponse(response, "make credential for further tests");
-  return std::move(absl::get<cbor::Value>(response));
-}
-
 std::optional<std::string> TestBadParameterTypes(DeviceInterface* device,
                                                  DeviceTracker* device_tracker,
                                                  Command command,

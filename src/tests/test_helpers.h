@@ -42,12 +42,6 @@ void PrintNoTouchPrompt();
 // TODO(#16) replace version string with FIDO_2_1 when specification is final
 bool IsFido2Point1Complicant(DeviceTracker* device_tracker);
 
-// Makes a credential for all tests that require one, for example assertions.
-cbor::Value MakeTestCredential(DeviceTracker* device_tracker,
-                               CommandState* command_state,
-                               const std::string& rp_id,
-                               bool use_residential_key);
-
 // The following helper functions are used to test input parameters. All return
 // an error message, if a test fails.
 
@@ -98,7 +92,7 @@ std::optional<std::string> TestCredentialDescriptorsArrayForCborDepth(
     DeviceInterface* device, DeviceTracker* device_tracker, Command command,
     CborBuilder* builder, int map_key, const std::string& rp_id);
 
-// Returns an optional's string value, if it exists..
+// Returns an optional's string value, if it exists.
 #define NONE_OR_RETURN(x)                             \
   do {                                                \
     std::optional<std::string> __error_message = (x); \

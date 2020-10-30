@@ -189,48 +189,6 @@ bool DeviceTracker::CheckStatus(
   return CheckStatus(returned_status);
 }
 
-void DeviceTracker::CheckAndReport(bool condition,
-                                   const std::string& test_name) {
-  if (condition) {
-    PrintSuccessMessage(absl::StrCat("Test successful: ", test_name));
-    successful_tests_.push_back(test_name);
-  } else {
-    PrintFailMessage(absl::StrCat("Failed test: ", test_name));
-    failed_tests_.push_back(test_name);
-  }
-}
-
-void DeviceTracker::CheckAndReport(
-    const absl::variant<cbor::Value, Status>& returned_variant,
-    const std::string& test_name) {
-  Status returned_status = Status::kErrNone;
-  if (absl::holds_alternative<Status>(returned_variant)) {
-    returned_status = absl::get<Status>(returned_variant);
-  }
-  CheckAndReport(Status::kErrNone, returned_status, test_name);
-}
-
-void DeviceTracker::CheckAndReport(Status expected_status,
-                                   Status returned_status,
-                                   const std::string& test_name) {
-  if ((expected_status == Status::kErrNone) ==
-      (returned_status == Status::kErrNone)) {
-    PrintSuccessMessage(absl::StrCat("Test successful: ", test_name));
-    successful_tests_.push_back(test_name);
-    if (expected_status != returned_status) {
-      AddProblem(absl::StrCat("Expected error code ",
-                              StatusToString(expected_status), ", got ",
-                              StatusToString(returned_status)));
-    }
-  } else {
-    std::string fail_message =
-        absl::StrCat(test_name, " - expected ", StatusToString(expected_status),
-                     ", got ", StatusToString(returned_status));
-    PrintFailMessage(absl::StrCat("Failed test: ", fail_message));
-    failed_tests_.push_back(fail_message);
-  }
-}
-
 void DeviceTracker::LogTest(std::string test_id, std::string test_description,
                             std::optional<std::string> error_message) {
   tests_.push_back(

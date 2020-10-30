@@ -90,17 +90,6 @@ class DeviceTracker {
   bool CheckStatus(Status expected_status, Status returned_status);
   // Returns whether the response is a value or the success status.
   bool CheckStatus(const absl::variant<cbor::Value, Status>& returned_variant);
-  // Checks a general condition, reporting the result and writing statistics.
-  void CheckAndReport(bool condition, const std::string& test_name);
-  // As above, but checks specifically whether the variant is a CBOR value.
-  void CheckAndReport(
-      const absl::variant<cbor::Value, Status>& returned_variant,
-      const std::string& test_name);
-  // As above, but checks specifically if the expected and returned status are
-  // both an error or both not an error. If both are different errors, the test
-  // counts as passed, but the report contains a warning.
-  void CheckAndReport(Status expected_status, Status returned_status,
-                      const std::string& test_name);
   // Logs a test and its result.
   void LogTest(std::string test_id, std::string test_description,
                std::optional<std::string> error_message);
