@@ -101,8 +101,7 @@ TEST(DeviceTracker, TestCheckStatusTwoArguments) {
       "`CTAP1_ERR_INVALID_COMMAND`.\n";
   std::string output2 =
       "Expected error code `CTAP1_ERR_OTHER`, got `CTAP2_OK`.\n";
-  std::string output3 =
-      "The failing error code is `CTAP1_ERR_OTHER`.\n";
+  std::string output3 = "The failing error code is `CTAP1_ERR_OTHER`.\n";
   std::string expected_output = absl::StrCat(output1, output2, output3);
   EXPECT_EQ(output, expected_output);
 }

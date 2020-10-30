@@ -35,7 +35,8 @@ cbor::Value::BinaryValue ExtractCredentialId(const cbor::Value& response);
 
 // Gets and checks the PIN retry counter response from the authenticator.
 // Returns the number from the reponse, if successful, or an error message.
-absl::variant<int, std::string> GetPinRetries(DeviceInterface* device, DeviceTracker* device_tracker);
+absl::variant<int, std::string> GetPinRetries(DeviceInterface* device,
+                                              DeviceTracker* device_tracker);
 
 void PrintNoTouchPrompt();
 

@@ -333,16 +333,20 @@ std::optional<std::string> TestCredentialDescriptorsArrayForCborDepth(
   return std::nullopt;
 }
 
-absl::variant<int, std::string> GetPinRetries(
-    DeviceInterface* device, DeviceTracker* device_tracker) {
+absl::variant<int, std::string> GetPinRetries(DeviceInterface* device,
+                                              DeviceTracker* device_tracker) {
   AuthenticatorClientPinCborBuilder get_retries_builder;
   get_retries_builder.AddDefaultsForGetPinRetries();
-  absl::variant<cbor::Value, Status> response = fido2_commands::AuthenticatorClientPinPositiveTest(
-      device, device_tracker, get_retries_builder.GetCbor());
+  absl::variant<cbor::Value, Status> response =
+      fido2_commands::AuthenticatorClientPinPositiveTest(
+          device, device_tracker, get_retries_builder.GetCbor());
   // TODO(kaczmarczyck) check with specification
-  if (absl::holds_alternative<Status>(response) && absl::get<Status>(response) == Status::kErrPinBlocked) {
-      device_tracker->AddObservation("GetPinRetries was blocked instead of returning 0. The specification does not explicitly disallow this.");
-      return 0;
+  if (absl::holds_alternative<Status>(response) &&
+      absl::get<Status>(response) == Status::kErrPinBlocked) {
+    device_tracker->AddObservation(
+        "GetPinRetries was blocked instead of returning 0. The specification "
+        "does not explicitly disallow this.");
+    return 0;
   }
   if (!device_tracker->CheckStatus(response)) {
     return "Cannot get PIN retries for further tests.";
