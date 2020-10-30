@@ -67,26 +67,8 @@ int main(int argc, char** argv) {
 
   // Setup and run all tests, while tracking their results.
   fido2_tests::runners::RunTests(device.get(), &tracker, &command_state);
+  // Reset the device to a clean state.
   command_state.Reset();
-
-  fido2_tests::TestSeries test_series = fido2_tests::TestSeries();
-
-  test_series.ClientPinGetPinRetriesTest(device.get(), &tracker,
-                                         &command_state);
-  test_series.ClientPinGetKeyAgreementTest(device.get(), &tracker,
-                                           &command_state);
-  test_series.ClientPinSetPinTest(device.get(), &tracker, &command_state);
-  test_series.ClientPinChangePinTest(device.get(), &tracker, &command_state);
-  test_series.ClientPinGetPinUvAuthTokenUsingPinTest(device.get(), &tracker,
-                                                     &command_state);
-  test_series.ClientPinGetPinUvAuthTokenUsingUvTest(device.get(), &tracker,
-                                                    &command_state);
-  test_series.ClientPinGetUVRetriesTest(device.get(), &tracker, &command_state);
-
-  test_series.ClientPinRequirementsTest(device.get(), &tracker, &command_state);
-  test_series.ClientPinRequirements2Point1Test(device.get(), &tracker,
-                                               &command_state);
-  test_series.ClientPinRetriesTest(device.get(), &tracker, &command_state);
 
   std::cout << "\nRESULTS" << std::endl;
   tracker.ReportFindings();

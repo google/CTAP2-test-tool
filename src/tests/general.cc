@@ -105,11 +105,18 @@ std::optional<std::string> PersistentPinRetriesTest::Execute(
           command_state->AttemptGetAuthToken(test_helpers::BadPin()))) {
     return "GetAuthToken did not fail with the wrong PIN.";
   }
-  int reduced_counter = test_helpers::GetPinRetries(device, device_tracker);
+  auto reduced_counter = test_helpers::GetPinRetries(device, device_tracker);
+  if (absl::holds_alternative<std::string>(reduced_counter)) {
+    return absl::get<std::string>(reduced_counter);
+  }
 
   command_state->PromptReplugAndInit();
 
-  if (test_helpers::GetPinRetries(device, device_tracker) != reduced_counter) {
+  auto new_counter = test_helpers::GetPinRetries(device, device_tracker);
+  if (absl::holds_alternative<std::string>(new_counter)) {
+    return absl::get<std::string>(new_counter);
+  }
+  if (absl::get<int>(reduced_counter) != absl::get<int>(new_counter)) {
     return "PIN retries changed after replug.";
   }
   return std::nullopt;

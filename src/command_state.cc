@@ -250,6 +250,7 @@ Status CommandState::GetAuthToken(bool set_pin_if_necessary) {
       device_tracker_->AddProblem("GetAuthToken failed.");
     }
     // Failed PIN checks reset the key agreement, keep the state consistent.
+    auth_token_ = cbor::Value::BinaryValue();
     OK_OR_RETURN(ComputeSharedSecret());
     return absl::get<Status>(pin_token_response);
   } else {

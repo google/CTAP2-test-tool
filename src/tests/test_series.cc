@@ -14,6 +14,7 @@
 
 #include "src/tests/test_series.h"
 
+#include "src/tests/client_pin.h"
 #include "src/tests/general.h"
 #include "src/tests/get_assertion.h"
 #include "src/tests/make_credential.h"
@@ -84,6 +85,29 @@ const std::vector<std::unique_ptr<BaseTest>>& GetTests() {
         std::make_unique<GetAssertionPinAuthMissingParameterTest>());
     test_list->push_back(std::make_unique<GetAssertionPhysicalPresenceTest>());
 
+    test_list->push_back(std::make_unique<GetPinRetriesBadParameterTypesTest>());
+    test_list->push_back(std::make_unique<GetPinRetriesMissingParameterTest>());
+    test_list->push_back(std::make_unique<GetKeyAgreementBadParameterTypesTest>());
+    test_list->push_back(std::make_unique<GetKeyAgreementMissingParameterTest>());
+    test_list->push_back(std::make_unique<SetPinBadParameterTypesTest>());
+    test_list->push_back(std::make_unique<SetPinMissingParameterTest>());
+    test_list->push_back(std::make_unique<ChangePinBadParameterTypesTest>());
+    test_list->push_back(std::make_unique<ChangePinMissingParameterTest>());
+    test_list->push_back(std::make_unique<GetPinUvAuthTokenUsingPinBadParameterTypesTest>());
+    test_list->push_back(std::make_unique<GetPinUvAuthTokenUsingPinMissingParameterTest>());
+    test_list->push_back(std::make_unique<GetPinUvAuthTokenUsingUvBadParameterTypesTest>());
+    test_list->push_back(std::make_unique<GetPinUvAuthTokenUsingUvMissingParameterTest>());
+    test_list->push_back(std::make_unique<GetUVRetriesBadParameterTypesTest>());
+    test_list->push_back(std::make_unique<GetUVRetriesMissingParameterTest>());
+    test_list->push_back(std::make_unique<ClientPinRequirementsSetPinTest>());
+    test_list->push_back(std::make_unique<ClientPinRequirementsChangePinTest>());
+    test_list->push_back(std::make_unique<ClientPinNewRequirementsSetPinTest>());
+    test_list->push_back(std::make_unique<ClientPinNewRequirementsChangePinTest>());
+    test_list->push_back(std::make_unique<ClientPinOldKeyMaterialTest>());
+    test_list->push_back(std::make_unique<ClientPinGeneralPinRetriesTest>());
+    test_list->push_back(std::make_unique<ClientPinAuthBlockPinRetriesTest>());
+    test_list->push_back(std::make_unique<ClientPinBlockPinRetriesTest>());
+
     test_list->push_back(std::make_unique<GetInfoTest>());
     test_list->push_back(std::make_unique<PersistentCredentialsTest>());
     test_list->push_back(std::make_unique<PersistentPinRetriesTest>());
@@ -117,6 +141,11 @@ void RunTests(DeviceInterface* device, DeviceTracker* device_tracker,
     test->Setup(command_state);
     std::optional<std::string> error_message =
         test->Execute(device, device_tracker, command_state);
+    // If tests involving the PIN fail, the internal state might not track the
+    // actual device state correctly.
+    if (error_message.has_value() && test->HasTag(Tag::kClientPin)) {
+      command_state->Reset();
+    }
     device_tracker->LogTest(test->GetId(), test->GetDescription(),
                             error_message);
   }

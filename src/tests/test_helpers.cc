@@ -89,14 +89,15 @@ std::string CborToString(const std::string& name_prefix,
   }
 }
 
-// Returns an optional's string value, if it exists..
-#define NONE_OR_RETURN(x)                             \
-  do {                                                \
-    std::optional<std::string> __error_message = (x); \
-    if (__error_message.has_value()) {                \
-      return __error_message;                         \
-    }                                                 \
-  } while (0)
+// Extracts the PIN retries from an authenticator client PIN response.
+int ExtractPinRetries(const cbor::Value& response) {
+  const auto& decoded_map = response.GetMap();
+  auto map_iter = decoded_map.find(cbor::Value(3));
+  CHECK(map_iter != decoded_map.end())
+      << "key 3 for pinRetries is not contained";
+  CHECK(map_iter->second.is_integer()) << "pinRetries entry is not an integer";
+  return map_iter->second.GetInteger();
+}
 
 }  // namespace
 
@@ -126,16 +127,6 @@ cbor::Value::BinaryValue ExtractCredentialId(const cbor::Value& response) {
   return cbor::Value::BinaryValue(
       auth_data.begin() + length_offset + 2,
       auth_data.begin() + length_offset + 2 + credential_id_length);
-}
-
-// Extracts the PIN retries from an authenticator client PIN response.
-int ExtractPinRetries(const cbor::Value& response) {
-  const auto& decoded_map = response.GetMap();
-  auto map_iter = decoded_map.find(cbor::Value(3));
-  CHECK(map_iter != decoded_map.end())
-      << "key 3 for pinRetries is not contained";
-  CHECK(map_iter->second.is_integer()) << "pinRetries entry is not an integer";
-  return map_iter->second.GetInteger();
 }
 
 void PrintNoTouchPrompt() {
@@ -352,45 +343,21 @@ std::optional<std::string> TestCredentialDescriptorsArrayForCborDepth(
   return std::nullopt;
 }
 
-absl::variant<cbor::Value, Status> GetPinRetriesResponse(
+absl::variant<int, std::string> GetPinRetries(
     DeviceInterface* device, DeviceTracker* device_tracker) {
   AuthenticatorClientPinCborBuilder get_retries_builder;
   get_retries_builder.AddDefaultsForGetPinRetries();
-  return fido2_commands::AuthenticatorClientPinPositiveTest(
+  absl::variant<cbor::Value, Status> response = fido2_commands::AuthenticatorClientPinPositiveTest(
       device, device_tracker, get_retries_builder.GetCbor());
-}
-
-int GetPinRetries(DeviceInterface* device, DeviceTracker* device_tracker) {
-  absl::variant<cbor::Value, Status> response =
-      GetPinRetriesResponse(device, device_tracker);
   // TODO(kaczmarczyck) check with specification
-  if (absl::holds_alternative<Status>(response) &&
-      absl::get<Status>(response) == Status::kErrPinBlocked) {
-    std::cout << "getPinRetries was blocked instead of returning 0.\n"
-              << "This is neither explicitly allowed nor forbidden."
-              << std::endl;
-    return 0;
+  if (absl::holds_alternative<Status>(response) && absl::get<Status>(response) == Status::kErrPinBlocked) {
+      device_tracker->AddObservation("GetPinRetries was blocked instead of returning 0. The specification does not explicitly disallow this.");
+      return 0;
   }
-  device_tracker->AssertResponse(response, "get the PIN retries counter");
+  if (!device_tracker->CheckStatus(response)) {
+    return "Cannot get PIN retries for further tests.";
+  }
   return ExtractPinRetries(absl::get<cbor::Value>(response));
-}
-
-void CheckPinByGetAuthToken(DeviceTracker* device_tracker,
-                            CommandState* command_state) {
-  device_tracker->CheckAndReport(command_state->GetAuthToken(false),
-                                 "PIN was usable for getting an auth token");
-}
-
-void CheckPinAbsenceByMakeCredential(DeviceInterface* device,
-                                     DeviceTracker* device_tracker) {
-  MakeCredentialCborBuilder pin_test_builder;
-  pin_test_builder.AddDefaultsForRequiredFields("pin_absence.example.com");
-
-  absl::variant<cbor::Value, Status> response =
-      fido2_commands::MakeCredentialPositiveTest(device, device_tracker,
-                                                 pin_test_builder.GetCbor());
-  device_tracker->CheckAndReport(
-      response, "no PIN is set, no UV required in MakeCredential");
 }
 
 }  // namespace test_helpers
