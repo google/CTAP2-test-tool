@@ -26,15 +26,14 @@ extern const char build_scm_revision[];
 
 namespace fido2_tests {
 namespace {
-constexpr std::string_view kRelativeDir = "results/";
 constexpr std::string_view kFileName = "NEW_TEST";
 constexpr std::string_view kFileType = ".json";
 
 // Creates a directory for results files and returns the path. Just return
 // the path if that directory already exists. Fails if the directory wasn't
 // created successfully.
-std::string CreateSaveFileDirectory() {
-  std::string results_dir = std::string(kRelativeDir);
+std::string CreateSaveFileDirectory(std::string_view directory) {
+  std::string results_dir = std::string(directory);
   if (const char* env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) {
     results_dir = absl::StrCat(env_dir, "/", results_dir);
   }
@@ -282,13 +281,14 @@ nlohmann::json DeviceTracker::GenerateResultsJson(
   return results;
 }
 
-void DeviceTracker::SaveResultsToFile() {
+void DeviceTracker::SaveResultsToFile(std::string_view results_dir) {
   absl::Time now = absl::Now();
   absl::TimeZone local = absl::LocalTimeZone();
   std::string time_string = absl::FormatTime("%Y-%m-%d", now, local);
 
-  std::filesystem::path results_path = absl::StrCat(
-      CreateSaveFileDirectory(), product_name_, "_", time_string, kFileType);
+  std::filesystem::path results_path =
+      absl::StrCat(CreateSaveFileDirectory(results_dir), product_name_, "_",
+                   time_string, kFileType);
   std::ofstream results_file;
   results_file.open(results_path);
   CHECK(results_file.is_open()) << "Unable to open file: " << results_path;

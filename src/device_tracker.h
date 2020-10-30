@@ -118,7 +118,7 @@ class DeviceTracker {
   // necessary. The file name will be derived from the product name as listed
   // through HID, or a default if none is found. Overwrites existing files of
   // the same name. The commit is stamped into the binary and read here.
-  void SaveResultsToFile();
+  void SaveResultsToFile(std::string_view results_dir = "results/");
 
  private:
   KeyChecker key_checker_;

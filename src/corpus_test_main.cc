@@ -14,20 +14,27 @@
 
 #include <iostream>
 
+#include "absl/container/flat_hash_set.h"
 #include "gflags/gflags.h"
 #include "glog/logging.h"
+#include "src/command_state.h"
 #include "src/constants.h"
 #include "src/corpus_controller.h"
 #include "src/hid/hid_device.h"
+#include "src/monitors/blackbox_monitor.h"
 #include "src/monitors/cortexm4_gdb_monitor.h"
+#include "src/monitors/gdb_monitor.h"
+#include "src/tests/base.h"
+#include "src/tests/test_series.h"
 
 static bool ValidatePort(const char* flagname, gflags::int32 value) {
-  if (value > 0 && value < 65535) {
-    return true;
-  }
-  LOG(ERROR) << "Invalid value for --" << flagname << ": "
-             << static_cast<int>(value);
-  return false;
+  return value > 0 && value < 65535;
+}
+
+static bool ValidateMonitor(const char* flagname, const std::string& value) {
+  const absl::flat_hash_set<std::string> kSupportedMonitors = {
+      "blackbox", "cortexm4_gdb", "gdb"};
+  return kSupportedMonitors.contains(value);
 }
 
 DEFINE_string(
@@ -38,11 +45,14 @@ DEFINE_string(
     corpus_path, "corpus_tests/test_corpus/",
     "The path to the corpus containing seed files to test the device.");
 
+DEFINE_string(monitor, "blackbox", "The monitor type used in fuzzing.");
+
 DEFINE_bool(verbose, false, "Printing debug logs, i.e. transmitted packets.");
 
-DEFINE_int32(port, 0, "Port to listen on for GDB remote connection.");
+DEFINE_int32(port, 2331, "Port to listen on for GDB remote connection.");
 
 DEFINE_validator(port, &ValidatePort);
+DEFINE_validator(monitor, &ValidateMonitor);
 
 // Tests the device through all inputs contained in the given corpus.
 // Usage example:
@@ -57,34 +67,46 @@ int main(int argc, char** argv) {
     fido2_tests::hid::PrintFidoDevices();
     return 0;
   }
+  if (FLAGS_token_path == "_") {
+    // This magic value is used by the run script for comfort.
+    FLAGS_token_path = fido2_tests::hid::FindFirstFidoDevicePath();
+    std::cout << "Testing device at path: " << FLAGS_token_path << std::endl;
+  }
 
   fido2_tests::DeviceTracker tracker;
   std::unique_ptr<fido2_tests::DeviceInterface> device =
-      absl::make_unique<fido2_tests::hid::HidDevice>(&tracker, FLAGS_token_path,
-                                                     FLAGS_verbose);
+      std::make_unique<fido2_tests::hid::HidDevice>(&tracker, FLAGS_token_path,
+                                                    FLAGS_verbose);
   CHECK(fido2_tests::Status::kErrNone == device->Init())
       << "CTAPHID initialization failed";
+  device->Wink();
 
-  fido2_tests::Cortexm4GdbMonitor monitor(FLAGS_port);
-  CHECK(monitor.Attach()) << "Monitor failed to attach!";
+  std::unique_ptr<fido2_tests::Monitor> monitor;
+  if (FLAGS_monitor == "blackbox") {
+    monitor = std::make_unique<fido2_tests::BlackboxMonitor>();
+  } else if (FLAGS_monitor == "cortexm4_gdb") {
+    monitor = std::make_unique<fido2_tests::Cortexm4GdbMonitor>(FLAGS_port);
+  } else if (FLAGS_monitor == "gdb") {
+    monitor = std::make_unique<fido2_tests::GdbMonitor>(FLAGS_port);
+  } else {
+    CHECK(false) << "unreachable else - TEST SUITE BUG";
+  }
+  CHECK(monitor->Attach()) << "Monitor failed to attach!";
+
+  fido2_tests::CommandState command_state(device.get(), &tracker);
 
   std::string corpus_dir = FLAGS_corpus_path;
   if (const char* env_dir = std::getenv("BUILD_WORKSPACE_DIRECTORY")) {
     corpus_dir = absl::StrCat(env_dir, "/", FLAGS_corpus_path);
   }
-  fido2_tests::CorpusIterator corpus_iterator(corpus_dir);
-  while (corpus_iterator.HasNextInput()) {
-    auto [input_type, input_data, input_path] = corpus_iterator.GetNextInput();
-    if (FLAGS_verbose) {
-      std::cout << "Running file " << input_path << std::endl;
-    }
-    fido2_tests::SendInput(device.get(), input_type, input_data);
-    if (monitor.DeviceCrashed()) {
-      monitor.PrintCrashReport();
-      monitor.SaveCrashFile(input_type, input_path);
-      break;
-    }
-  }
+
+  const std::vector<std::unique_ptr<fido2_tests::BaseTest>>& tests =
+      fido2_tests::runners::GetCorpusTests(monitor.get(), corpus_dir);
+  fido2_tests::runners::RunTests(device.get(), &tracker, &command_state, tests);
+
+  std::cout << "\nRESULTS" << std::endl;
+  tracker.ReportFindings();
+  tracker.SaveResultsToFile("fuzzing_results/");
   return 0;
 }
 

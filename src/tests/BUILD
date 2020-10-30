@@ -33,7 +33,22 @@ cc_library(
         "//src/tests:base",
         "//src/tests:general",
         "//src/tests:reset",
+        "//src/tests:fuzzing_corpus",
+        "//src/monitors:monitor",
         "//third_party/chromium_components_cbor:cbor",
+    ],
+)
+
+cc_library(
+    name = "fuzzing_corpus",
+    srcs = ["fuzzing_corpus.cc"],
+    hdrs = ["fuzzing_corpus.h"],
+    deps = [
+        "//:command_state",
+        "//:device_interface",
+        "//:device_tracker",
+        "//src/monitors:monitor",
+        "//src/tests:base",
     ],
 )
 

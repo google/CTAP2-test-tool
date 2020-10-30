@@ -26,13 +26,14 @@ class GdbMonitor : public Monitor {
  public:
   GdbMonitor(int port);
   // Attaches the monitor to a device by connecting to the port
-  // device's GDB server is listening to, and sends "continue" command
-  // to the target. This will execute the program until a
-  // crash triggers a breakpoint.
+  // device's GDB server is listening to.
   bool Attach() override;
+  // Sends a "continue" command to the target. This will execute the program
+  // until a crash triggers a breakpoint.
+  bool Prepare(CommandState* command_state) override;
   // Checks for an occured failure in the device by attempting to
   // receive data from the RSP server.
-  bool DeviceCrashed() override;
+  bool DeviceCrashed(CommandState* command_state) override;
   // Prints the stop response received from the RSP server.
   void PrintCrashReport() override;
   // Prints the details of the stop reply according to

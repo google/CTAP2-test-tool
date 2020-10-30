@@ -46,20 +46,22 @@ void Monitor::PrintCrashReport() {
   std::cout << "DEVICE CRASHED!" << std::endl;
 }
 
-void Monitor::SaveCrashFile(InputType input_type,
-                            const std::string_view& input_path) {
+std::string Monitor::SaveCrashFile(InputType input_type,
+                                   const std::string_view& input_path) {
   std::string input_name =
       static_cast<std::vector<std::string>>(absl::StrSplit(input_path, '/'))
           .back();
   std::filesystem::path save_path = absl::StrCat(
       CreateArtifactsSubdirectory(InputTypeToDirectoryName(input_type)), "/",
-      input_name, 1);
-  std::cout << "Saving file to " << save_path << std::endl;
-  if (!std::filesystem::copy_file(
-          input_path, save_path,
-          std::filesystem::copy_options::skip_existing)) {
-    CHECK(std::filesystem::exists(save_path)) << "Unable to save file!";
+      input_name);
+  if (input_path != save_path) {
+    CHECK(std::filesystem::copy_file(
+        input_path, save_path,
+        std::filesystem::copy_options::overwrite_existing))
+        << "Unable to save file!";
   }
+  std::cout << "Saving file to " << save_path << std::endl;
+  return save_path.string();
 }
 
 }  // namespace fido2_tests

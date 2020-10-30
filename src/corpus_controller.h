@@ -35,11 +35,10 @@ enum InputType {
 std::string InputTypeToDirectoryName(InputType input_type);
 
 // Sends input to the given device and returns the status code.
-fido2_tests::Status SendInput(fido2_tests::DeviceInterface* device,
-                              InputType input_type,
-                              std::vector<uint8_t> const& input);
+Status SendInput(DeviceInterface* device, InputType input_type,
+                 std::vector<uint8_t> const& input);
 
-// Iterates input files from a given corpus.
+// Iterates input files of the given type from a given corpus.
 // We assume the corpus directory to contain subdirectories for
 // each type of inputs. For example, given directory /corpus,
 // all possible subdirectories are:
@@ -49,18 +48,14 @@ fido2_tests::Status SendInput(fido2_tests::DeviceInterface* device,
 // All files that are not a directory in the given corpus are ignored.
 class CorpusIterator {
  public:
-  CorpusIterator(std::string_view corpus_path);
+  CorpusIterator(InputType input_type,
+                 const std::string_view& base_corpus_path);
   // Returns whether there is a next input available.
   bool HasNextInput();
-  // Returns the type, the content and the file name of the next available
-  // input.
-  std::tuple<InputType, std::vector<uint8_t>, std::string> GetNextInput();
+  // Returns the content and the file name of the next available input.
+  std::tuple<std::vector<uint8_t>, std::string> GetNextInput();
 
  private:
-  // Increments the current input pointer to the next non empty one
-  // (potentially skipping all empty subdirectories).
-  void UpdateInputPointer();
-  std::filesystem::directory_iterator current_subdirectory_;
   std::filesystem::directory_iterator current_input_;
 };
 

@@ -192,8 +192,13 @@ cc_binary(
         ":constants",
         ":corpus_controller",
         ":hid_device",
+        "//src/monitors:blackbox_monitor",
         "//src/monitors:cortexm4_gdb_monitor",
+        "//src/monitors:gdb_monitor",
+        "//src/tests:test_series",
+        "//src/tests:base",
         "@com_github_gflags_gflags//:gflags",
+        "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_glog//:glog",
     ],
 )
