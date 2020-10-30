@@ -32,8 +32,8 @@ static bool ValidatePort(const char* flagname, gflags::int32 value) {
 }
 
 static bool ValidateMonitor(const char* flagname, const std::string& value) {
-  absl::flat_hash_set<std::string> kSupportedMonitors = {"blackbox",
-                                                         "cortexm4_gdb", "gdb"};
+  constexpr absl::flat_hash_set<std::string> kSupportedMonitors = {
+      "blackbox", "cortexm4_gdb", "gdb"};
   return kSupportedMonitors.contains(value);
 }
 
