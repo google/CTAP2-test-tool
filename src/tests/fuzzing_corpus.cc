@@ -24,7 +24,7 @@ namespace fido2_tests {
 namespace {
 
 // Prints a line stating the file being run, rewriting the last line of output.
-void PrintRunningFile(std::string_view file_name, int last_file_name_len) {
+void PrintRunningFile(std::string_view file_name, size_t last_file_name_len) {
   // Clean last line output in case the current line to be printed is shorter.
   std::cout << "\r             " << std::string(last_file_name_len, ' ');
   std::cout << "\rRunning file " << file_name << std::flush;
@@ -39,7 +39,7 @@ std::optional<std::string> Execute(DeviceInterface* device,
                                    const std::string_view& base_corpus_path) {
   CorpusIterator corpus_iterator(input_type, base_corpus_path);
   int passed_test_files = 0;
-  int last_file_name_len = 0;
+  size_t last_file_name_len = 0;
   std::cout << "\n|--- Processing corpus "
             << InputTypeToDirectoryName(input_type) << " ---|\n\n";
   while (corpus_iterator.HasNextInput()) {
@@ -47,7 +47,7 @@ std::optional<std::string> Execute(DeviceInterface* device,
     std::string input_name =
         static_cast<std::vector<std::string>>(absl::StrSplit(input_path, '/'))
             .back();
-    PrintRunningFile(input_name, rewrite_spaces);
+    PrintRunningFile(input_name, last_file_name_len);
     SendInput(device, input_type, input_data);
     if (monitor->DeviceCrashed(command_state)) {
       monitor->PrintCrashReport();
@@ -56,7 +56,7 @@ std::optional<std::string> Execute(DeviceInterface* device,
                           ". Ran a total of ", passed_test_files, " files.");
     }
     ++passed_test_files;
-    last_file_name_len = input_name.length();
+    last_file_name_len = input_name.size();
   }
   return std::nullopt;
 }
