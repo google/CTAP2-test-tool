@@ -686,20 +686,18 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
                                 ? decoded_response->GetMap()
                                 : cbor::Value(cbor::Value::Type::MAP).GetMap();
 
-  absl::flat_hash_set<uint8_t> allowed_map_keys;
+  absl::flat_hash_set<ClientPinResponse> allowed_map_keys;
 
   switch (subcommand) {
     case PinSubCommand::kGetPinRetries: {
-      allowed_map_keys.insert(
-          static_cast<uint8_t>(ClientPinResponse::kPinRetries));
+      allowed_map_keys.insert(ClientPinResponse::kPinRetries);
       auto map_iter =
           decoded_map.find(CborValue(ClientPinResponse::kPinRetries));
       CHECK(map_iter != decoded_map.end())
           << "no PIN retries (key 3) included in PIN protocol response";
       CHECK(map_iter->second.is_unsigned())
           << "PIN retries entry is not an unsigned";
-      allowed_map_keys.insert(
-          static_cast<uint8_t>(ClientPinResponse::kPowerCycleState));
+      allowed_map_keys.insert(ClientPinResponse::kPowerCycleState);
       map_iter =
           decoded_map.find(CborValue(ClientPinResponse::kPowerCycleState));
       if (map_iter != decoded_map.end()) {
@@ -709,8 +707,7 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
       break;
     }
     case PinSubCommand::kGetKeyAgreement: {
-      allowed_map_keys.insert(
-          static_cast<uint8_t>(ClientPinResponse::kKeyAgreement));
+      allowed_map_keys.insert(ClientPinResponse::kKeyAgreement);
       auto map_iter =
           decoded_map.find(CborValue(ClientPinResponse::kKeyAgreement));
       CHECK(map_iter != decoded_map.end())
@@ -727,8 +724,7 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
       break;
     }
     case PinSubCommand::kGetPinUvAuthTokenUsingPin: {
-      allowed_map_keys.insert(
-          static_cast<uint8_t>(ClientPinResponse::kPinUvAuthToken));
+      allowed_map_keys.insert(ClientPinResponse::kPinUvAuthToken);
       auto map_iter =
           decoded_map.find(CborValue(ClientPinResponse::kPinUvAuthToken));
       CHECK(map_iter != decoded_map.end())
@@ -738,8 +734,7 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
       break;
     }
     case PinSubCommand::kGetPinUvAuthTokenUsingUv: {
-      allowed_map_keys.insert(
-          static_cast<uint8_t>(ClientPinResponse::kPinUvAuthToken));
+      allowed_map_keys.insert(ClientPinResponse::kPinUvAuthToken);
       auto map_iter =
           decoded_map.find(CborValue(ClientPinResponse::kPinUvAuthToken));
       CHECK(map_iter != decoded_map.end())
@@ -749,16 +744,14 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
       break;
     }
     case PinSubCommand::kGetUvRetries: {
-      allowed_map_keys.insert(
-          static_cast<uint8_t>(ClientPinResponse::kPowerCycleState));
+      allowed_map_keys.insert(ClientPinResponse::kPowerCycleState);
       auto map_iter =
           decoded_map.find(CborValue(ClientPinResponse::kPowerCycleState));
       if (map_iter != decoded_map.end()) {
         CHECK(map_iter->second.is_bool())
             << "powerCycleState entry is not a boolean";
       }
-      allowed_map_keys.insert(
-          static_cast<uint8_t>(ClientPinResponse::kUvRetries));
+      allowed_map_keys.insert(ClientPinResponse::kUvRetries);
       map_iter = decoded_map.find(CborValue(ClientPinResponse::kUvRetries));
       CHECK(map_iter != decoded_map.end())
           << "no UV retries (key 5) included in PIN protocol response";
@@ -773,7 +766,8 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
     for (const auto& map_entry : decoded_map) {
       CHECK(map_entry.first.is_unsigned()) << "some map keys are not unsigned";
       const int64_t map_key = map_entry.first.GetUnsigned();
-      CHECK(allowed_map_keys.find(map_key) != allowed_map_keys.end())
+      CHECK(map_key <= UINT8_MAX &&
+            allowed_map_keys.contains(static_cast<ClientPinResponse>(map_key)))
           << "there are unspecified map keys";
     }
   }

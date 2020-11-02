@@ -110,7 +110,7 @@ cbor::Value::BinaryValue BadPin() { return {0x66, 0x61, 0x6B, 0x65}; }
 cbor::Value::BinaryValue ExtractCredentialId(const cbor::Value& response) {
   const auto& decoded_map = response.GetMap();
   // This functions is used for MakeCredential, but also works for GetAssertion
-  // since the use the same response map key.
+  // since they use the same response map key.
   CHECK(static_cast<uint8_t>(MakeCredentialResponse::kAuthData) ==
         static_cast<uint8_t>(GetAssertionResponse::kAuthData))
       << "assumption about constants broken - TEST SUITE BUG";
