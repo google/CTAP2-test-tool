@@ -51,13 +51,11 @@ TEST(DeviceTracker, TestAddObservation) {
   device_tracker.AddObservation("OBSERVATION2");
   testing::internal::CaptureStdout();
   device_tracker.ReportFindings();
-  std::string output = testing::internal::GetCapturedStdout();
-  std::string expected_output =
-      "All counters were constant zero.\n\n"
-      "OBSERVATION1\n"
-      "OBSERVATION2\n"
-      "\n\nPassed 0 out of 0 tests.\n";
-  EXPECT_EQ(output, expected_output);
+  EXPECT_EQ(testing::internal::GetCapturedStdout(),
+            "All counters were constant zero.\n\n"
+            "OBSERVATION1\n"
+            "OBSERVATION2\n"
+            "\n\nPassed 0 out of 0 tests.\n");
 }
 
 TEST(DeviceTracker, TestAddProblem) {
@@ -66,13 +64,11 @@ TEST(DeviceTracker, TestAddProblem) {
   device_tracker.AddObservation("PROBLEM2");
   testing::internal::CaptureStdout();
   device_tracker.ReportFindings();
-  std::string output = testing::internal::GetCapturedStdout();
-  std::string expected_output =
-      "All counters were constant zero.\n\n"
-      "PROBLEM1\n"
-      "PROBLEM2\n"
-      "\n\nPassed 0 out of 0 tests.\n";
-  EXPECT_EQ(output, expected_output);
+  EXPECT_EQ(testing::internal::GetCapturedStdout(),
+            "All counters were constant zero.\n\n"
+            "PROBLEM1\n"
+            "PROBLEM2\n"
+            "\n\nPassed 0 out of 0 tests.\n");
 }
 
 TEST(DeviceTracker, TestCheckStatusOneArgument) {
@@ -80,10 +76,8 @@ TEST(DeviceTracker, TestCheckStatusOneArgument) {
   testing::internal::CaptureStdout();
   EXPECT_TRUE(device_tracker.CheckStatus(Status::kErrNone));
   EXPECT_FALSE(device_tracker.CheckStatus(Status::kErrOther));
-  std::string output = testing::internal::GetCapturedStdout();
-  std::string expected_output =
-      "The failing error code is `CTAP1_ERR_OTHER`.\n";
-  EXPECT_EQ(output, expected_output);
+  EXPECT_EQ(testing::internal::GetCapturedStdout(),
+            "The failing error code is `CTAP1_ERR_OTHER`.\n");
 }
 
 TEST(DeviceTracker, TestCheckStatusTwoArguments) {
@@ -95,15 +89,11 @@ TEST(DeviceTracker, TestCheckStatusTwoArguments) {
                                          Status::kErrInvalidCommand));
   EXPECT_FALSE(device_tracker.CheckStatus(Status::kErrOther, Status::kErrNone));
   EXPECT_FALSE(device_tracker.CheckStatus(Status::kErrNone, Status::kErrOther));
-  std::string output = testing::internal::GetCapturedStdout();
-  std::string output1 =
-      "Expected error code `CTAP1_ERR_OTHER`, got "
-      "`CTAP1_ERR_INVALID_COMMAND`.\n";
-  std::string output2 =
-      "Expected error code `CTAP1_ERR_OTHER`, got `CTAP2_OK`.\n";
-  std::string output3 = "The failing error code is `CTAP1_ERR_OTHER`.\n";
-  std::string expected_output = absl::StrCat(output1, output2, output3);
-  EXPECT_EQ(output, expected_output);
+  EXPECT_EQ(testing::internal::GetCapturedStdout(),
+            "Expected error code `CTAP1_ERR_OTHER`, got "
+            "`CTAP1_ERR_INVALID_COMMAND`.\n"
+            "Expected error code `CTAP1_ERR_OTHER`, got `CTAP2_OK`.\n"
+            "The failing error code is `CTAP1_ERR_OTHER`.\n");
 }
 
 TEST(DeviceTracker, TestCheckStatusVariant) {
@@ -115,10 +105,8 @@ TEST(DeviceTracker, TestCheckStatusVariant) {
   EXPECT_TRUE(device_tracker.CheckStatus(success_status_variant));
   absl::variant<cbor::Value, Status> fail_status_variant = Status::kErrOther;
   EXPECT_FALSE(device_tracker.CheckStatus(fail_status_variant));
-  std::string output = testing::internal::GetCapturedStdout();
-  std::string expected_output =
-      "The failing error code is `CTAP1_ERR_OTHER`.\n";
-  EXPECT_EQ(output, expected_output);
+  EXPECT_EQ(testing::internal::GetCapturedStdout(),
+            "The failing error code is `CTAP1_ERR_OTHER`.\n");
 }
 
 TEST(DeviceTracker, TestGenerateResultsJson) {

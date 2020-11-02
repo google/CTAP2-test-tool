@@ -67,6 +67,7 @@ cc_library(
     srcs = ["src/constants.cc"],
     hdrs = ["src/constants.h"],
     deps = [
+        "//third_party/chromium_components_cbor:cbor",
         "@com_google_glog//:glog",
     ],
 )

@@ -45,8 +45,7 @@ CommandState::CommandState(DeviceInterface* device,
   device_tracker_->AssertResponse(response, "GetInfo");
 
   const auto& decoded_map = absl::get<cbor::Value>(response).GetMap();
-  if (auto map_iter = decoded_map.find(
-          cbor::Value(static_cast<uint8_t>(InfoMember::kAaguid)));
+  if (auto map_iter = decoded_map.find(CborValue(InfoMember::kAaguid));
       map_iter != decoded_map.end()) {
     const cbor::Value::BinaryValue& aaguid_bytes =
         map_iter->second.GetBytestring();
@@ -115,7 +114,8 @@ Status CommandState::ComputeSharedSecret() {
   }
 
   const auto& key_agreement_map = absl::get<cbor::Value>(key_response).GetMap();
-  auto map_iter = key_agreement_map.find(cbor::Value(1));
+  auto map_iter =
+      key_agreement_map.find(CborValue(ClientPinResponse::kKeyAgreement));
   shared_secret_ = crypto_utility::CompleteEcdhHandshake(
       map_iter->second.GetMap(), &platform_cose_key_);
   return Status::kErrNone;
@@ -256,7 +256,8 @@ Status CommandState::GetAuthToken(bool set_pin_if_necessary) {
   } else {
     const auto& pin_token_map =
         absl::get<cbor::Value>(pin_token_response).GetMap();
-    auto map_iter = pin_token_map.find(cbor::Value(2));
+    auto map_iter =
+        pin_token_map.find(CborValue(ClientPinResponse::kPinUvAuthToken));
     cbor::Value::BinaryValue encrypted_token = map_iter->second.GetBytestring();
     auth_token_ =
         crypto_utility::Aes256CbcDecrypt(shared_secret_, encrypted_token);

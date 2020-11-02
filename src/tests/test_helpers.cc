@@ -92,7 +92,7 @@ std::string CborToString(const std::string& name_prefix,
 // Extracts the PIN retries from an authenticator client PIN response.
 int ExtractPinRetries(const cbor::Value& response) {
   const auto& decoded_map = response.GetMap();
-  auto map_iter = decoded_map.find(cbor::Value(3));
+  auto map_iter = decoded_map.find(CborValue(ClientPinResponse::kPinRetries));
   CHECK(map_iter != decoded_map.end())
       << "key 3 for pinRetries is not contained";
   CHECK(map_iter->second.is_integer()) << "pinRetries entry is not an integer";
@@ -109,7 +109,13 @@ cbor::Value::BinaryValue BadPin() { return {0x66, 0x61, 0x6B, 0x65}; }
 // [1] https://www.w3.org/TR/webauthn/#sec-authenticator-data
 cbor::Value::BinaryValue ExtractCredentialId(const cbor::Value& response) {
   const auto& decoded_map = response.GetMap();
-  auto map_iter = decoded_map.find(cbor::Value(2));
+  // This functions is used for MakeCredential, but also works for GetAssertion
+  // since the use the same response map key.
+  CHECK(static_cast<uint8_t>(MakeCredentialResponse::kAuthData) ==
+        static_cast<uint8_t>(GetAssertionResponse::kAuthData))
+      << "assumption about constants broken - TEST SUITE BUG";
+  auto map_iter =
+      decoded_map.find(CborValue(MakeCredentialResponse::kAuthData));
   CHECK(map_iter != decoded_map.end()) << "key 2 for authData is not contained";
   CHECK(map_iter->second.is_bytestring())
       << "authData entry is not a bytestring";

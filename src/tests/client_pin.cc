@@ -37,12 +37,9 @@ static const auto* const kCoseKeyExample =
 
 const cbor::Value::BinaryValue& GetTooShortPaddedPin() {
   static const auto* const pin = [] {
-    auto* too_short_padded_pin = new cbor::Value::BinaryValue(64, 0x00);
-    cbor::Value::BinaryValue too_short_pin_utf8 = {0x31, 0x32, 0x33};
-    for (size_t i = 0; i < too_short_pin_utf8.size(); ++i) {
-      (*too_short_padded_pin)[i] = too_short_pin_utf8[i];
-    }
-    return too_short_padded_pin;
+    auto* too_short_pin = new cbor::Value::BinaryValue({0x31, 0x32, 0x33});
+    too_short_pin->resize(64, 0x00);
+    return too_short_pin;
   }();
   return *pin;
 }
@@ -61,11 +58,9 @@ const cbor::Value::BinaryValue& GetMaximumPinUtf8() {
 
 const cbor::Value::BinaryValue& GetTooShortPadding() {
   static const auto* const pin = [] {
-    auto* too_short_padding = new cbor::Value::BinaryValue(32, 0x00);
-    cbor::Value::BinaryValue valid_pin_utf8 = {0x31, 0x32, 0x33, 0x34};
-    for (size_t i = 0; i < valid_pin_utf8.size(); ++i) {
-      (*too_short_padding)[i] = valid_pin_utf8[i];
-    }
+    auto* too_short_padding =
+        new cbor::Value::BinaryValue({0x31, 0x32, 0x33, 0x34});
+    too_short_padding->resize(32, 0x00);
     return too_short_padding;
   }();
   return *pin;
@@ -73,11 +68,9 @@ const cbor::Value::BinaryValue& GetTooShortPadding() {
 
 const cbor::Value::BinaryValue& GetTooLongPadding() {
   static const auto* const pin = [] {
-    auto* too_long_padding = new cbor::Value::BinaryValue(128, 0x00);
-    cbor::Value::BinaryValue valid_pin_utf8 = {0x31, 0x32, 0x33, 0x34};
-    for (size_t i = 0; i < valid_pin_utf8.size(); ++i) {
-      (*too_long_padding)[i] = valid_pin_utf8[i];
-    }
+    auto* too_long_padding =
+        new cbor::Value::BinaryValue({0x31, 0x32, 0x33, 0x34});
+    too_long_padding->resize(128, 0x00);
     return too_long_padding;
   }();
   return *pin;

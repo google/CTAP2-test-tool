@@ -18,7 +18,10 @@
 #include <cstdint>
 #include <string>
 
+#include "third_party/chromium_components_cbor/values.h"
+
 namespace fido2_tests {
+
 // This is the status byte returned by CTAP interactions.
 enum class Status : uint8_t {
   kErrNone = 0x00,
@@ -147,6 +150,29 @@ enum class ClientPinParameters : uint8_t {
   kPermissionsRpId = 0x0A,
 };
 
+// Contains the map keys for MakeCredential responses.
+enum class MakeCredentialResponse : uint8_t {
+  kFmt = 0x01,
+  kAuthData = 0x02,
+  kAttStmt = 0x03,
+};
+
+// Converts a MakeCredential response key to a cbor::Value.
+cbor::Value CborValue(MakeCredentialResponse response);
+
+// Contains the map keys for GetAssertion responses.
+enum class GetAssertionResponse : uint8_t {
+  kCredential = 0x01,
+  kAuthData = 0x02,
+  kSignature = 0x03,
+  kUser = 0x04,
+  kNumberOfCredentials = 0x05,
+};
+
+// Converts a GetAssertion response key to a cbor::Value.
+cbor::Value CborValue(GetAssertionResponse response);
+
+// Contains the map keys for GetInfo responses.
 enum class InfoMember : uint8_t {
   kVersions = 0x01,
   kExtensions = 0x02,
@@ -167,6 +193,22 @@ enum class InfoMember : uint8_t {
   kPreferredPlatformUvAttempts = 0x11,
   kUvModality = 0x12,
 };
+
+// Converts a GetInfo response key to a cbor::Value.
+cbor::Value CborValue(InfoMember response);
+
+// Contains the map keys for ClientPin responses.
+enum class ClientPinResponse : uint8_t {
+  kKeyAgreement = 0x01,
+  kPinUvAuthToken = 0x02,
+  kPinRetries = 0x03,
+  kPowerCycleState = 0x04,
+  kUvRetries = 0x05,
+};
+
+// Converts a ClientPin response key to a cbor::Value.
+cbor::Value CborValue(ClientPinResponse response);
+
 }  // namespace fido2_tests
 
 #endif  // CONSTANTS_H_
