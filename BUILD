@@ -90,6 +90,7 @@ cc_library(
     hdrs = ["src/device_tracker.h"],
     deps = [
         ":constants",
+        ":device_interface",
         ":parameter_check",
         ":stamp",
         "//third_party/chromium_components_cbor:cbor",

@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
   if (FLAGS_token_path == "_") {
     // This magic value is used by the run script for comfort.
     FLAGS_token_path = fido2_tests::hid::FindFirstFidoDevicePath();
-    std::cout << "Testing device at path: " << FLAGS_token_path << std::endl;
+    std::cout << "Tested device path: " << FLAGS_token_path << std::endl;
   }
 
   fido2_tests::DeviceTracker tracker;

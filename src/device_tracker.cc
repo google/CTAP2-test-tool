@@ -27,7 +27,6 @@ extern const char build_scm_revision[];
 namespace fido2_tests {
 namespace {
 constexpr std::string_view kRelativeDir = "results/";
-constexpr std::string_view kFileName = "NEW_TEST";
 constexpr std::string_view kFileType = ".json";
 
 // Creates a directory for results files and returns the path. Just return
@@ -58,7 +57,6 @@ void PrintFailMessage(std::string_view message) {
 
 DeviceTracker::DeviceTracker()
     : key_checker_(std::vector<std::vector<uint8_t>>()),
-      product_name_(kFileName),
       ignores_touch_prompt_(false),
       is_initialized_(false) {}
 
@@ -107,8 +105,8 @@ bool DeviceTracker::HasOption(std::string_view option_name) {
   return options_.contains(option_name);
 }
 
-void DeviceTracker::SetProductName(std::string_view product_name) {
-  product_name_ = product_name;
+void DeviceTracker::SetDeviceIdentifiers(DeviceIdentifiers device_identifiers) {
+  device_identifiers_ = std::move(device_identifiers);
 }
 
 void DeviceTracker::SetAaguid(std::string_view aaguid) { aaguid_ = aaguid; }
@@ -244,6 +242,22 @@ nlohmann::json DeviceTracker::GenerateResultsJson(
       {"counter", counter_checker_.ReportFindings()},
       {"date", time_string},
       {"commit", commit_hash},
+      {
+          "device_under_test",
+          {
+              {"manufacturer", device_identifiers_.manufacturer},
+              {"product_name", device_identifiers_.product_name},
+              {"serial_number", device_identifiers_.serial_number},
+              {"vendor_id",
+               absl::StrCat("0x", absl::Hex(device_identifiers_.vendor_id,
+                                            absl::kZeroPad4))},
+              {"product_id",
+               absl::StrCat("0x", absl::Hex(device_identifiers_.product_id,
+                                            absl::kZeroPad4))},
+              {"aaguid", aaguid_},
+              {"url", nullptr},
+          },
+      },
   };
   return results;
 }
@@ -253,8 +267,9 @@ void DeviceTracker::SaveResultsToFile() {
   absl::TimeZone local = absl::LocalTimeZone();
   std::string time_string = absl::FormatTime("%Y-%m-%d", now, local);
 
-  std::filesystem::path results_path = absl::StrCat(
-      CreateSaveFileDirectory(), product_name_, "_", time_string, kFileType);
+  std::filesystem::path results_path =
+      absl::StrCat(CreateSaveFileDirectory(), device_identifiers_.product_name,
+                   "_", device_identifiers_.serial_number, kFileType);
   std::ofstream results_file;
   results_file.open(results_path);
   CHECK(results_file.is_open()) << "Unable to open file: " << results_path;
