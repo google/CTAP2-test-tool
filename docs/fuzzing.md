@@ -23,10 +23,12 @@ You can also use your own data set for testing.
 
 ## Device monitoring
 
-Apart from a general blackbox solution, we provide a more detailed crash report
-for a device enabling GDB remote serial protocol via JTAG/SWD, assuming that a 
-breakpoint is triggered upon kernel panic. Currently only the ARM Cortex-M4 
-processor is supported.
+In our general blackbox solution, we make use of the `ClientPin` command to
+detect a crash on the device. It allows identifying both hang and reboot-after-
+crash behaviour by attempting to retrieve and compare the current `pinToken`.
+Apart from that, we provide a more detailed crash report for a device enabling
+GDB remote serial protocol via JTAG/SWD, assuming that a breakpoint is triggered
+upon kernel panic. Currently only the ARM Cortex-M4 processor is supported.
 
 ## How to run
 
