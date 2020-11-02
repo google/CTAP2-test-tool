@@ -33,23 +33,15 @@ cbor::Value::BinaryValue BadPin();
 // [1] https://www.w3.org/TR/webauthn/#sec-authenticator-data
 cbor::Value::BinaryValue ExtractCredentialId(const cbor::Value& response);
 
-// Sends a ClientPin command to get the PIN retries.
-absl::variant<cbor::Value, Status> GetPinRetriesResponse(
-    DeviceInterface* device, DeviceTracker* device_tracker);
-
-// Extracts the PIN retries from an authenticator client PIN response.
-int ExtractPinRetries(const cbor::Value& response);
+// Gets and checks the PIN retry counter response from the authenticator.
+// Returns the number from the reponse, if successful, or an error message.
+absl::variant<int, std::string> GetPinRetries(DeviceInterface* device,
+                                              DeviceTracker* device_tracker);
 
 void PrintNoTouchPrompt();
 
 // TODO(#16) replace version string with FIDO_2_1 when specification is final
 bool IsFido2Point1Complicant(DeviceTracker* device_tracker);
-
-// Makes a credential for all tests that require one, for example assertions.
-cbor::Value MakeTestCredential(DeviceTracker* device_tracker,
-                               CommandState* command_state,
-                               const std::string& rp_id,
-                               bool use_residential_key);
 
 // The following helper functions are used to test input parameters. All return
 // an error message, if a test fails.
@@ -101,25 +93,14 @@ std::optional<std::string> TestCredentialDescriptorsArrayForCborDepth(
     DeviceInterface* device, DeviceTracker* device_tracker, Command command,
     CborBuilder* builder, int map_key, const std::string& rp_id);
 
-// The following helper functions are used to test command behaviour.
-
-// Gets and checks the PIN retry counter response from the authenticator.
-int GetPinRetries(DeviceInterface* device, DeviceTracker* device_tracker);
-
-// Checks if the PIN we currently assume is set works for getting an auth
-// token. This way, we don't have to trust only the returned status code
-// after a SetPin or ChangePin command. It does not actually return an auth
-// token, use GetAuthToken() in that case.
-void CheckPinByGetAuthToken(DeviceTracker* device_tracker,
-                            CommandState* command_state);
-
-// Checks if the PIN is not currently set by trying to make a credential.
-// The MakeCredential command should fail when the authenticator is PIN
-// protected. Even though this test could fail in case of a bad implementation
-// of Make Credential, this kind of misbehavior would be caught in another
-// test.
-void CheckPinAbsenceByMakeCredential(DeviceInterface* device,
-                                     DeviceTracker* device_tracker);
+// Returns an optional's string value, if it exists.
+#define NONE_OR_RETURN(x)                             \
+  do {                                                \
+    std::optional<std::string> __error_message = (x); \
+    if (__error_message.has_value()) {                \
+      return __error_message;                         \
+    }                                                 \
+  } while (0)
 
 }  // namespace test_helpers
 }  // namespace fido2_tests

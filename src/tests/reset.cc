@@ -85,7 +85,10 @@ DeletePinTest::DeletePinTest()
 std::optional<std::string> DeletePinTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  int initial_counter = test_helpers::GetPinRetries(device, device_tracker);
+  auto initial_counter = test_helpers::GetPinRetries(device, device_tracker);
+  if (absl::holds_alternative<std::string>(initial_counter)) {
+    return absl::get<std::string>(initial_counter);
+  }
   if (device_tracker->CheckStatus(
           command_state->AttemptGetAuthToken(test_helpers::BadPin()))) {
     return "GetAuthToken did not fail with the wrong PIN.";
@@ -102,13 +105,11 @@ std::optional<std::string> DeletePinTest::Execute(
   if (!device_tracker->CheckStatus(command_state->SetPin())) {
     return "Failed to set PIN for further tests.";
   }
-  absl::variant<cbor::Value, Status> response =
-      test_helpers::GetPinRetriesResponse(device, device_tracker);
-  if (!device_tracker->CheckStatus(response)) {
-    return "GetPinRetries failed unexpectedly.";
+  auto new_counter = test_helpers::GetPinRetries(device, device_tracker);
+  if (absl::holds_alternative<std::string>(new_counter)) {
+    return absl::get<std::string>(new_counter);
   }
-  if (test_helpers::ExtractPinRetries(absl::get<cbor::Value>(response)) !=
-      initial_counter) {
+  if (absl::get<int>(initial_counter) != absl::get<int>(new_counter)) {
     return "PIN retries were not reset.";
   }
 
