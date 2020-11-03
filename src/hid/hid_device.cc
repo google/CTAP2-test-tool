@@ -65,22 +65,29 @@ void PromptUser() {
 
 // This function outputs the vendor & product ID for a HID device at a given
 // path, for example "/dev/hidraw4".
-std::pair<uint16_t, uint16_t> ReadDeviceIdentifiers(std::string_view pathname) {
+DeviceIdentifiers ReadDeviceIdentifiers(std::string_view pathname) {
   hid_device_info* devs = hid_enumerate(0, 0);  // 0 means all devices
-  std::pair<uint16_t, uint16_t> vendor_product_id(0, 0);
-
   for (hid_device_info* cur_dev = devs; cur_dev; cur_dev = cur_dev->next) {
     if (cur_dev->path == pathname) {
-      vendor_product_id =
-          std::make_pair(cur_dev->vendor_id, cur_dev->product_id);
-      break;
+      std::wstring manufacturer = cur_dev->manufacturer_string;
+      std::wstring product_name = cur_dev->product_string;
+      std::wstring serial_number = cur_dev->serial_number;
+      DeviceIdentifiers identifiers = {
+          .manufacturer = std::string(manufacturer.begin(), manufacturer.end()),
+          .product_name = std::string(product_name.begin(), product_name.end()),
+          .serial_number =
+              std::string(serial_number.begin(), serial_number.end()),
+          .vendor_id = cur_dev->vendor_id,
+          .product_id = cur_dev->product_id};
+      hid_free_enumeration(devs);
+      CHECK(identifiers.vendor_id != 0 && identifiers.product_id != 0)
+          << "The device needs a non-zero vendor and product ID.";
+      return identifiers;
     }
   }
 
   hid_free_enumeration(devs);
-  CHECK(vendor_product_id.first != 0 && vendor_product_id.second != 0)
-      << "There was no device at path: " << pathname;
-  return vendor_product_id;
+  CHECK(false) << "There was no device at path: " << pathname;
 }
 
 bool IsKnownStatusByte(uint8_t status_byte) {
@@ -142,11 +149,10 @@ HidDevice::HidDevice(DeviceTracker* tracker, std::string_view pathname,
                      bool verbose_logging)
     : tracker_(tracker),
       verbose_logging_(verbose_logging),
-      vendor_product_id_(ReadDeviceIdentifiers(pathname)) {
-  tracker_->AddObservation(absl::StrCat(
-      " Vendor ID: 0x", absl::Hex(vendor_product_id_.first, absl::kZeroPad4)));
-  tracker_->AddObservation(absl::StrCat(
-      "Product ID: 0x", absl::Hex(vendor_product_id_.second, absl::kZeroPad4)));
+      device_identifiers_(ReadDeviceIdentifiers(pathname)) {
+  std::cout << "Tested device name: " << device_identifiers_.product_name
+            << std::endl;
+  tracker_->SetDeviceIdentifiers(device_identifiers_);
 }
 
 HidDevice::~HidDevice() {
@@ -453,7 +459,8 @@ std::string HidDevice::FindDevicePath() {
     // multiplier. This has the nice advantage of not waiting on the first
     // iteration.
     absl::SleepFor(absl::Milliseconds(100) * i);
-    devs = hid_enumerate(vendor_product_id_.first, vendor_product_id_.second);
+    devs = hid_enumerate(device_identifiers_.vendor_id,
+                         device_identifiers_.product_id);
   }
   hid_device_info* root = devs;
   while (devs && devs->usage_page != 0xf1d0) {
@@ -461,13 +468,6 @@ std::string HidDevice::FindDevicePath() {
   }
   CHECK(devs) << "The key with the expected vendor & product ID was not found.";
   std::string pathname = devs->path;
-  // Tracks the product name as a side effect here. Non-ASCII characters might
-  // not be converted properly.
-  std::wstring product_name(devs->product_string);
-  if (!product_name.empty()) {
-    tracker_->SetProductName(
-        std::string(product_name.begin(), product_name.end()));
-  }
   hid_free_enumeration(root);
   CHECK(!pathname.empty()) << "No path found for this device.";
   return pathname;

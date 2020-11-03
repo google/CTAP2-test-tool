@@ -111,6 +111,12 @@ TEST(DeviceTracker, TestCheckStatusVariant) {
 
 TEST(DeviceTracker, TestGenerateResultsJson) {
   DeviceTracker device_tracker = DeviceTracker();
+  device_tracker.SetDeviceIdentifiers({.manufacturer = "M",
+                                       .product_name = "P",
+                                       .serial_number = "S",
+                                       .vendor_id = 1,
+                                       .product_id = 2});
+  device_tracker.SetAaguid("ABCD0123");
   device_tracker.AddObservation("OBSERVATION");
   device_tracker.AddProblem("PROBLEM");
   device_tracker.LogTest("FALSE_TEST", "FALSE_DESCRIPTION", "ERROR_MESSAGE");
@@ -127,6 +133,18 @@ TEST(DeviceTracker, TestGenerateResultsJson) {
       {"counter", "All counters were constant zero."},
       {"date", "2020-01-01"},
       {"commit", "c0"},
+      {
+          "device_under_test",
+          {
+              {"manufacturer", "M"},
+              {"product_name", "P"},
+              {"serial_number", "S"},
+              {"vendor_id", "0x0001"},
+              {"product_id", "0x0002"},
+              {"aaguid", "ABCD0123"},
+              {"url", nullptr},
+          },
+      },
   };
   EXPECT_EQ(output, expected_output);
 }

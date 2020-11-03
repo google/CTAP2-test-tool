@@ -20,6 +20,7 @@
 #include "absl/container/flat_hash_set.h"
 #include "nlohmann/json.hpp"
 #include "src/constants.h"
+#include "src/device_interface.h"
 #include "src/parameter_check.h"
 #include "third_party/chromium_components_cbor/values.h"
 
@@ -57,8 +58,9 @@ class DeviceTracker {
   // Returns if the device supports the option. Will always return false if not
   // initialized.
   bool HasOption(std::string_view option_name);
-  // Setter for the product_name, which is used as a results file name.
-  void SetProductName(std::string_view product_name);
+  // Setter for the device identifiers, for writing to the result file. Must be
+  // called at least once.
+  void SetDeviceIdentifiers(DeviceIdentifiers device_identifiers);
   // Setter for the AAGUID, which is reported as a device identifier.
   void SetAaguid(std::string_view aaguid);
   // The next time a touch prompt is received, it should be ignored. Call
@@ -112,7 +114,8 @@ class DeviceTracker {
  private:
   KeyChecker key_checker_;
   CounterChecker counter_checker_;
-  std::string product_name_;
+  // You need to call SetDeviceIdentifiers to initialize.
+  DeviceIdentifiers device_identifiers_;
   std::string aaguid_;
   bool ignores_touch_prompt_;
   // We want the observations, problems and tests to be listed in order of
