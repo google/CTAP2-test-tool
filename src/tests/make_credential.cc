@@ -279,7 +279,7 @@ std::optional<std::string> MakeCredentialExcludeListTest::Execute(
 
   MakeCredentialCborBuilder exclude_list_builder;
   exclude_list_builder.AddDefaultsForRequiredFields(RpId());
-  exclude_list_builder.SetResidentialKeyOptions(true);
+  exclude_list_builder.SetResidentKeyOptions(true);
   exclude_list_builder.SetPublicKeyCredentialUserEntity(
       cbor::Value::BinaryValue(32, 0x02), "Bob");
   exclude_list_builder.SetExcludeListCredential(cred_descriptor_id);
@@ -382,7 +382,7 @@ std::optional<std::string> MakeCredentialOptionRkTest::Execute(
   MakeCredentialCborBuilder options_builder;
   options_builder.AddDefaultsForRequiredFields(RpId());
 
-  options_builder.SetResidentialKeyOptions(false);
+  options_builder.SetResidentKeyOptions(false);
   absl::variant<cbor::Value, Status> response =
       fido2_commands::MakeCredentialPositiveTest(device, device_tracker,
                                                  options_builder.GetCbor());
@@ -390,7 +390,7 @@ std::optional<std::string> MakeCredentialOptionRkTest::Execute(
     return "The resident key option (false) was not accepted.";
   }
 
-  options_builder.SetResidentialKeyOptions(true);
+  options_builder.SetResidentKeyOptions(true);
   response = fido2_commands::MakeCredentialPositiveTest(
       device, device_tracker, options_builder.GetCbor());
   if (!device_tracker->CheckStatus(response)) {
@@ -710,17 +710,17 @@ std::optional<std::string> MakeCredentialFullStoreTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
   constexpr int kNumCredentials = 50;
-  MakeCredentialCborBuilder residential_key_builder;
-  residential_key_builder.AddDefaultsForRequiredFields(RpId());
-  residential_key_builder.SetResidentialKeyOptions(true);
+  MakeCredentialCborBuilder resident_key_builder;
+  resident_key_builder.AddDefaultsForRequiredFields(RpId());
+  resident_key_builder.SetResidentKeyOptions(true);
   Status returned_status = Status::kErrNone;
   int counter = 0;
   while (returned_status == Status::kErrNone && counter != kNumCredentials) {
     counter += 1;
-    residential_key_builder.SetPublicKeyCredentialUserEntity(
+    resident_key_builder.SetPublicKeyCredentialUserEntity(
         cbor::Value::BinaryValue(32, counter), "Greedy Greg");
     returned_status = fido2_commands::MakeCredentialNegativeTest(
-        device, residential_key_builder.GetCbor(), true);
+        device, resident_key_builder.GetCbor(), true);
   }
   if (returned_status != Status::kErrNone) {
     if (returned_status != Status::kErrKeyStoreFull) {
@@ -749,7 +749,7 @@ std::optional<std::string> MakeCredentialPhysicalPresenceTest::Execute(
 
   MakeCredentialCborBuilder make_credential_builder;
   make_credential_builder.AddDefaultsForRequiredFields(RpId());
-  make_credential_builder.SetResidentialKeyOptions(true);
+  make_credential_builder.SetResidentKeyOptions(true);
   Status returned_status = fido2_commands::MakeCredentialNegativeTest(
       device, make_credential_builder.GetCbor(), true);
   if (!device_tracker->CheckStatus(Status::kErrUserActionTimeout,
@@ -778,7 +778,7 @@ std::optional<std::string> MakeCredentialNonAsciiDisplayNameTest::Execute(
     CommandState* command_state) const {
   MakeCredentialCborBuilder make_credential_builder;
   make_credential_builder.AddDefaultsForRequiredFields(RpId());
-  make_credential_builder.SetResidentialKeyOptions(true);
+  make_credential_builder.SetResidentKeyOptions(true);
 
   cbor::Value::MapValue pub_key_cred_user_entity;
   cbor::Value::BinaryValue user_id(32, 0x1D);
@@ -821,7 +821,7 @@ std::optional<std::string> MakeCredentialUtf8DisplayNameTest::Execute(
     CommandState* command_state) const {
   MakeCredentialCborBuilder make_credential_builder;
   make_credential_builder.AddDefaultsForRequiredFields(RpId());
-  make_credential_builder.SetResidentialKeyOptions(true);
+  make_credential_builder.SetResidentKeyOptions(true);
 
   cbor::Value::MapValue pub_key_cred_user_entity;
   cbor::Value::BinaryValue user_id(32, 0x1D);
@@ -862,7 +862,7 @@ std::optional<std::string> MakeCredentialHmacSecretTest::Execute(
     CommandState* command_state) const {
   MakeCredentialCborBuilder hmac_secret_builder;
   hmac_secret_builder.AddDefaultsForRequiredFields(RpId());
-  hmac_secret_builder.SetResidentialKeyOptions(true);
+  hmac_secret_builder.SetResidentKeyOptions(true);
 
   cbor::Value::MapValue extension_map;
   extension_map[cbor::Value("hmac-secret")] = cbor::Value(true);

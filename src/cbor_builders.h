@@ -86,8 +86,8 @@ class MakeCredentialCborBuilder : public CborBuilder {
   void SetExcludeListCredential(
       const cbor::Value::BinaryValue& cred_descriptor_id);
   // Sets or overwrites key 7 with a cbor::Value::MapValue to require
-  // residential keys.
-  void SetResidentialKeyOptions(bool is_rk_active);
+  // resident keys.
+  void SetResidentKeyOptions(bool is_rk_active);
   // Sets or overwrites key 7 with a cbor::Value::MapValue to require user
   // presence.
   void SetUserPresenceOptions(bool is_up_active);

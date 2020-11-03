@@ -44,7 +44,7 @@ class CommandState {
   // Makes a credential for all tests that require one, for example assertions.
   // Works with or without a PIN being set.
   absl::variant<cbor::Value, Status> MakeTestCredential(
-      const std::string& rp_id, bool use_residential_key);
+      const std::string& rp_id, bool use_resident_key);
   // Compute the shared secret between authenticator and platform. Sets the
   // argument platform_cose_key to the EC key used during the transaction.
   Status ComputeSharedSecret();
