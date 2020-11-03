@@ -39,6 +39,9 @@ cc_library(
 cc_library(
     name = "device_interface",
     hdrs = ["src/device_interface.h"],
+    deps = [
+        ":constants",
+    ],
 )
 
 cc_library(

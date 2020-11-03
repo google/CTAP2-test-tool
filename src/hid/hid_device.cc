@@ -67,33 +67,26 @@ void PromptUser() {
 // path, for example "/dev/hidraw4".
 DeviceIdentifiers ReadDeviceIdentifiers(std::string_view pathname) {
   hid_device_info* devs = hid_enumerate(0, 0);  // 0 means all devices
-  DeviceIdentifiers identifiers = {.manufacturer = "",
-                                   .product_name = "",
-                                   .serial_number = "",
-                                   .vendor_id = 0,
-                                   .product_id = 0};
-
   for (hid_device_info* cur_dev = devs; cur_dev; cur_dev = cur_dev->next) {
     if (cur_dev->path == pathname) {
       std::wstring manufacturer = cur_dev->manufacturer_string;
-      identifiers.manufacturer =
-          std::string(manufacturer.begin(), manufacturer.end());
       std::wstring product_name = cur_dev->product_string;
-      identifiers.product_name =
-          std::string(product_name.begin(), product_name.end());
       std::wstring serial_number = cur_dev->serial_number;
-      identifiers.serial_number =
-          std::string(serial_number.begin(), serial_number.end());
-      identifiers.vendor_id = cur_dev->vendor_id;
-      identifiers.product_id = cur_dev->product_id;
-      break;
+      DeviceIdentifiers identifiers = {
+          .manufacturer = std::string(manufacturer.begin(), manufacturer.end()),
+          .product_name = std::string(product_name.begin(), product_name.end()),
+          .serial_number =
+              std::string(serial_number.begin(), serial_number.end()),
+          .vendor_id = cur_dev->vendor_id,
+          .product_id = cur_dev->product_id};
+      hid_free_enumeration(devs);
+      return identifiers;
     }
   }
 
   hid_free_enumeration(devs);
-  CHECK(identifiers.vendor_id != 0 && identifiers.product_id != 0)
-      << "There was no device at path: " << pathname;
-  return identifiers;
+  CHECK(false) << "There was no device at path: " << pathname;
+  return DeviceIdentifiers();
 }
 
 bool IsKnownStatusByte(uint8_t status_byte) {
