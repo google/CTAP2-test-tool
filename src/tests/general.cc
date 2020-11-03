@@ -23,6 +23,20 @@
 
 namespace fido2_tests {
 
+WinkTest::WinkTest()
+    : BaseTest("wink", "Tests if the Wink response matches the capability bit.",
+               {.has_pin = false}, {}) {}
+
+std::optional<std::string> WinkTest::Execute(
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    CommandState* command_state) const {
+  bool can_wink = device->Wink() == Status::kErrNone;
+  if (can_wink != device_tracker->HasWinkCapability()) {
+    return "The reported WINK capability did not match the observed response.";
+  }
+  return std::nullopt;
+}
+
 GetInfoTest::GetInfoTest()
     : BaseTest("get_info", "Tests the return values of GetInfo.",
                {.has_pin = false}, {Tag::kClientPin}) {}

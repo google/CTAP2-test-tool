@@ -56,9 +56,7 @@ void PrintFailMessage(std::string_view message) {
 }  // namespace
 
 DeviceTracker::DeviceTracker()
-    : key_checker_(std::vector<std::vector<uint8_t>>()),
-      ignores_touch_prompt_(false),
-      is_initialized_(false) {}
+    : key_checker_(std::vector<std::vector<uint8_t>>()) {}
 
 void DeviceTracker::Initialize(const cbor::Value::ArrayValue& versions,
                                const cbor::Value::ArrayValue& extensions,
@@ -103,6 +101,16 @@ bool DeviceTracker::HasExtension(std::string_view extension_name) {
 
 bool DeviceTracker::HasOption(std::string_view option_name) {
   return options_.contains(option_name);
+}
+
+bool DeviceTracker::HasWinkCapability() { return has_wink_capability_; }
+
+bool DeviceTracker::HasCborCapability() { return has_cbor_capability_; }
+
+void DeviceTracker::SetCapabilities(bool wink, bool cbor, bool msg) {
+  has_wink_capability_ = wink;
+  has_cbor_capability_ = cbor;
+  has_msg_capability_ = msg;
 }
 
 void DeviceTracker::SetDeviceIdentifiers(DeviceIdentifiers device_identifiers) {
@@ -239,7 +247,6 @@ nlohmann::json DeviceTracker::GenerateResultsJson(
       {"failed_tests", failed_tests_},
       {"problems", problems_},
       {"observations", observations_},
-      {"counter", counter_checker_.ReportFindings()},
       {"date", time_string},
       {"commit", commit_hash},
       {
@@ -256,6 +263,21 @@ nlohmann::json DeviceTracker::GenerateResultsJson(
                                             absl::kZeroPad4))},
               {"aaguid", aaguid_},
               {"url", nullptr},
+          },
+      },
+      {
+          "capabilities",
+          {
+              {"versions",
+               std::vector<std::string>(versions_.begin(), versions_.end())},
+              {"options",
+               std::vector<std::string>(options_.begin(), options_.end())},
+              {"extensions", std::vector<std::string>(extensions_.begin(),
+                                                      extensions_.end())},
+              {"wink", has_wink_capability_},
+              {"cbor", has_cbor_capability_},
+              {"msg", has_msg_capability_},
+              {"signature_counter", counter_checker_.ReportFindings()},
           },
       },
   };

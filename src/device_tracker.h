@@ -58,6 +58,14 @@ class DeviceTracker {
   // Returns if the device supports the option. Will always return false if not
   // initialized.
   bool HasOption(std::string_view option_name);
+  // Returns if the device sets the wink capability in its response to Init.
+  // Must be set through SetCapabilities, or returns false.
+  bool HasWinkCapability();
+  // Returns if the device sets the cbor capability in its response to Init.
+  // Must be set through SetCapabilities or returns false.
+  bool HasCborCapability();
+  // Stores the capability responses to be included in the report.
+  void SetCapabilities(bool wink, bool cbor, bool msg);
   // Setter for the device identifiers, for writing to the result file. Must be
   // called at least once.
   void SetDeviceIdentifiers(DeviceIdentifiers device_identifiers);
@@ -117,7 +125,7 @@ class DeviceTracker {
   // You need to call SetDeviceIdentifiers to initialize.
   DeviceIdentifiers device_identifiers_;
   std::string aaguid_;
-  bool ignores_touch_prompt_;
+  bool ignores_touch_prompt_ = false;
   // We want the observations, problems and tests to be listed in order of
   // appearance.
   std::vector<std::string> observations_;
@@ -130,7 +138,10 @@ class DeviceTracker {
   // Some options have three states, unsupported, inactive and active.
   // We only care about being supported in general, and activate as necessary.
   absl::flat_hash_set<std::string> options_;
-  bool is_initialized_;
+  bool is_initialized_ = false;
+  bool has_wink_capability_ = false;
+  bool has_cbor_capability_ = false;
+  bool has_msg_capability_ = false;
 };
 
 }  // namespace fido2_tests

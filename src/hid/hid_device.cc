@@ -205,37 +205,26 @@ Status HidDevice::Init() {
            (static_cast<uint32_t>(response.init.data[10]) << 8) |
            (static_cast<uint32_t>(response.init.data[11]) << 0);
 
-    has_wink_capability_ = response.init.data[16] & kWinkCapabilityMask;
-    if (response.init.data[16] & kCborCapabilityMask) {
-      tracker_->AddObservation("The CBOR capability was set.");
-    } else {
-      tracker_->AddProblem("The CBOR capability was NOT set.");
-    }
+    bool has_wink = response.init.data[16] & kWinkCapabilityMask;
+    bool has_cbor = response.init.data[16] & kCborCapabilityMask;
     // The negation is intended, because this is a negative feature flag.
-    if (!(response.init.data[16] & kNmsgCapabilityMask)) {
-      tracker_->AddObservation("The MSG capability was set.");
-    } else {
-      tracker_->AddObservation("The MSG capability was NOT set.");
-    }
-
+    bool has_msg = !(response.init.data[16] & kNmsgCapabilityMask);
+    tracker_->SetCapabilities(has_wink, has_cbor, has_msg);
     break;
   }
   return Status::kErrNone;
 }
 
 Status HidDevice::Wink() {
-  Status wink_status = ExecuteWink();
-  bool can_wink = wink_status == Status::kErrNone;
-  if (can_wink) {
-    tracker_->AddObservation("The optional command WINK worked.");
-  } else {
-    tracker_->AddObservation("The optional command WINK did not work.");
-  }
-  if (can_wink != has_wink_capability_) {
-    tracker_->AddProblem(
-        "The reported WINK capability did NOT match the observed response.");
-  }
-  return wink_status;
+  uint8_t cmd = kCtapHidWink;
+  Status status = SendCommand(cmd, std::vector<uint8_t>());
+  if (status != Status::kErrNone) return status;
+
+  std::vector<uint8_t> recv_data;
+  status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
+  if (cmd != kCtapHidWink) return Status::kErrInvalidCommand;
+  if (!recv_data.empty()) return Status::kErrInvalidLength;
+  return status;
 }
 
 Status HidDevice::ExchangeCbor(Command command,
@@ -408,18 +397,6 @@ Status HidDevice::ReceiveFrame(absl::Duration timeout, Frame* frame) const {
 
   Log("timeout");
   return Status::kErrTimeout;
-}
-
-Status HidDevice::ExecuteWink() {
-  uint8_t cmd = kCtapHidWink;
-  Status status = SendCommand(cmd, std::vector<uint8_t>());
-  if (status != Status::kErrNone) return status;
-
-  std::vector<uint8_t> recv_data;
-  status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
-  if (cmd != kCtapHidWink) return Status::kErrInvalidCommand;
-  if (!recv_data.empty()) return Status::kErrInvalidLength;
-  return status;
 }
 
 void HidDevice::Log(std::string_view message) const {
