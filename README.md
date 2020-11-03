@@ -52,6 +52,10 @@ but plan to add tests for supported extensions and
 The security key must support resident keys and user presence. Also, security
 keys with displays are untested so far.
 
+#### Fuzzing
+In addition to the CTAP2 specification conformance test, we provide a proof-of-concept
+fuzzing tool. Please check [fuzzing.md](docs/fuzzing.md) for a detailed guide.
+
 ### Results
 
 For more information on checking or contributing test results, please check
