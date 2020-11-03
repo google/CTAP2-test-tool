@@ -80,13 +80,14 @@ DeviceIdentifiers ReadDeviceIdentifiers(std::string_view pathname) {
           .vendor_id = cur_dev->vendor_id,
           .product_id = cur_dev->product_id};
       hid_free_enumeration(devs);
+      CHECK(identifiers.vendor_id != 0 && identifiers.product_id != 0)
+          << "The device needs a non-zero vendor and product ID.";
       return identifiers;
     }
   }
 
   hid_free_enumeration(devs);
   CHECK(false) << "There was no device at path: " << pathname;
-  return DeviceIdentifiers();
 }
 
 bool IsKnownStatusByte(uint8_t status_byte) {
