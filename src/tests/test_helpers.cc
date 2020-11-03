@@ -70,6 +70,8 @@ std::string CborTypeToString(cbor::Value::Type cbor_type) {
       return "simple value";
     case cbor::Value::Type::NONE:
       return "none";
+    default:
+      CHECK(false) << "unreachable default - TEST SUITE BUG";
   }
 }
 
