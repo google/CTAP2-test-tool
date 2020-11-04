@@ -64,6 +64,7 @@ int main(int argc, char** argv) {
       << "The test tool expects resident key support.";
   CHECK(tracker.HasOption("up"))
       << "The test tool expects user presence support.";
+  CHECK(tracker.HasCborCapability()) << "The test tool expects CBOR support.";
 
   // Setup and run all tests, while tracking their results.
   fido2_tests::runners::RunTests(device.get(), &tracker, &command_state);
