@@ -115,7 +115,8 @@ PersistentPinRetriesTest::PersistentPinRetriesTest()
 std::optional<std::string> PersistentPinRetriesTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  if (device_tracker->CheckStatus(
+  if (!device_tracker->CheckStatus(
+          Status::kErrPinInvalid,
           command_state->AttemptGetAuthToken(test_helpers::BadPin()))) {
     return "GetAuthToken did not fail with the wrong PIN.";
   }
