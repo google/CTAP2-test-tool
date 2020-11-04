@@ -123,7 +123,7 @@ void MakeCredentialCborBuilder::SetExcludeListCredential(
               cbor::Value(std::move(exclude_list)));
 }
 
-void MakeCredentialCborBuilder::SetResidentialKeyOptions(bool is_rk_active) {
+void MakeCredentialCborBuilder::SetResidentKeyOptions(bool is_rk_active) {
   cbor::Value::MapValue authenticator_options;
   authenticator_options[cbor::Value("rk")] = cbor::Value(is_rk_active);
   SetMapEntry(MakeCredentialParameters::kOptions,
