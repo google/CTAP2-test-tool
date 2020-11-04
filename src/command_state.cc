@@ -89,10 +89,10 @@ void CommandState::Prepare(bool set_uv) {
 }
 
 absl::variant<cbor::Value, Status> CommandState::MakeTestCredential(
-    const std::string& rp_id, bool use_residential_key) {
+    const std::string& rp_id, bool use_resident_key) {
   MakeCredentialCborBuilder test_builder;
   test_builder.AddDefaultsForRequiredFields(rp_id);
-  test_builder.SetResidentialKeyOptions(use_residential_key);
+  test_builder.SetResidentKeyOptions(use_resident_key);
   if (!auth_token_.empty()) {
     test_builder.SetDefaultPinUvAuthParam(auth_token_);
     test_builder.SetDefaultPinUvAuthProtocol();

@@ -18,9 +18,6 @@ cc_library(
     name = "test_series",
     srcs = ["test_series.cc"],
     hdrs = ["test_series.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
     deps = [
         "//:command_state",
         "//:device_interface",
@@ -64,9 +61,6 @@ cc_library(
     name = "general",
     srcs = ["general.cc"],
     hdrs = ["general.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
     deps = COMMON_TEST_DEPS,
 )
 
@@ -74,9 +68,6 @@ cc_library(
     name = "get_assertion",
     srcs = ["get_assertion.cc"],
     hdrs = ["get_assertion.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
     deps = COMMON_TEST_DEPS,
 )
 
@@ -84,9 +75,6 @@ cc_library(
     name = "make_credential",
     srcs = ["make_credential.cc"],
     hdrs = ["make_credential.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
     deps = COMMON_TEST_DEPS,
 )
 
@@ -94,9 +82,6 @@ cc_library(
     name = "reset",
     srcs = ["reset.cc"],
     hdrs = ["reset.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
     deps = COMMON_TEST_DEPS,
 )
 
@@ -104,9 +89,6 @@ cc_library(
     name = "base",
     srcs = ["base.cc"],
     hdrs = ["base.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
     deps = [
         "//:command_state",
         "//:device_interface",
@@ -130,9 +112,6 @@ cc_library(
     name = "test_helpers",
     srcs = ["test_helpers.cc"],
     hdrs = ["test_helpers.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
     deps = [
         "//:cbor_builders",
         "//:command_state",
