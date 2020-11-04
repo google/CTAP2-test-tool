@@ -72,7 +72,7 @@ void Setup(CommandState* command_state, Monitor* monitor) {
 MakeCredentialCorpusTest::MakeCredentialCorpusTest(
     Monitor* monitor, const std::string_view& base_corpus_path)
     : BaseTest("make_credential_corpus",
-               "Tests the corpus of ctap make credential commands.",
+               "Tests the corpus of CTAP MakeCredential commands.",
                {.has_pin = false}, {Tag::kClientPin}),
       monitor_(monitor),
       base_corpus_path_(base_corpus_path) {}
@@ -93,7 +93,7 @@ void MakeCredentialCorpusTest::Setup(CommandState* command_state) const {
 GetAssertionCorpusTest::GetAssertionCorpusTest(
     Monitor* monitor, const std::string_view& base_corpus_path)
     : BaseTest("get_assertion_corpus",
-               "Tests the corpus of ctap get assertion commands.",
+               "Tests the corpus of CTAP GetAssertion commands.",
                {.has_pin = false}, {Tag::kClientPin}),
       monitor_(monitor),
       base_corpus_path_(base_corpus_path) {}
@@ -114,7 +114,7 @@ void GetAssertionCorpusTest::Setup(CommandState* command_state) const {
 ClientPinCorpusTest::ClientPinCorpusTest(
     Monitor* monitor, const std::string_view& base_corpus_path)
     : BaseTest("client_pin_corpus",
-               "Tests the corpus of ctap client pin commands.",
+               "Tests the corpus of CTAP ClientPIN commands.",
                {.has_pin = false}, {Tag::kClientPin}),
       monitor_(monitor),
       base_corpus_path_(base_corpus_path) {}
