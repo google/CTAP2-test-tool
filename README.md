@@ -24,6 +24,8 @@ using git.
 
 ### How to run
 
+:warning: This tool will irreversibly delete all credentials on your device.
+
 Running the tool without comments lists all avaiable devices. Select the device
 you want to test by passing `--token_path`. For Unix, if only one CTAP2
 compatible device is plugged in, you can simply run:
