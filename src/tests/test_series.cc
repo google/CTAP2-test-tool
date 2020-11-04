@@ -45,6 +45,8 @@ const std::vector<std::unique_ptr<BaseTest>>& GetCorpusTests(
         std::make_unique<MakeCredentialCorpusTest>(monitor, base_corpus_path));
     test_list->push_back(
         std::make_unique<GetAssertionCorpusTest>(monitor, base_corpus_path));
+    test_list->push_back(
+        std::make_unique<ClientPinCorpusTest>(monitor, base_corpus_path));
     return test_list;
   }();
   return *tests;

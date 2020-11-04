@@ -27,7 +27,7 @@ namespace {
 void PrintRunningFile(std::string_view file_name, size_t last_file_name_len) {
   // Clean last line output in case the current line to be printed is shorter.
   std::cout << "\r             " << std::string(last_file_name_len, ' ');
-  std::cout << "\rRunning file " << file_name << std::flush;
+  std::cout << "\rRunning file " << file_name << ". " << std::flush;
 }
 
 // Runs all files of the given type, which should be stored in a folder inside
@@ -106,6 +106,27 @@ std::optional<std::string> GetAssertionCorpusTest::Execute(
 }
 
 void GetAssertionCorpusTest::Setup(CommandState* command_state) const {
+  BaseTest::Setup(command_state);
+  ::fido2_tests::Setup(command_state, monitor_);
+}
+
+ClientPinCorpusTest::ClientPinCorpusTest(
+    Monitor* monitor, const std::string_view& base_corpus_path)
+    : BaseTest("client_pin_corpus",
+               "Tests the corpus of ctap client pin commands.",
+               {.has_pin = false}, {Tag::kClientPin}),
+      monitor_(monitor),
+      base_corpus_path_(base_corpus_path) {}
+
+std::optional<std::string> ClientPinCorpusTest::Execute(
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    CommandState* command_state) const {
+  return ::fido2_tests::Execute(device, command_state, monitor_,
+                                InputType::kCborClientPinParameter,
+                                base_corpus_path_);
+}
+
+void ClientPinCorpusTest::Setup(CommandState* command_state) const {
   BaseTest::Setup(command_state);
   ::fido2_tests::Setup(command_state, monitor_);
 }
