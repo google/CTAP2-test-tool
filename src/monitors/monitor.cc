@@ -43,7 +43,7 @@ std::string CreateArtifactsSubdirectory(const std::string_view& subdirectory) {
 }  // namespace
 
 void Monitor::PrintCrashReport() {
-  std::cout << "DEVICE CRASHED!" << std::endl;
+  std::cout << std::endl << "DEVICE CRASHED!" << std::endl;
 }
 
 std::string Monitor::SaveCrashFile(InputType input_type,

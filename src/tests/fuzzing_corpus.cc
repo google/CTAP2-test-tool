@@ -58,6 +58,7 @@ std::optional<std::string> Execute(DeviceInterface* device,
     ++passed_test_files;
     last_file_name_len = input_name.size();
   }
+  std::cout << std::endl;
   return std::nullopt;
 }
 
