@@ -14,6 +14,8 @@
 
 #include "src/tests/base.h"
 
+#include "absl/strings/str_cat.h"
+
 namespace fido2_tests {
 
 BaseTest::BaseTest(std::string test_id, std::string test_description,
@@ -32,6 +34,10 @@ std::string BaseTest::GetId() const { return test_id_; }
 std::string BaseTest::GetDescription() const { return test_description_; }
 
 bool BaseTest::HasTag(Tag tag) const { return tags_.contains(tag); }
+
+std::string BaseTest::RpId() const {
+  return absl::StrCat(test_id_, ".example.com");
+}
 
 }  // namespace fido2_tests
 

@@ -1,3 +1,5 @@
+# <img alt="Test Tool logo" src="docs/img/logo.svg" width="200px">
+
 ## CTAP2 test tool
 
 The test suite intents to make it easier for developers to find bugs in their
@@ -21,6 +23,8 @@ On your first run, the build system will fetch all other necessary libraries
 using git.
 
 ### How to run
+
+:warning: This tool will irreversibly delete all credentials on your device.
 
 Running the tool without comments lists all avaiable devices. Select the device
 you want to test by passing `--token_path`. For Unix, if only one CTAP2
