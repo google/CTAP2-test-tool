@@ -28,6 +28,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Update apt
+        run: |
+          sudo apt update
       - name: Install system libraries
         run: |
           sudo apt-get install libudev-dev
