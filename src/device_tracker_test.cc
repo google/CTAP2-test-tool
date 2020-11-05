@@ -111,12 +111,21 @@ TEST(DeviceTracker, TestCheckStatusVariant) {
 
 TEST(DeviceTracker, TestGenerateResultsJson) {
   DeviceTracker device_tracker = DeviceTracker();
+  cbor::Value::ArrayValue versions;
+  versions.push_back(cbor::Value("VERSION"));
+  cbor::Value::ArrayValue extensions;
+  extensions.push_back(cbor::Value("EXTENSION"));
+  cbor::Value::MapValue options;
+  options[cbor::Value("OPTION")] = cbor::Value(true);
+
+  device_tracker.Initialize(versions, extensions, options);
   device_tracker.SetDeviceIdentifiers({.manufacturer = "M",
                                        .product_name = "P",
                                        .serial_number = "S",
                                        .vendor_id = 1,
                                        .product_id = 2});
   device_tracker.SetAaguid("ABCD0123");
+  device_tracker.SetCapabilities(/*wink=*/true, /*cbor=*/true, /*msg=*/false);
   device_tracker.AddObservation("OBSERVATION");
   device_tracker.AddProblem("PROBLEM");
   device_tracker.LogTest("FALSE_TEST", "FALSE_DESCRIPTION", "ERROR_MESSAGE");
@@ -130,7 +139,6 @@ TEST(DeviceTracker, TestGenerateResultsJson) {
       {"failed_tests", {"FALSE_DESCRIPTION - ERROR_MESSAGE"}},
       {"problems", {"PROBLEM"}},
       {"observations", {"OBSERVATION"}},
-      {"counter", "All counters were constant zero."},
       {"date", "2020-01-01"},
       {"commit", "c0"},
       {
@@ -143,6 +151,18 @@ TEST(DeviceTracker, TestGenerateResultsJson) {
               {"product_id", "0x0002"},
               {"aaguid", "ABCD0123"},
               {"url", nullptr},
+          },
+      },
+      {
+          "capabilities",
+          {
+              {"versions", {"VERSION"}},
+              {"options", {"OPTION"}},
+              {"extensions", {"EXTENSION"}},
+              {"wink", true},
+              {"cbor", true},
+              {"msg", false},
+              {"signature_counter", "All counters were constant zero."},
           },
       },
   };
