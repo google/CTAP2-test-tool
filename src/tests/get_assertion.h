@@ -79,6 +79,9 @@ TEST_CLASS(GetAssertionPinAuthMissingParameterTest);
 // Tests if user touch is required for GetAssertion.
 TEST_CLASS(GetAssertionPhysicalPresenceTest);
 
+// Tests if empty user IDs are omitted in the response.
+TEST_CLASS(GetAssertionEmptyUserIdTest);
+
 }  // namespace fido2_tests
 
 #endif  // TESTS_GET_ASSERTION_H_
