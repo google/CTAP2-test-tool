@@ -58,6 +58,11 @@ int main(int argc, char** argv) {
   CHECK(fido2_tests::Status::kErrNone == device->Init())
       << "CTAPHID initialization failed";
   device->Wink();
+  std::cout << "This tool will irreversibly delete all credentials on your "
+               "device. If one of your plugged security keys stores anything "
+               "important, unplug it now before continuing."
+            << std::endl;
+
   // Resets and initializes.
   fido2_tests::CommandState command_state(device.get(), &tracker);
   tracker.AssertCondition(tracker.HasOption("rk"),
