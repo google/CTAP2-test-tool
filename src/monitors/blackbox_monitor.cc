@@ -28,11 +28,18 @@ bool BlackboxMonitor::Prepare(CommandState* command_state) {
   return ok;
 }
 
-bool BlackboxMonitor::DeviceCrashed(CommandState* command_state) {
-  if (command_state->GetAuthToken() != Status::kErrNone) {
-    return true;
+bool BlackboxMonitor::DeviceCrashed(CommandState* command_state, int retries) {
+  Status status = Status::kErrNone;
+  for (int i = 0; i < retries; ++i) {
+    status = command_state->GetAuthToken();
+    if (status == Status::kErrNone) {
+      break;
+    }
+    std::cout << "GetAuthToken got error - " << StatusToString(status)
+              << ". Retrying..." << std::endl;
   }
-  return command_state->GetCurrentAuthToken() != initial_pin_token_;
+  return status != Status::kErrNone ||
+         command_state->GetCurrentAuthToken() != initial_pin_token_;
 }
 
 }  // namespace fido2_tests

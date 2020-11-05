@@ -27,6 +27,7 @@ namespace fido2_tests {
 enum InputType {
   kCborMakeCredentialParameter,
   kCborGetAssertionParameter,
+  kCborClientPinParameter,
   kCborRaw,
   kRawBytes
 };

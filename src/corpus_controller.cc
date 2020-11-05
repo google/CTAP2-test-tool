@@ -52,6 +52,8 @@ std::string InputTypeToDirectoryName(InputType input_type) {
       return "Cbor_MakeCredentialParameters";
     case InputType::kCborGetAssertionParameter:
       return "Cbor_GetAssertionParameters";
+    case InputType::kCborClientPinParameter:
+      return "Cbor_ClientPinParameters";
     case InputType::kCborRaw:
       return "Cbor_Raw";
     default:
@@ -69,6 +71,9 @@ Status SendInput(DeviceInterface* device, InputType input_type,
                                   false, &response);
     case InputType::kCborGetAssertionParameter:
       return device->ExchangeCbor(Command::kAuthenticatorGetAssertion, input,
+                                  false, &response);
+    case InputType::kCborClientPinParameter:
+      return device->ExchangeCbor(Command::kAuthenticatorClientPIN, input,
                                   false, &response);
     default:
       return Status::kErrOther;

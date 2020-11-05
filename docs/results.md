@@ -10,4 +10,3 @@ your product ID.
 After finishing all tests, you see a printed summary of your results in your
 terminal, and a report file is created in the `results`/`fuzzing_results` directory. 
 You can contribute this file to our collection of results with a pull request!
-
