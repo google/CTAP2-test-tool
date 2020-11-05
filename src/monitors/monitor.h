@@ -37,9 +37,9 @@ class Monitor {
   // Prepares the necessary steps to monitor the device. By default there are
   // none.
   virtual bool Prepare(CommandState* command_state) { return true; };
-  // Checks for an occured failure in the device. Every derived monitor should
-  // provide an implementation of this function.
-  virtual bool DeviceCrashed(CommandState* command_state) = 0;
+  // Checks for an occured failure in the device with retry. Every derived
+  // monitor should provide an implementation of this function.
+  virtual bool DeviceCrashed(CommandState* command_state, int retries = 1) = 0;
   // Prints some information about the produced crash on the device
   // and/or the state of the device.
   virtual void PrintCrashReport();

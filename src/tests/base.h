@@ -29,7 +29,7 @@ struct Preconditions {
 
 // Describes what features a test uses. Can be used to filter tests or display
 // results grouped by tag.
-enum class Tag { kClientPin, kFido2Point1, kHmacSecret };
+enum class Tag { kClientPin, kFido2Point1, kFuzzing, kHmacSecret };
 
 // All tests inherit this base class to have the same interface to run them.
 // Run tests by first calling Setup, then Execute.

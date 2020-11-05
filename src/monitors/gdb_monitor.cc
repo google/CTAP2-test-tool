@@ -79,7 +79,7 @@ bool GdbMonitor::Prepare(CommandState* command_state) {
                                 kRetries);
 }
 
-bool GdbMonitor::DeviceCrashed(CommandState* command_state) {
+bool GdbMonitor::DeviceCrashed(CommandState* command_state, int retries) {
   auto response = rsp_client_.ReceivePacket();
   if (!response.has_value()) {
     return false;

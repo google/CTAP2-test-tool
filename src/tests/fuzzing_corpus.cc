@@ -23,6 +23,9 @@
 namespace fido2_tests {
 namespace {
 
+// Default number of retries.
+constexpr int kRetries = 3;
+
 // Prints a line stating the file being run, rewriting the last line of output.
 void PrintRunningFile(std::string_view file_name, size_t last_file_name_len) {
   // Clean last line output in case the current line to be printed is shorter.
@@ -49,7 +52,7 @@ std::optional<std::string> Execute(DeviceInterface* device,
             .back();
     PrintRunningFile(input_name, last_file_name_len);
     SendInput(device, input_type, input_data);
-    if (monitor->DeviceCrashed(command_state)) {
+    if (monitor->DeviceCrashed(command_state, kRetries)) {
       monitor->PrintCrashReport();
       std::string save_path = monitor->SaveCrashFile(input_type, input_path);
       return absl::StrCat("Saved crash input to ", save_path,
@@ -73,7 +76,7 @@ MakeCredentialCorpusTest::MakeCredentialCorpusTest(
     Monitor* monitor, const std::string_view& base_corpus_path)
     : BaseTest("make_credential_corpus",
                "Tests the corpus of CTAP MakeCredential commands.",
-               {.has_pin = false}, {Tag::kClientPin}),
+               {.has_pin = false}, {Tag::kFuzzing}),
       monitor_(monitor),
       base_corpus_path_(base_corpus_path) {}
 
@@ -94,7 +97,7 @@ GetAssertionCorpusTest::GetAssertionCorpusTest(
     Monitor* monitor, const std::string_view& base_corpus_path)
     : BaseTest("get_assertion_corpus",
                "Tests the corpus of CTAP GetAssertion commands.",
-               {.has_pin = false}, {Tag::kClientPin}),
+               {.has_pin = false}, {Tag::kFuzzing}),
       monitor_(monitor),
       base_corpus_path_(base_corpus_path) {}
 
@@ -115,7 +118,7 @@ ClientPinCorpusTest::ClientPinCorpusTest(
     Monitor* monitor, const std::string_view& base_corpus_path)
     : BaseTest("client_pin_corpus",
                "Tests the corpus of CTAP ClientPIN commands.",
-               {.has_pin = false}, {Tag::kClientPin}),
+               {.has_pin = false}, {Tag::kFuzzing}),
       monitor_(monitor),
       base_corpus_path_(base_corpus_path) {}
 
