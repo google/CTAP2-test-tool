@@ -183,16 +183,12 @@ Status HidDevice::Init() {
     challenge.init.data[i] = rand_r(&seed_);
   }
 
-  Status status = SendFrame(&challenge);
-  if (status != Status::kErrNone) return status;
+  OK_OR_RETURN(SendFrame(&challenge));
 
   for (;;) {
     Frame response;
-    status = ReceiveFrame(kReceiveTimeout, &response);
+    OK_OR_RETURN(ReceiveFrame(kReceiveTimeout, &response));
 
-    if (status == Status::kErrTimeout || status == Status::kErrOther) {
-      return status;
-    }
     if (response.cid != challenge.cid ||
         response.init.cmd != challenge.init.cmd ||
         response.PayloadLength() != kInitRespSize ||
@@ -217,11 +213,10 @@ Status HidDevice::Init() {
 
 Status HidDevice::Wink() {
   uint8_t cmd = kCtapHidWink;
-  Status status = SendCommand(cmd, std::vector<uint8_t>());
-  if (status != Status::kErrNone) return status;
+  OK_OR_RETURN(SendCommand(cmd, std::vector<uint8_t>()));
 
   std::vector<uint8_t> recv_data;
-  status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
+  Status status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
   if (cmd != kCtapHidWink) return Status::kErrInvalidCommand;
   if (!recv_data.empty()) return Status::kErrInvalidLength;
   return status;
@@ -238,12 +233,10 @@ Status HidDevice::ExchangeCbor(Command command,
   send_data.insert(send_data.end(), payload.begin(), payload.end());
 
   uint8_t cmd = kCtapHidCbor;
-  Status status = SendCommand(cmd, send_data);
-  if (status != Status::kErrNone) return status;
+  OK_OR_RETURN(SendCommand(cmd, send_data));
 
   std::vector<uint8_t> recv_data;
-  status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
-  if (status != Status::kErrNone) return status;
+  OK_OR_RETURN(ReceiveCommand(kReceiveTimeout, &cmd, &recv_data));
 
   // The answer might also be a keepalive.
   bool has_sent_prompt = false;
@@ -258,8 +251,7 @@ Status HidDevice::ExchangeCbor(Command command,
         PromptUser();
       }
     }
-    status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
-    if (status != Status::kErrNone) return status;
+    OK_OR_RETURN(ReceiveCommand(kReceiveTimeout, &cmd, &recv_data));
   }
 
   if (cmd != kCtapHidCbor) return Status::kErrInvalidCommand;
@@ -309,8 +301,7 @@ Status HidDevice::SendCommand(uint8_t cmd,
 
   uint8_t seq = 0;
   do {
-    Status status = SendFrame(&frame);
-    if (status != Status::kErrNone) return status;
+    OK_OR_RETURN(SendFrame(&frame));
 
     remaining_data_size -= frame_len;
     data_it += frame_len;
@@ -331,8 +322,7 @@ Status HidDevice::ReceiveCommand(absl::Duration timeout, uint8_t* cmd,
 
   Frame frame;
   do {
-    Status status = ReceiveFrame(end_time - absl::Now(), &frame);
-    if (status != Status::kErrNone) return status;
+    OK_OR_RETURN(ReceiveFrame(end_time - absl::Now(), &frame));
   } while (frame.cid != cid_ || !frame.IsInitType());
 
   if (frame.init.cmd == kCtapHidError) return ByteToStatus(frame.init.data[0]);
@@ -349,8 +339,7 @@ Status HidDevice::ReceiveCommand(absl::Duration timeout, uint8_t* cmd,
 
   uint8_t seq = 0;
   while (total_len) {
-    Status status = ReceiveFrame(end_time - absl::Now(), &frame);
-    if (status != Status::kErrNone) return status;
+    OK_OR_RETURN(ReceiveFrame(end_time - absl::Now(), &frame));
 
     if (frame.cid != cid_) continue;
     if (frame.IsInitType()) return Status::kErrInvalidSeq;

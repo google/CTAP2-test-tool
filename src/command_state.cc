@@ -28,14 +28,6 @@ namespace {
 constexpr size_t kPinByteLength = 64;
 }  // namespace
 
-#define OK_OR_RETURN(x)               \
-  ({                                  \
-    Status status = (x);              \
-    if (status != Status::kErrNone) { \
-      return status;                  \
-    }                                 \
-  })
-
 CommandState::CommandState(DeviceInterface* device,
                            DeviceTracker* device_tracker)
     : device_(device), device_tracker_(device_tracker) {

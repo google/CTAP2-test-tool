@@ -51,19 +51,19 @@ class DeviceTracker {
                   const cbor::Value::MapValue& options);
   // Returns if the device supports the version. Will always return false if not
   // initialized.
-  bool HasVersion(std::string_view version_name);
+  bool HasVersion(std::string_view version_name) const;
   // Returns if the device supports the extension. Will always return false if
   // not initialized.
-  bool HasExtension(std::string_view extension_name);
+  bool HasExtension(std::string_view extension_name) const;
   // Returns if the device supports the option. Will always return false if not
   // initialized.
-  bool HasOption(std::string_view option_name);
+  bool HasOption(std::string_view option_name) const;
   // Returns if the device sets the wink capability in its response to Init.
   // Must be set through SetCapabilities, or returns false.
-  bool HasWinkCapability();
+  bool HasWinkCapability() const;
   // Returns if the device sets the cbor capability in its response to Init.
   // Must be set through SetCapabilities or returns false.
-  bool HasCborCapability();
+  bool HasCborCapability() const;
   // Stores the capability responses to be included in the report.
   void SetCapabilities(bool wink, bool cbor, bool msg);
   // Setter for the device identifiers, for writing to the result file. Must be
@@ -112,12 +112,12 @@ class DeviceTracker {
   void ReportFindings() const;
   // Generates a JSON object with test results.
   nlohmann::json GenerateResultsJson(std::string_view commit_hash,
-                                     std::string_view time_string);
+                                     std::string_view time_string) const;
   // Saves the results to a JSON file. Creates a "results" directory, if
   // necessary. The file name will be derived from the product name as listed
   // through HID, or a default if none is found. Overwrites existing files of
   // the same name. The commit is stamped into the binary and read here.
-  void SaveResultsToFile();
+  void SaveResultsToFile() const;
 
  private:
   KeyChecker key_checker_;

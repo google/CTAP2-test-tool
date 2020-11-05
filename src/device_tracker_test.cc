@@ -125,7 +125,7 @@ TEST(DeviceTracker, TestGenerateResultsJson) {
                                        .vendor_id = 1,
                                        .product_id = 2});
   device_tracker.SetAaguid("ABCD0123");
-  device_tracker.SetCapabilities(true, true, false);
+  device_tracker.SetCapabilities(/*wink=*/true, /*cbor=*/true, /*msg=*/false);
   device_tracker.AddObservation("OBSERVATION");
   device_tracker.AddProblem("PROBLEM");
   device_tracker.LogTest("FALSE_TEST", "FALSE_DESCRIPTION", "ERROR_MESSAGE");
