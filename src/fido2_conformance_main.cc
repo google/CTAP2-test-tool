@@ -30,9 +30,6 @@ DEFINE_string(
 
 DEFINE_bool(verbose, false, "Printing debug logs, i.e. transmitted packets.");
 
-DEFINE_int32(num_credentials, 50,
-             "Maximum number of created credentials to test the key store.");
-
 // Calling this function first connects to the device and then executes all test
 // series listed.
 //
@@ -46,13 +43,13 @@ int main(int argc, char** argv) {
     std::cout << "Please add the --token_path flag for one of these devices:"
               << std::endl;
     fido2_tests::hid::PrintFidoDevices();
-    exit(0);
+    return 0;
   }
 
   if (FLAGS_token_path == "_") {
     // This magic value is used by the run script for comfort.
     FLAGS_token_path = fido2_tests::hid::FindFirstFidoDevicePath();
-    std::cout << "Testing device at path: " << FLAGS_token_path << std::endl;
+    std::cout << "Tested device path: " << FLAGS_token_path << std::endl;
   }
 
   fido2_tests::DeviceTracker tracker;
@@ -62,79 +59,26 @@ int main(int argc, char** argv) {
   CHECK(fido2_tests::Status::kErrNone == device->Init())
       << "CTAPHID initialization failed";
   device->Wink();
+  std::cout << "This tool will irreversibly delete all credentials on your "
+               "device. If one of your plugged security keys stores anything "
+               "important, unplug it now before continuing."
+            << std::endl;
+
   // Resets and initializes.
   fido2_tests::CommandState command_state(device.get(), &tracker);
-  CHECK(tracker.HasOption("rk"))
-      << "The test tool expects resident key support.";
-  CHECK(tracker.HasOption("up"))
-      << "The test tool expects user presence support.";
+  tracker.AssertCondition(tracker.HasOption("rk"),
+                          "Resident key support expected.");
+  tracker.AssertCondition(tracker.HasOption("up"),
+                          "User presence support expected.");
+  tracker.AssertCondition(tracker.HasCborCapability(),
+                          "CBOR support expected.");
 
   // Setup and run all tests, while tracking their results.
   const std::vector<std::unique_ptr<fido2_tests::BaseTest>>& tests =
       fido2_tests::runners::GetTests();
   fido2_tests::runners::RunTests(device.get(), &tracker, &command_state, tests);
+  // Reset the device to a clean state.
   command_state.Reset();
-
-  fido2_tests::TestSeries test_series = fido2_tests::TestSeries();
-
-  test_series.MakeCredentialBadParameterTypesTest(device.get(), &tracker,
-                                                  &command_state);
-  test_series.MakeCredentialMissingParameterTest(device.get(), &tracker,
-                                                 &command_state);
-  test_series.MakeCredentialRelyingPartyEntityTest(device.get(), &tracker,
-                                                   &command_state);
-  test_series.MakeCredentialUserEntityTest(device.get(), &tracker,
-                                           &command_state);
-  test_series.MakeCredentialExcludeListCredentialDescriptorTest(
-      device.get(), &tracker, &command_state);
-  test_series.MakeCredentialExtensionsTest(device.get(), &tracker,
-                                           &command_state);
-  test_series.GetAssertionBadParameterTypesTest(device.get(), &tracker,
-                                                &command_state);
-  test_series.GetAssertionMissingParameterTest(device.get(), &tracker,
-                                               &command_state);
-  test_series.GetAssertionAllowListCredentialDescriptorTest(
-      device.get(), &tracker, &command_state);
-  test_series.GetAssertionExtensionsTest(device.get(), &tracker,
-                                         &command_state);
-  test_series.ClientPinGetPinRetriesTest(device.get(), &tracker,
-                                         &command_state);
-  test_series.ClientPinGetKeyAgreementTest(device.get(), &tracker,
-                                           &command_state);
-  test_series.ClientPinSetPinTest(device.get(), &tracker, &command_state);
-  test_series.ClientPinChangePinTest(device.get(), &tracker, &command_state);
-  test_series.ClientPinGetPinUvAuthTokenUsingPinTest(device.get(), &tracker,
-                                                     &command_state);
-  test_series.ClientPinGetPinUvAuthTokenUsingUvTest(device.get(), &tracker,
-                                                    &command_state);
-  test_series.ClientPinGetUVRetriesTest(device.get(), &tracker, &command_state);
-
-  test_series.MakeCredentialExcludeListTest(device.get(), &tracker,
-                                            &command_state);
-  test_series.MakeCredentialCoseAlgorithmTest(device.get(), &tracker,
-                                              &command_state);
-  test_series.MakeCredentialOptionsTest(device.get(), &tracker, &command_state);
-  test_series.MakeCredentialPinAuthTest(device.get(), &tracker, &command_state);
-  test_series.MakeCredentialMultipleKeysTest(
-      device.get(), &tracker, &command_state, FLAGS_num_credentials);
-  test_series.MakeCredentialPhysicalPresenceTest(device.get(), &tracker,
-                                                 &command_state);
-  test_series.MakeCredentialDisplayNameEncodingTest(device.get(), &tracker,
-                                                    &command_state);
-
-  test_series.GetAssertionOptionsTest(device.get(), &tracker, &command_state);
-  test_series.GetAssertionResidentialKeyTest(device.get(), &tracker,
-                                             &command_state);
-  test_series.GetAssertionPinAuthTest(device.get(), &tracker, &command_state);
-  test_series.GetAssertionPhysicalPresenceTest(device.get(), &tracker,
-                                               &command_state);
-
-  test_series.ClientPinRequirementsTest(device.get(), &tracker, &command_state);
-  test_series.ClientPinRequirements2Point1Test(device.get(), &tracker,
-                                               &command_state);
-  test_series.ClientPinRetriesTest(device.get(), &tracker, &command_state);
-  test_series.MakeCredentialHmacSecretTest(device.get(), &tracker,
-                                           &command_state);
 
   std::cout << "\nRESULTS" << std::endl;
   tracker.ReportFindings();

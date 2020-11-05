@@ -16,28 +16,38 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "test_series",
-    srcs = [
-        "test_client_pin.cc",
-        "test_series.cc",
-        "test_get_assertion.cc",
-        "test_make_credential.cc",
-    ],
+    srcs = ["test_series.cc"],
     hdrs = ["test_series.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
     deps = [
         "//:command_state",
         "//:device_interface",
         "//:device_tracker",
         "//src/tests:base",
+        "//src/tests:client_pin",
         "//src/tests:general",
+        "//src/tests:get_assertion",
+        "//src/tests:make_credential",
         "//src/tests:reset",
         "//src/tests:fuzzing_corpus",
         "//src/monitors:monitor",
         "//third_party/chromium_components_cbor:cbor",
     ],
 )
+
+COMMON_TEST_DEPS = [
+    "//:cbor_builders",
+    "//:command_state",
+    "//:constants",
+    "//:crypto_utility",
+    "//:device_interface",
+    "//:device_tracker",
+    "//:fido2_commands",
+    "//src/tests:base",
+    "//src/tests:test_helpers",
+    "//third_party/chromium_components_cbor:cbor",
+    "@com_google_absl//absl/strings",
+    "@com_google_absl//absl/types:variant",
+]
 
 cc_library(
     name = "fuzzing_corpus",
@@ -53,56 +63,50 @@ cc_library(
 )
 
 cc_library(
+    name = "client_pin",
+    srcs = ["client_pin.cc"],
+    hdrs = ["client_pin.h"],
+    deps = COMMON_TEST_DEPS,
+)
+
+cc_library(
     name = "general",
     srcs = ["general.cc"],
     hdrs = ["general.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
-    deps = [
-        "//:command_state",
-        "//:device_interface",
-        "//:device_tracker",
-        "//:fido2_commands",
-        "//src/tests:base",
-        "//src/tests:test_helpers",
-        "//third_party/chromium_components_cbor:cbor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/types:variant",
-    ],
+    deps = COMMON_TEST_DEPS,
+)
+
+cc_library(
+    name = "get_assertion",
+    srcs = ["get_assertion.cc"],
+    hdrs = ["get_assertion.h"],
+    deps = COMMON_TEST_DEPS,
+)
+
+cc_library(
+    name = "make_credential",
+    srcs = ["make_credential.cc"],
+    hdrs = ["make_credential.h"],
+    deps = COMMON_TEST_DEPS,
 )
 
 cc_library(
     name = "reset",
     srcs = ["reset.cc"],
     hdrs = ["reset.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
-    deps = [
-        "//:command_state",
-        "//:device_interface",
-        "//:device_tracker",
-        "//:fido2_commands",
-        "//src/tests:base",
-        "//src/tests:test_helpers",
-        "//third_party/chromium_components_cbor:cbor",
-        "@com_google_absl//absl/types:variant",
-    ],
+    deps = COMMON_TEST_DEPS,
 )
 
 cc_library(
     name = "base",
     srcs = ["base.cc"],
     hdrs = ["base.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
     deps = [
         "//:command_state",
         "//:device_interface",
         "//:device_tracker",
         "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/strings",
     ],
 )
 
@@ -120,9 +124,6 @@ cc_library(
     name = "test_helpers",
     srcs = ["test_helpers.cc"],
     hdrs = ["test_helpers.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
     deps = [
         "//:cbor_builders",
         "//:command_state",

@@ -36,22 +36,21 @@ DeleteCredentialsTest::DeleteCredentialsTest()
 std::optional<std::string> DeleteCredentialsTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  std::string rp_id = "delete_credential.example.com";
   Status returned_status;
   absl::variant<cbor::Value, Status> response;
 
   if (!device_tracker->CheckStatus(
-          command_state->MakeTestCredential(rp_id, true))) {
+          command_state->MakeTestCredential(RpId(), true))) {
     return "Cannot make credential for further tests.";
   }
-  response = command_state->MakeTestCredential(rp_id, false);
+  response = command_state->MakeTestCredential(RpId(), false);
   if (!device_tracker->CheckStatus(response)) {
     return "Cannot make credential for further tests.";
   }
   cbor::Value credential_response = std::move(absl::get<cbor::Value>(response));
 
   GetAssertionCborBuilder reset_get_assertion_builder;
-  reset_get_assertion_builder.AddDefaultsForRequiredFields(rp_id);
+  reset_get_assertion_builder.AddDefaultsForRequiredFields(RpId());
   response = fido2_commands::GetAssertionPositiveTest(
       device, device_tracker, reset_get_assertion_builder.GetCbor());
   if (!device_tracker->CheckStatus(response)) {
@@ -86,9 +85,12 @@ DeletePinTest::DeletePinTest()
 std::optional<std::string> DeletePinTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  std::string rp_id = "delete_pin.example.com";
-  int initial_counter = test_helpers::GetPinRetries(device, device_tracker);
-  if (device_tracker->CheckStatus(
+  auto initial_counter = test_helpers::GetPinRetries(device, device_tracker);
+  if (absl::holds_alternative<std::string>(initial_counter)) {
+    return absl::get<std::string>(initial_counter);
+  }
+  if (!device_tracker->CheckStatus(
+          Status::kErrPinInvalid,
           command_state->AttemptGetAuthToken(test_helpers::BadPin()))) {
     return "GetAuthToken did not fail with the wrong PIN.";
   }
@@ -98,24 +100,22 @@ std::optional<std::string> DeletePinTest::Execute(
   command_state->Reset();
 
   if (!device_tracker->CheckStatus(
-          command_state->MakeTestCredential(rp_id, false))) {
+          command_state->MakeTestCredential(RpId(), false))) {
     return "MakeCredential failed without UV after resetting the PIN.";
   }
   if (!device_tracker->CheckStatus(command_state->SetPin())) {
     return "Failed to set PIN for further tests.";
   }
-  absl::variant<cbor::Value, Status> response =
-      test_helpers::GetPinRetriesResponse(device, device_tracker);
-  if (!device_tracker->CheckStatus(response)) {
-    return "GetPinRetries failed unexpectedly.";
+  auto new_counter = test_helpers::GetPinRetries(device, device_tracker);
+  if (absl::holds_alternative<std::string>(new_counter)) {
+    return absl::get<std::string>(new_counter);
   }
-  if (test_helpers::ExtractPinRetries(absl::get<cbor::Value>(response)) !=
-      initial_counter) {
+  if (absl::get<int>(initial_counter) != absl::get<int>(new_counter)) {
     return "PIN retries were not reset.";
   }
 
   MakeCredentialCborBuilder reset_make_credential_builder;
-  reset_make_credential_builder.AddDefaultsForRequiredFields(rp_id);
+  reset_make_credential_builder.AddDefaultsForRequiredFields(RpId());
   reset_make_credential_builder.SetDefaultPinUvAuthParam(old_auth_token);
   reset_make_credential_builder.SetDefaultPinUvAuthProtocol();
   Status returned_status = fido2_commands::MakeCredentialNegativeTest(
@@ -135,7 +135,6 @@ ResetPhysicalPresenceTest::ResetPhysicalPresenceTest()
 std::optional<std::string> ResetPhysicalPresenceTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  std::string rp_id = "presence.example.com";
   Status returned_status;
   constexpr absl::Duration reset_timeout_duration = absl::Milliseconds(10000);
   absl::Time reset_deadline = absl::Now() + reset_timeout_duration;

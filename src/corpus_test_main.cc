@@ -80,6 +80,10 @@ int main(int argc, char** argv) {
   CHECK(fido2_tests::Status::kErrNone == device->Init())
       << "CTAPHID initialization failed";
   device->Wink();
+  std::cout << "This tool will irreversibly delete all credentials on your "
+               "device. If one of your plugged security keys stores anything "
+               "important, unplug it now before continuing."
+            << std::endl;
 
   std::unique_ptr<fido2_tests::Monitor> monitor;
   if (FLAGS_monitor == "blackbox") {

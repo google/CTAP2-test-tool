@@ -20,12 +20,13 @@
 #include "absl/container/flat_hash_set.h"
 #include "nlohmann/json.hpp"
 #include "src/constants.h"
+#include "src/device_interface.h"
 #include "src/parameter_check.h"
 #include "third_party/chromium_components_cbor/values.h"
 
 namespace fido2_tests {
 
-// Contains all information that is logged a test.
+// Contains all information that is logged in a test.
 struct TestResult {
   std::string test_id;
   std::string test_description;
@@ -50,15 +51,24 @@ class DeviceTracker {
                   const cbor::Value::MapValue& options);
   // Returns if the device supports the version. Will always return false if not
   // initialized.
-  bool HasVersion(std::string_view version_name);
+  bool HasVersion(std::string_view version_name) const;
   // Returns if the device supports the extension. Will always return false if
   // not initialized.
-  bool HasExtension(std::string_view extension_name);
+  bool HasExtension(std::string_view extension_name) const;
   // Returns if the device supports the option. Will always return false if not
   // initialized.
-  bool HasOption(std::string_view option_name);
-  // Setter for the product_name, which is used as a results file name.
-  void SetProductName(std::string_view product_name);
+  bool HasOption(std::string_view option_name) const;
+  // Returns if the device sets the wink capability in its response to Init.
+  // Must be set through SetCapabilities, or returns false.
+  bool HasWinkCapability() const;
+  // Returns if the device sets the cbor capability in its response to Init.
+  // Must be set through SetCapabilities or returns false.
+  bool HasCborCapability() const;
+  // Stores the capability responses to be included in the report.
+  void SetCapabilities(bool wink, bool cbor, bool msg);
+  // Setter for the device identifiers, for writing to the result file. Must be
+  // called at least once.
+  void SetDeviceIdentifiers(DeviceIdentifiers device_identifiers);
   // Setter for the AAGUID, which is reported as a device identifier.
   void SetAaguid(std::string_view aaguid);
   // The next time a touch prompt is received, it should be ignored. Call
@@ -90,17 +100,6 @@ class DeviceTracker {
   bool CheckStatus(Status expected_status, Status returned_status);
   // Returns whether the response is a value or the success status.
   bool CheckStatus(const absl::variant<cbor::Value, Status>& returned_variant);
-  // Checks a general condition, reporting the result and writing statistics.
-  void CheckAndReport(bool condition, const std::string& test_name);
-  // As above, but checks specifically whether the variant is a CBOR value.
-  void CheckAndReport(
-      const absl::variant<cbor::Value, Status>& returned_variant,
-      const std::string& test_name);
-  // As above, but checks specifically if the expected and returned status are
-  // both an error or both not an error. If both are different errors, the test
-  // counts as passed, but the report contains a warning.
-  void CheckAndReport(Status expected_status, Status returned_status,
-                      const std::string& test_name);
   // Logs a test and its result.
   void LogTest(std::string test_id, std::string test_description,
                std::optional<std::string> error_message);
@@ -113,19 +112,20 @@ class DeviceTracker {
   void ReportFindings() const;
   // Generates a JSON object with test results.
   nlohmann::json GenerateResultsJson(std::string_view commit_hash,
-                                     std::string_view time_string);
+                                     std::string_view time_string) const;
   // Saves the results to a JSON file. Creates a "results" directory, if
   // necessary. The file name will be derived from the product name as listed
   // through HID, or a default if none is found. Overwrites existing files of
   // the same name. The commit is stamped into the binary and read here.
-  void SaveResultsToFile(std::string_view results_dir = "results/");
+  void SaveResultsToFile(std::string_view results_dir = "results/") const;
 
  private:
   KeyChecker key_checker_;
   CounterChecker counter_checker_;
-  std::string product_name_;
+  // You need to call SetDeviceIdentifiers to initialize.
+  DeviceIdentifiers device_identifiers_;
   std::string aaguid_;
-  bool ignores_touch_prompt_;
+  bool ignores_touch_prompt_ = false;
   // We want the observations, problems and tests to be listed in order of
   // appearance.
   std::vector<std::string> observations_;
@@ -138,7 +138,10 @@ class DeviceTracker {
   // Some options have three states, unsupported, inactive and active.
   // We only care about being supported in general, and activate as necessary.
   absl::flat_hash_set<std::string> options_;
-  bool is_initialized_;
+  bool is_initialized_ = false;
+  bool has_wink_capability_ = false;
+  bool has_cbor_capability_ = false;
+  bool has_msg_capability_ = false;
 };
 
 }  // namespace fido2_tests
