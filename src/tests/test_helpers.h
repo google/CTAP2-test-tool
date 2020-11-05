@@ -33,25 +33,18 @@ cbor::Value::BinaryValue BadPin();
 // [1] https://www.w3.org/TR/webauthn/#sec-authenticator-data
 cbor::Value::BinaryValue ExtractCredentialId(const cbor::Value& response);
 
-// Sends a ClientPin command to get the PIN retries.
-absl::variant<cbor::Value, Status> GetPinRetriesResponse(
-    DeviceInterface* device, DeviceTracker* device_tracker);
-
-// Extracts the PIN retries from an authenticator client PIN response.
-int ExtractPinRetries(const cbor::Value& response);
+// Gets and checks the PIN retry counter response from the authenticator.
+// Returns the number from the reponse, if successful, or an error message.
+absl::variant<int, std::string> GetPinRetries(DeviceInterface* device,
+                                              DeviceTracker* device_tracker);
 
 void PrintNoTouchPrompt();
 
 // TODO(#16) replace version string with FIDO_2_1 when specification is final
 bool IsFido2Point1Complicant(DeviceTracker* device_tracker);
 
-// Makes a credential for all tests that require one, for example assertions.
-cbor::Value MakeTestCredential(DeviceTracker* device_tracker,
-                               CommandState* command_state,
-                               const std::string& rp_id,
-                               bool use_residential_key);
-
-// The following helper functions are used to test input parameters.
+// The following helper functions are used to test input parameters. All return
+// an error message, if a test fails.
 
 // Tries to insert types other than the correct one into the CBOR builder.
 // Make sure to pass the appropriate CborBuilder for your command. The correct
@@ -59,18 +52,20 @@ cbor::Value MakeTestCredential(DeviceTracker* device_tracker,
 // include other types than maps for the command and inner types of maps and
 // the first element of an inner array (assuming all array elements have the
 // same type). If that first element happens to be a map, its entries are also
-// checked. Even though this seems like an arbitrary choice at first, it
-// covers most of the CTAP input.
-void TestBadParameterTypes(DeviceInterface* device,
-                           DeviceTracker* device_tracker, Command command,
-                           CborBuilder* builder);
+// checked. Even though this seems like an arbitrary choice, it covers most of
+// the CTAP input.
+std::optional<std::string> TestBadParameterTypes(DeviceInterface* device,
+                                                 DeviceTracker* device_tracker,
+                                                 Command command,
+                                                 CborBuilder* builder);
 
 // Tries to remove each parameter once. Make sure to pass the appropriate
 // CborBuilder for your command. The necessary parameters are inferred through
 // the currently present builder entries.
-void TestMissingParameters(DeviceInterface* device,
-                           DeviceTracker* device_tracker, Command command,
-                           CborBuilder* builder);
+std::optional<std::string> TestMissingParameters(DeviceInterface* device,
+                                                 DeviceTracker* device_tracker,
+                                                 Command command,
+                                                 CborBuilder* builder);
 
 // Tries to insert types other than the correct one into map entries. Those
 // maps themselves are values of the command parameter map. If
@@ -78,48 +73,34 @@ void TestMissingParameters(DeviceInterface* device,
 // instead. To sum it up, the data structure tested can look like this:
 // command:outer_map_key->inner_map[key]->wrongly_typed_value or
 // command:outer_map_key->[inner_map[key]->wrongly_typed_value].
-void TestBadParametersInInnerMap(DeviceInterface* device,
-                                 DeviceTracker* device_tracker, Command command,
-                                 CborBuilder* builder, int outer_map_key,
-                                 const cbor::Value::MapValue& inner_map,
-                                 bool has_wrapping_array);
+std::optional<std::string> TestBadParametersInInnerMap(
+    DeviceInterface* device, DeviceTracker* device_tracker, Command command,
+    CborBuilder* builder, int outer_map_key,
+    const cbor::Value::MapValue& inner_map, bool has_wrapping_array);
 
 // Tries to insert types other than the correct one into array elements. Those
 // arrays themselves are values of the command parameter map.
-void TestBadParametersInInnerArray(DeviceInterface* device,
-                                   DeviceTracker* device_tracker,
-                                   Command command, CborBuilder* builder,
-                                   int outer_map_key,
-                                   const cbor::Value& array_element);
+std::optional<std::string> TestBadParametersInInnerArray(
+    DeviceInterface* device, DeviceTracker* device_tracker, Command command,
+    CborBuilder* builder, int outer_map_key, const cbor::Value& array_element);
 
 // Tries to insert a map or an array as a transport in an array of public key
 // credential descriptors. Both excludeList in MakeCredential and allowList in
 // GetAssertion expect this kind of value and share this test. Authenticators
 // must ignore unknown items in the transports list, so unexpected types are
 // untested. For arrays and maps though, the maximum nesting depth is reached.
-void TestCredentialDescriptorsArrayForCborDepth(
+std::optional<std::string> TestCredentialDescriptorsArrayForCborDepth(
     DeviceInterface* device, DeviceTracker* device_tracker, Command command,
     CborBuilder* builder, int map_key, const std::string& rp_id);
 
-// The following helper functions are used to test command behaviour.
-
-// Gets and checks the PIN retry counter response from the authenticator.
-int GetPinRetries(DeviceInterface* device, DeviceTracker* device_tracker);
-
-// Checks if the PIN we currently assume is set works for getting an auth
-// token. This way, we don't have to trust only the returned status code
-// after a SetPin or ChangePin command. It does not actually return an auth
-// token, use GetAuthToken() in that case.
-void CheckPinByGetAuthToken(DeviceTracker* device_tracker,
-                            CommandState* command_state);
-
-// Checks if the PIN is not currently set by trying to make a credential.
-// The MakeCredential command should fail when the authenticator is PIN
-// protected. Even though this test could fail in case of a bad implementation
-// of Make Credential, this kind of misbehavior would be caught in another
-// test.
-void CheckPinAbsenceByMakeCredential(DeviceInterface* device,
-                                     DeviceTracker* device_tracker);
+// Returns an optional's string value, if it exists.
+#define NONE_OR_RETURN(x)                             \
+  do {                                                \
+    std::optional<std::string> __error_message = (x); \
+    if (__error_message.has_value()) {                \
+      return __error_message;                         \
+    }                                                 \
+  } while (0)
 
 }  // namespace test_helpers
 }  // namespace fido2_tests

@@ -28,14 +28,6 @@ namespace {
 constexpr size_t kPinByteLength = 64;
 }  // namespace
 
-#define OK_OR_RETURN(x)               \
-  ({                                  \
-    Status status = (x);              \
-    if (status != Status::kErrNone) { \
-      return status;                  \
-    }                                 \
-  })
-
 CommandState::CommandState(DeviceInterface* device,
                            DeviceTracker* device_tracker)
     : device_(device), device_tracker_(device_tracker) {
@@ -45,8 +37,7 @@ CommandState::CommandState(DeviceInterface* device,
   device_tracker_->AssertResponse(response, "GetInfo");
 
   const auto& decoded_map = absl::get<cbor::Value>(response).GetMap();
-  if (auto map_iter = decoded_map.find(
-          cbor::Value(static_cast<uint8_t>(InfoMember::kAaguid)));
+  if (auto map_iter = decoded_map.find(CborValue(InfoMember::kAaguid));
       map_iter != decoded_map.end()) {
     const cbor::Value::BinaryValue& aaguid_bytes =
         map_iter->second.GetBytestring();
@@ -81,9 +72,7 @@ void CommandState::Reset() {
 
 void CommandState::Prepare(bool set_uv) {
   if (set_uv) {
-    if (pin_utf8_.empty()) {
-      device_tracker_->AssertResponse(SetPin(), "set PIN");
-    }
+    device_tracker_->AssertResponse(GetAuthToken(), "refresh auth token");
   } else {
     if (!pin_utf8_.empty()) {
       Reset();
@@ -92,10 +81,10 @@ void CommandState::Prepare(bool set_uv) {
 }
 
 absl::variant<cbor::Value, Status> CommandState::MakeTestCredential(
-    const std::string& rp_id, bool use_residential_key) {
+    const std::string& rp_id, bool use_resident_key) {
   MakeCredentialCborBuilder test_builder;
   test_builder.AddDefaultsForRequiredFields(rp_id);
-  test_builder.SetResidentialKeyOptions(use_residential_key);
+  test_builder.SetResidentKeyOptions(use_resident_key);
   if (!auth_token_.empty()) {
     test_builder.SetDefaultPinUvAuthParam(auth_token_);
     test_builder.SetDefaultPinUvAuthProtocol();
@@ -117,7 +106,8 @@ Status CommandState::ComputeSharedSecret() {
   }
 
   const auto& key_agreement_map = absl::get<cbor::Value>(key_response).GetMap();
-  auto map_iter = key_agreement_map.find(cbor::Value(1));
+  auto map_iter =
+      key_agreement_map.find(CborValue(ClientPinResponse::kKeyAgreement));
   shared_secret_ = crypto_utility::CompleteEcdhHandshake(
       map_iter->second.GetMap(), &platform_cose_key_);
   return Status::kErrNone;
@@ -233,7 +223,9 @@ Status CommandState::AttemptChangePin(
 }
 
 Status CommandState::GetAuthToken(bool set_pin_if_necessary) {
-  OK_OR_RETURN(SetPin());
+  if (set_pin_if_necessary) {
+    OK_OR_RETURN(SetPin());
+  }
 
   AuthenticatorClientPinCborBuilder pin_token_builder;
   cbor::Value::BinaryValue pin_hash_enc = crypto_utility::Aes256CbcEncrypt(
@@ -250,12 +242,14 @@ Status CommandState::GetAuthToken(bool set_pin_if_necessary) {
       device_tracker_->AddProblem("GetAuthToken failed.");
     }
     // Failed PIN checks reset the key agreement, keep the state consistent.
+    auth_token_ = cbor::Value::BinaryValue();
     OK_OR_RETURN(ComputeSharedSecret());
     return absl::get<Status>(pin_token_response);
   } else {
     const auto& pin_token_map =
         absl::get<cbor::Value>(pin_token_response).GetMap();
-    auto map_iter = pin_token_map.find(cbor::Value(2));
+    auto map_iter =
+        pin_token_map.find(CborValue(ClientPinResponse::kPinUvAuthToken));
     cbor::Value::BinaryValue encrypted_token = map_iter->second.GetBytestring();
     auth_token_ =
         crypto_utility::Aes256CbcDecrypt(shared_secret_, encrypted_token);

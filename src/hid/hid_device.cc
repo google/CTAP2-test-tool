@@ -65,22 +65,29 @@ void PromptUser() {
 
 // This function outputs the vendor & product ID for a HID device at a given
 // path, for example "/dev/hidraw4".
-std::pair<uint16_t, uint16_t> ReadDeviceIdentifiers(std::string_view pathname) {
+DeviceIdentifiers ReadDeviceIdentifiers(std::string_view pathname) {
   hid_device_info* devs = hid_enumerate(0, 0);  // 0 means all devices
-  std::pair<uint16_t, uint16_t> vendor_product_id(0, 0);
-
   for (hid_device_info* cur_dev = devs; cur_dev; cur_dev = cur_dev->next) {
     if (cur_dev->path == pathname) {
-      vendor_product_id =
-          std::make_pair(cur_dev->vendor_id, cur_dev->product_id);
-      break;
+      std::wstring manufacturer = cur_dev->manufacturer_string;
+      std::wstring product_name = cur_dev->product_string;
+      std::wstring serial_number = cur_dev->serial_number;
+      DeviceIdentifiers identifiers = {
+          .manufacturer = std::string(manufacturer.begin(), manufacturer.end()),
+          .product_name = std::string(product_name.begin(), product_name.end()),
+          .serial_number =
+              std::string(serial_number.begin(), serial_number.end()),
+          .vendor_id = cur_dev->vendor_id,
+          .product_id = cur_dev->product_id};
+      hid_free_enumeration(devs);
+      CHECK(identifiers.vendor_id != 0 && identifiers.product_id != 0)
+          << "The device needs a non-zero vendor and product ID.";
+      return identifiers;
     }
   }
 
   hid_free_enumeration(devs);
-  CHECK(vendor_product_id.first != 0 && vendor_product_id.second != 0)
-      << "There was no device at path: " << pathname;
-  return vendor_product_id;
+  CHECK(false) << "There was no device at path: " << pathname;
 }
 
 bool IsKnownStatusByte(uint8_t status_byte) {
@@ -142,11 +149,10 @@ HidDevice::HidDevice(DeviceTracker* tracker, std::string_view pathname,
                      bool verbose_logging)
     : tracker_(tracker),
       verbose_logging_(verbose_logging),
-      vendor_product_id_(ReadDeviceIdentifiers(pathname)) {
-  tracker_->AddObservation(absl::StrCat(
-      " Vendor ID: 0x", absl::Hex(vendor_product_id_.first, absl::kZeroPad4)));
-  tracker_->AddObservation(absl::StrCat(
-      "Product ID: 0x", absl::Hex(vendor_product_id_.second, absl::kZeroPad4)));
+      device_identifiers_(ReadDeviceIdentifiers(pathname)) {
+  std::cout << "Tested device name: " << device_identifiers_.product_name
+            << std::endl;
+  tracker_->SetDeviceIdentifiers(device_identifiers_);
 }
 
 HidDevice::~HidDevice() {
@@ -177,16 +183,12 @@ Status HidDevice::Init() {
     challenge.init.data[i] = rand_r(&seed_);
   }
 
-  Status status = SendFrame(&challenge);
-  if (status != Status::kErrNone) return status;
+  OK_OR_RETURN(SendFrame(&challenge));
 
   for (;;) {
     Frame response;
-    status = ReceiveFrame(kReceiveTimeout, &response);
+    OK_OR_RETURN(ReceiveFrame(kReceiveTimeout, &response));
 
-    if (status == Status::kErrTimeout || status == Status::kErrOther) {
-      return status;
-    }
     if (response.cid != challenge.cid ||
         response.init.cmd != challenge.init.cmd ||
         response.PayloadLength() != kInitRespSize ||
@@ -199,37 +201,25 @@ Status HidDevice::Init() {
            (static_cast<uint32_t>(response.init.data[10]) << 8) |
            (static_cast<uint32_t>(response.init.data[11]) << 0);
 
-    has_wink_capability_ = response.init.data[16] & kWinkCapabilityMask;
-    if (response.init.data[16] & kCborCapabilityMask) {
-      tracker_->AddObservation("The CBOR capability was set.");
-    } else {
-      tracker_->AddProblem("The CBOR capability was NOT set.");
-    }
+    bool has_wink = response.init.data[16] & kWinkCapabilityMask;
+    bool has_cbor = response.init.data[16] & kCborCapabilityMask;
     // The negation is intended, because this is a negative feature flag.
-    if (!(response.init.data[16] & kNmsgCapabilityMask)) {
-      tracker_->AddObservation("The MSG capability was set.");
-    } else {
-      tracker_->AddObservation("The MSG capability was NOT set.");
-    }
-
+    bool has_msg = !(response.init.data[16] & kNmsgCapabilityMask);
+    tracker_->SetCapabilities(has_wink, has_cbor, has_msg);
     break;
   }
   return Status::kErrNone;
 }
 
 Status HidDevice::Wink() {
-  Status wink_status = ExecuteWink();
-  bool can_wink = wink_status == Status::kErrNone;
-  if (can_wink) {
-    tracker_->AddObservation("The optional command WINK worked.");
-  } else {
-    tracker_->AddObservation("The optional command WINK did not work.");
-  }
-  if (can_wink != has_wink_capability_) {
-    tracker_->AddProblem(
-        "The reported WINK capability did NOT match the observed response.");
-  }
-  return wink_status;
+  uint8_t cmd = kCtapHidWink;
+  OK_OR_RETURN(SendCommand(cmd, std::vector<uint8_t>()));
+
+  std::vector<uint8_t> recv_data;
+  Status status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
+  if (cmd != kCtapHidWink) return Status::kErrInvalidCommand;
+  if (!recv_data.empty()) return Status::kErrInvalidLength;
+  return status;
 }
 
 Status HidDevice::ExchangeCbor(Command command,
@@ -243,12 +233,10 @@ Status HidDevice::ExchangeCbor(Command command,
   send_data.insert(send_data.end(), payload.begin(), payload.end());
 
   uint8_t cmd = kCtapHidCbor;
-  Status status = SendCommand(cmd, send_data);
-  if (status != Status::kErrNone) return status;
+  OK_OR_RETURN(SendCommand(cmd, send_data));
 
   std::vector<uint8_t> recv_data;
-  status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
-  if (status != Status::kErrNone) return status;
+  OK_OR_RETURN(ReceiveCommand(kReceiveTimeout, &cmd, &recv_data));
 
   // The answer might also be a keepalive.
   bool has_sent_prompt = false;
@@ -263,8 +251,7 @@ Status HidDevice::ExchangeCbor(Command command,
         PromptUser();
       }
     }
-    status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
-    if (status != Status::kErrNone) return status;
+    OK_OR_RETURN(ReceiveCommand(kReceiveTimeout, &cmd, &recv_data));
   }
 
   if (cmd != kCtapHidCbor) return Status::kErrInvalidCommand;
@@ -314,8 +301,7 @@ Status HidDevice::SendCommand(uint8_t cmd,
 
   uint8_t seq = 0;
   do {
-    Status status = SendFrame(&frame);
-    if (status != Status::kErrNone) return status;
+    OK_OR_RETURN(SendFrame(&frame));
 
     remaining_data_size -= frame_len;
     data_it += frame_len;
@@ -336,8 +322,7 @@ Status HidDevice::ReceiveCommand(absl::Duration timeout, uint8_t* cmd,
 
   Frame frame;
   do {
-    Status status = ReceiveFrame(end_time - absl::Now(), &frame);
-    if (status != Status::kErrNone) return status;
+    OK_OR_RETURN(ReceiveFrame(end_time - absl::Now(), &frame));
   } while (frame.cid != cid_ || !frame.IsInitType());
 
   if (frame.init.cmd == kCtapHidError) return ByteToStatus(frame.init.data[0]);
@@ -354,8 +339,7 @@ Status HidDevice::ReceiveCommand(absl::Duration timeout, uint8_t* cmd,
 
   uint8_t seq = 0;
   while (total_len) {
-    Status status = ReceiveFrame(end_time - absl::Now(), &frame);
-    if (status != Status::kErrNone) return status;
+    OK_OR_RETURN(ReceiveFrame(end_time - absl::Now(), &frame));
 
     if (frame.cid != cid_) continue;
     if (frame.IsInitType()) return Status::kErrInvalidSeq;
@@ -404,18 +388,6 @@ Status HidDevice::ReceiveFrame(absl::Duration timeout, Frame* frame) const {
   return Status::kErrTimeout;
 }
 
-Status HidDevice::ExecuteWink() {
-  uint8_t cmd = kCtapHidWink;
-  Status status = SendCommand(cmd, std::vector<uint8_t>());
-  if (status != Status::kErrNone) return status;
-
-  std::vector<uint8_t> recv_data;
-  status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
-  if (cmd != kCtapHidWink) return Status::kErrInvalidCommand;
-  if (!recv_data.empty()) return Status::kErrInvalidLength;
-  return status;
-}
-
 void HidDevice::Log(std::string_view message) const {
   if (verbose_logging_) {
     std::cout << message << std::endl;
@@ -453,7 +425,8 @@ std::string HidDevice::FindDevicePath() {
     // multiplier. This has the nice advantage of not waiting on the first
     // iteration.
     absl::SleepFor(absl::Milliseconds(100) * i);
-    devs = hid_enumerate(vendor_product_id_.first, vendor_product_id_.second);
+    devs = hid_enumerate(device_identifiers_.vendor_id,
+                         device_identifiers_.product_id);
   }
   hid_device_info* root = devs;
   while (devs && devs->usage_page != 0xf1d0) {
@@ -461,13 +434,6 @@ std::string HidDevice::FindDevicePath() {
   }
   CHECK(devs) << "The key with the expected vendor & product ID was not found.";
   std::string pathname = devs->path;
-  // Tracks the product name as a side effect here. Non-ASCII characters might
-  // not be converted properly.
-  std::wstring product_name(devs->product_string);
-  if (!product_name.empty()) {
-    tracker_->SetProductName(
-        std::string(product_name.begin(), product_name.end()));
-  }
   hid_free_enumeration(root);
   CHECK(!pathname.empty()) << "No path found for this device.";
   return pathname;

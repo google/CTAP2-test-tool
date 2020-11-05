@@ -17,6 +17,7 @@
 #include "glog/logging.h"
 
 namespace fido2_tests {
+
 std::string StatusToString(Status status) {
   switch (status) {
     case Status::kErrNone:
@@ -128,5 +129,36 @@ std::string CommandToString(Command command) {
       CHECK(false) << "unreachable default - TEST SUITE BUG";
   }
 }
+
+cbor::Value CborValue(MakeCredentialResponse response) {
+  return cbor::Value(static_cast<uint8_t>(response));
+}
+
+bool MakeCredentialResponseContains(int64_t key) {
+  return key >= 0x01 && key <= 0x05;
+}
+
+cbor::Value CborValue(GetAssertionResponse response) {
+  return cbor::Value(static_cast<uint8_t>(response));
+}
+
+bool GetAssertionResponseContains(int64_t key) {
+  return key >= 0x01 && key <= 0x07;
+}
+
+cbor::Value CborValue(InfoMember response) {
+  return cbor::Value(static_cast<uint8_t>(response));
+}
+
+bool InfoMemberContains(int64_t key) { return key >= 0x01 && key <= 0x15; }
+
+cbor::Value CborValue(ClientPinResponse response) {
+  return cbor::Value(static_cast<uint8_t>(response));
+}
+
+bool ClientPinResponseContains(int64_t key) {
+  return key >= 0x01 && key <= 0x05;
+}
+
 }  // namespace fido2_tests
 

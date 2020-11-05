@@ -23,6 +23,20 @@
 
 namespace fido2_tests {
 
+WinkTest::WinkTest()
+    : BaseTest("wink", "Tests if the Wink response matches the capability bit.",
+               {.has_pin = false}, {}) {}
+
+std::optional<std::string> WinkTest::Execute(
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    CommandState* command_state) const {
+  bool can_wink = device->Wink() == Status::kErrNone;
+  if (can_wink != device_tracker->HasWinkCapability()) {
+    return "The reported WINK capability did not match the observed response.";
+  }
+  return std::nullopt;
+}
+
 GetInfoTest::GetInfoTest()
     : BaseTest("get_info", "Tests the return values of GetInfo.",
                {.has_pin = false}, {Tag::kClientPin}) {}
@@ -61,14 +75,12 @@ PersistentCredentialsTest::PersistentCredentialsTest()
 std::optional<std::string> PersistentCredentialsTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  std::string rp_id = "persistence.example.com";
-  absl::variant<cbor::Value, Status> response;
-
   if (!device_tracker->CheckStatus(
-          command_state->MakeTestCredential(rp_id, true))) {
+          command_state->MakeTestCredential(RpId(), true))) {
     return "Cannot make credential for further tests.";
   }
-  response = command_state->MakeTestCredential(rp_id, false);
+  absl::variant<cbor::Value, Status> response =
+      command_state->MakeTestCredential(RpId(), false);
   if (!device_tracker->CheckStatus(response)) {
     return "Cannot make credential for further tests.";
   }
@@ -77,7 +89,7 @@ std::optional<std::string> PersistentCredentialsTest::Execute(
   command_state->PromptReplugAndInit();
 
   GetAssertionCborBuilder persistence_get_assertion_builder;
-  persistence_get_assertion_builder.AddDefaultsForRequiredFields(rp_id);
+  persistence_get_assertion_builder.AddDefaultsForRequiredFields(RpId());
   response = fido2_commands::GetAssertionPositiveTest(
       device, device_tracker, persistence_get_assertion_builder.GetCbor());
   if (!device_tracker->CheckStatus(response)) {
@@ -103,15 +115,23 @@ PersistentPinRetriesTest::PersistentPinRetriesTest()
 std::optional<std::string> PersistentPinRetriesTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  if (device_tracker->CheckStatus(
+  if (!device_tracker->CheckStatus(
+          Status::kErrPinInvalid,
           command_state->AttemptGetAuthToken(test_helpers::BadPin()))) {
     return "GetAuthToken did not fail with the wrong PIN.";
   }
-  int reduced_counter = test_helpers::GetPinRetries(device, device_tracker);
+  auto reduced_counter = test_helpers::GetPinRetries(device, device_tracker);
+  if (absl::holds_alternative<std::string>(reduced_counter)) {
+    return absl::get<std::string>(reduced_counter);
+  }
 
   command_state->PromptReplugAndInit();
 
-  if (test_helpers::GetPinRetries(device, device_tracker) != reduced_counter) {
+  auto new_counter = test_helpers::GetPinRetries(device, device_tracker);
+  if (absl::holds_alternative<std::string>(new_counter)) {
+    return absl::get<std::string>(new_counter);
+  }
+  if (absl::get<int>(reduced_counter) != absl::get<int>(new_counter)) {
     return "PIN retries changed after replug.";
   }
   return std::nullopt;

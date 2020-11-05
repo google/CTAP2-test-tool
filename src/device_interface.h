@@ -41,6 +41,15 @@ class DeviceInterface {
                               std::vector<uint8_t>* response_cbor) const = 0;
 };
 
+// Contains all device identifier for logging and to re-identify the device.
+struct DeviceIdentifiers {
+  std::string manufacturer;
+  std::string product_name;
+  std::string serial_number;
+  uint16_t vendor_id;
+  uint16_t product_id;
+};
+
 }  // namespace fido2_tests
 
 #endif  // DEVICE_INTERFACE_H_
