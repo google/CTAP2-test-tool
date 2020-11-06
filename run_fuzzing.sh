@@ -25,4 +25,7 @@ path=${1:-_}
 corpus=${2:-corpus_tests/test_corpus/}
 monitor=${3:-blackbox}
 port=${4:-2331}
+
+git submodule init
+git submodule update
 bazel run //:corpus_test -- --token_path="$path" --corpus_path="$corpus" --monitor="$monitor" --port="$port"
