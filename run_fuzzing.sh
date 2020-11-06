@@ -21,11 +21,38 @@
 # 3. Monitor type.
 # 4. Connection port for the GDB server, if it's used.
 
-path=${1:-_}
-corpus=${2:-corpus_tests/test_corpus/}
-monitor=${3:-blackbox}
-port=${4:-2331}
+path=_
+corpus=corpus_tests/test_corpus/
+monitor=blackbox
+port=2331
 
-git submodule init
-git submodule update
+# parse parameters
+for arg in "$@"
+do
+case $arg in
+    --token_path=*)
+    path="${arg#*=}"
+    shift
+    ;;
+    --corpus_path=*)
+    corpus="${arg#*=}"
+    shift
+    ;;
+    --monitor=*)
+    monitor="${arg#*=}"
+    shift
+    ;;
+    --port=*)
+    port="${arg#*=}"
+    shift
+    ;;
+esac
+done
+
+if [ "$corpus" = "corpus_tests/test_corpus/" ]
+then
+    git submodule init
+    git submodule update
+fi
+
 bazel run //:corpus_test -- --token_path="$path" --corpus_path="$corpus" --monitor="$monitor" --port="$port"
