@@ -15,6 +15,7 @@
 #include "src/tests/test_series.h"
 
 #include "src/tests/client_pin.h"
+#include "src/tests/fuzzing_corpus.h"
 #include "src/tests/general.h"
 #include "src/tests/get_assertion.h"
 #include "src/tests/make_credential.h"
@@ -133,9 +134,26 @@ const std::vector<std::unique_ptr<BaseTest>>& GetTests() {
   return *tests;
 }
 
+const std::vector<std::unique_ptr<BaseTest>>& GetCorpusTests(
+    fido2_tests::Monitor* monitor, const std::string_view& base_corpus_path) {
+  static const auto* const tests = [monitor, base_corpus_path] {
+    auto* test_list = new std::vector<std::unique_ptr<BaseTest>>;
+    // TODO(#27) extend tests
+    test_list->push_back(
+        std::make_unique<MakeCredentialCorpusTest>(monitor, base_corpus_path));
+    test_list->push_back(
+        std::make_unique<GetAssertionCorpusTest>(monitor, base_corpus_path));
+    test_list->push_back(
+        std::make_unique<ClientPinCorpusTest>(monitor, base_corpus_path));
+    return test_list;
+  }();
+  return *tests;
+}
+
 void RunTests(DeviceInterface* device, DeviceTracker* device_tracker,
-              CommandState* command_state) {
-  for (const auto& test : GetTests()) {
+              CommandState* command_state,
+              const std::vector<std::unique_ptr<BaseTest>>& tests) {
+  for (const auto& test : tests) {
     if (test->HasTag(Tag::kClientPin) &&
         !device_tracker->HasOption("clientPin")) {
       continue;
