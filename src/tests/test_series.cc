@@ -84,6 +84,7 @@ const std::vector<std::unique_ptr<BaseTest>>& GetTests() {
     test_list->push_back(
         std::make_unique<GetAssertionPinAuthMissingParameterTest>());
     test_list->push_back(std::make_unique<GetAssertionPhysicalPresenceTest>());
+    test_list->push_back(std::make_unique<GetAssertionEmptyUserIdTest>());
 
     test_list->push_back(
         std::make_unique<GetPinRetriesBadParameterTypesTest>());
