@@ -35,6 +35,8 @@ std::string TagToString(Tag tag) {
       return "Client PIN";
     case Tag::kFido2Point1:
       return "FIDO 2.1";
+    case Tag::kFuzzing:
+      return "Fuzzing";
     case Tag::kHmacSecret:
       return "HMAC Secret";
     default:
