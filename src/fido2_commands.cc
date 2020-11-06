@@ -32,30 +32,13 @@ namespace fido2_commands {
 using ByteVector = std::vector<uint8_t>;
 
 namespace {
-void CompareExtensions(const cbor::Value& request, int map_key,
-                       const ByteVector& extension_data) {
+void CheckExtensions(const ByteVector& extension_data) {
   if (extension_data.empty()) {
     return;
   }
-  CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
-  const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(cbor::Value(map_key));
-  CHECK(req_iter != request_map.end()) << "unrequested extension in response";
-  CHECK(req_iter->second.is_map())
-      << "extensions in request are not a map - TEST SUITE BUG";
-  const auto& request_extensions = req_iter->second.GetMap();
-
   absl::optional<cbor::Value> extensions = cbor::Reader::Read(extension_data);
   CHECK(extensions.has_value()) << "CBOR decoding of extensions failed";
   CHECK(extensions->is_map()) << "extensions response is not a map";
-  const auto& response_extensions = extensions->GetMap();
-
-  for (const auto& extension_entry : response_extensions) {
-    auto extension_iter = request_extensions.find(extension_entry.first);
-    CHECK(extension_iter != request_extensions.end())
-        << "response has the extra extension "
-        << extension_entry.first.GetString();
-  }
 }
 
 bool IsKeyInRequest(const cbor::Value& request, int map_key) {
@@ -280,9 +263,7 @@ absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
   CHECK(has_extension_flag == (cose_key_size < cose_key.size()))
       << "extension flag not matching response";
   ByteVector extension_data(cose_key.begin() + cose_key_size, cose_key.end());
-  CompareExtensions(request,
-                    static_cast<int>(MakeCredentialParameters::kExtensions),
-                    extension_data);
+  CheckExtensions(extension_data);
 
   map_iter = decoded_map.find(CborValue(MakeCredentialResponse::kAttStmt));
   CHECK(map_iter != decoded_map.end())
@@ -406,9 +387,7 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
   CHECK(has_extension_flag == (extension_data_size > 0))
       << "extension flag not matching response";
   ByteVector extension_data(auth_data.begin() + 37, auth_data.end());
-  CompareExtensions(request,
-                    static_cast<int>(GetAssertionParameters::kExtensions),
-                    extension_data);
+  CheckExtensions(extension_data);
 
   map_iter = decoded_map.find(CborValue(GetAssertionResponse::kSignature));
   CHECK(map_iter != decoded_map.end())
