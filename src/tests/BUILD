@@ -28,6 +28,8 @@ cc_library(
         "//src/tests:get_assertion",
         "//src/tests:make_credential",
         "//src/tests:reset",
+        "//src/tests:fuzzing_corpus",
+        "//src/monitors:monitor",
         "//third_party/chromium_components_cbor:cbor",
     ],
 )
@@ -48,12 +50,22 @@ COMMON_TEST_DEPS = [
 ]
 
 cc_library(
+    name = "fuzzing_corpus",
+    srcs = ["fuzzing_corpus.cc"],
+    hdrs = ["fuzzing_corpus.h"],
+    deps = [
+        "//:command_state",
+        "//:device_interface",
+        "//:device_tracker",
+        "//src/monitors:monitor",
+        "//src/tests:base",
+    ],
+)
+
+cc_library(
     name = "client_pin",
     srcs = ["client_pin.cc"],
     hdrs = ["client_pin.h"],
-    copts = [
-        "-Wno-return-type",
-    ],
     deps = COMMON_TEST_DEPS,
 )
 

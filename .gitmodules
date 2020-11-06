@@ -1,0 +1,3 @@
+[submodule "corpus_tests/test_corpus"]
+	path = corpus_tests/test_corpus
+	url = https://github.com/mingxguo27/test_corpus.git

@@ -39,9 +39,7 @@ cc_library(
 cc_library(
     name = "device_interface",
     hdrs = ["src/device_interface.h"],
-    deps = [
-        ":constants",
-    ],
+    deps = [":constants"],
 )
 
 cc_library(
@@ -164,6 +162,16 @@ cc_library(
     linkstamp = "src/stamp.cc"
 )
 
+cc_library(
+    name = "corpus_controller",
+    srcs = ["src/corpus_controller.cc"],
+    hdrs = ["src/corpus_controller.h"],
+    deps = [
+        ":device_interface",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
 cc_binary(
     name = "fido2_conformance",
     srcs = ["src/fido2_conformance_main.cc"],
@@ -178,3 +186,21 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "corpus_test",
+    srcs = ["src/corpus_test_main.cc"],
+    deps = [
+        ":command_state",
+        ":constants",
+        ":corpus_controller",
+        ":hid_device",
+        "//src/monitors:blackbox_monitor",
+        "//src/monitors:cortexm4_gdb_monitor",
+        "//src/monitors:gdb_monitor",
+        "//src/tests:test_series",
+        "//src/tests:base",
+        "@com_github_gflags_gflags//:gflags",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_glog//:glog",
+    ],
+)

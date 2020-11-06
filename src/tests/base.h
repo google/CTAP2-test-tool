@@ -29,7 +29,7 @@ struct Preconditions {
 
 // Describes what features a test uses. Can be used to filter tests or display
 // results grouped by tag.
-enum class Tag { kClientPin, kFido2Point1, kHmacSecret };
+enum class Tag { kClientPin, kFido2Point1, kFuzzing, kHmacSecret };
 
 // Returns a readable name for each tag.
 std::string TagToString(Tag tag);
@@ -49,7 +49,7 @@ class BaseTest {
       DeviceInterface* device, DeviceTracker* device_tracker,
       CommandState* command_state) const = 0;
   // Adjusts comand_state to match the preconditions.
-  void Setup(CommandState* command_state) const;
+  virtual void Setup(CommandState* command_state) const;
   // Gets the test ID.
   std::string GetId() const;
   // Gets the test description.

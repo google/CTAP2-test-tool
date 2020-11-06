@@ -20,6 +20,7 @@
 #include "src/command_state.h"
 #include "src/device_interface.h"
 #include "src/device_tracker.h"
+#include "src/monitors/monitor.h"
 #include "src/tests/base.h"
 
 namespace fido2_tests {
@@ -28,10 +29,15 @@ namespace runners {
 // Returns a list of all tests. Please register all implemented tests here.
 const std::vector<std::unique_ptr<BaseTest>>& GetTests();
 
+// Returns a list of all corpus tests.
+const std::vector<std::unique_ptr<BaseTest>>& GetCorpusTests(
+    fido2_tests::Monitor* monitor, const std::string_view& base_corpus_path);
+
 // Runs all tests. This includes setup, and checking if they are suitable for a
 // given authenticator by comparing device information and tags.
 void RunTests(DeviceInterface* device, DeviceTracker* device_tracker,
-              CommandState* command_state);
+              CommandState* command_state,
+              const std::vector<std::unique_ptr<BaseTest>>& tests);
 
 }  // namespace runners
 }  // namespace fido2_tests
