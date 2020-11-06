@@ -101,7 +101,7 @@ Status CommandState::ComputeSharedSecret() {
       fido2_commands::AuthenticatorClientPinPositiveTest(
           device_, device_tracker_, key_agreement_builder.GetCbor());
   if (absl::holds_alternative<Status>(key_response)) {
-    device_tracker_->AddProblem("GetKeyAgreement failed");
+    device_tracker_->AddObservation("GetKeyAgreement failed");
     return absl::get<Status>(key_response);
   }
 
@@ -137,7 +137,7 @@ Status CommandState::SetPin(const cbor::Value::BinaryValue& new_pin_utf8) {
       fido2_commands::AuthenticatorClientPinPositiveTest(
           device_, device_tracker_, set_pin_builder.GetCbor());
   if (absl::holds_alternative<Status>(set_pin_response)) {
-    device_tracker_->AddProblem("SetPin failed.");
+    device_tracker_->AddObservation("SetPin failed.");
     // Failed PIN checks reset the key agreement, keep the state consistent.
     OK_OR_RETURN(ComputeSharedSecret());
     return absl::get<Status>(set_pin_response);
@@ -189,7 +189,7 @@ Status CommandState::ChangePin(const cbor::Value::BinaryValue& new_pin_utf8) {
           device_, device_tracker_, change_pin_builder.GetCbor());
 
   if (absl::holds_alternative<Status>(change_pin_response)) {
-    device_tracker_->AddProblem("ChangePin failed.");
+    device_tracker_->AddObservation("ChangePin failed.");
     // Failed PIN checks reset the key agreement, keep the state consistent.
     OK_OR_RETURN(ComputeSharedSecret());
     return absl::get<Status>(change_pin_response);
@@ -239,7 +239,7 @@ Status CommandState::GetAuthToken(bool set_pin_if_necessary) {
   if (absl::holds_alternative<Status>(pin_token_response)) {
     if (set_pin_if_necessary) {
       // This is acceptable behaviour if not set up properly.
-      device_tracker_->AddProblem("GetAuthToken failed.");
+      device_tracker_->AddObservation("GetAuthToken failed.");
     }
     // Failed PIN checks reset the key agreement, keep the state consistent.
     auth_token_ = cbor::Value::BinaryValue();

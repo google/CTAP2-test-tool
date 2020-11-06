@@ -28,9 +28,13 @@ namespace fido2_tests {
 
 // Contains all information that is logged in a test.
 struct TestResult {
+  nlohmann::json ToJson() const;
+
   std::string test_id;
   std::string test_description;
   std::optional<std::string> error_message;
+  std::vector<std::string> observations;
+  std::vector<std::string> tags;
 };
 
 // Tracks all interesting capabilities and findings during test execution. This
@@ -77,13 +81,9 @@ class DeviceTracker {
   // Returns true if IgnoreNextTouchPrompt was called before, and then false
   // until IgnoreNextTouchPrompt is called again.
   bool IsTouchPromptIgnored();
-  // Adds a string to the list of observations. Duplicates are ignored. Use this
-  // function for merely informational comments.
+  // Adds a string to the list of observations. Duplicates are ignored.
+  // Observations are logged with the next finished test.
   void AddObservation(const std::string& observation);
-  // Adds a string to the list of problems. Duplicates are ignored. Problems
-  // are highlighted more prominently during a report. Use this if you suspect
-  // the finding to be potentially problematic.
-  void AddProblem(const std::string& problem);
   // Asserts a general condition, exits on failure. Prints all results collected
   // so far and saves them into a file.
   void AssertCondition(bool condition, std::string_view message);
@@ -102,7 +102,8 @@ class DeviceTracker {
   bool CheckStatus(const absl::variant<cbor::Value, Status>& returned_variant);
   // Logs a test and its result.
   void LogTest(std::string test_id, std::string test_description,
-               std::optional<std::string> error_message);
+               std::optional<std::string> error_message,
+               std::vector<std::string> tags);
   // Returns a reference to the KeyChecker instance.
   KeyChecker* GetKeyChecker();
   // Returns a reference to the CounterChecker instance.
@@ -131,8 +132,6 @@ class DeviceTracker {
   std::vector<std::string> observations_;
   std::vector<std::string> problems_;
   std::vector<TestResult> tests_;
-  std::vector<std::string> successful_tests_;
-  std::vector<std::string> failed_tests_;
   absl::flat_hash_set<std::string> versions_;
   absl::flat_hash_set<std::string> extensions_;
   // Some options have three states, unsupported, inactive and active.

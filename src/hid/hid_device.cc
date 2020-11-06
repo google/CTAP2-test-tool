@@ -261,10 +261,10 @@ Status HidDevice::ExchangeCbor(Command command,
                         recv_data.end());
 
   if (has_sent_prompt && !expect_up_check) {
-    tracker_->AddProblem("A prompt was sent unexpectedly.");
+    tracker_->AddObservation("A prompt was sent unexpectedly.");
   }
   if (!has_sent_prompt && expect_up_check) {
-    tracker_->AddProblem(
+    tracker_->AddObservation(
         "A prompt was expected, but not performed. Sometimes it is just not "
         "recognized if performed too fast.");
   }
@@ -456,7 +456,7 @@ Status HidDevice::ByteToStatus(uint8_t status_byte) const {
     error_code_type = "vendor specific";
   }
 
-  tracker_->AddProblem(
+  tracker_->AddObservation(
       absl::StrCat("Received ", error_code_type, " error code `0x",
                    absl::Hex(status_byte, absl::kZeroPad2), "`"));
   return Status::kErrOther;
