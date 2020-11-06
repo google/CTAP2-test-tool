@@ -297,9 +297,16 @@ absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
   }
 
   for (const auto& map_entry : decoded_map) {
-    CHECK(map_entry.first.is_unsigned()) << "some map keys are not unsigned";
-    const int64_t map_key = map_entry.first.GetUnsigned();
-    CHECK(map_key >= 1 && map_key <= 3) << "there are unspecified map keys";
+    if (map_entry.first.is_unsigned()) {
+      const int64_t map_key = map_entry.first.GetUnsigned();
+      if (!MakeCredentialResponseContains(map_key)) {
+        device_tracker->AddObservation(absl::StrCat(
+            "Received unspecified MakeCredential map key ", map_key, "."));
+      }
+    } else {
+      device_tracker->AddObservation(
+          "Some MakeCredential map keys are not unsigned.");
+    }
   }
 
   return decoded_response->Clone();
@@ -433,9 +440,16 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
   }
 
   for (const auto& map_entry : decoded_map) {
-    CHECK(map_entry.first.is_unsigned()) << "some map keys are not unsigned";
-    const int64_t map_key = map_entry.first.GetUnsigned();
-    CHECK(map_key >= 1 && map_key <= 5) << "there are unspecified map keys";
+    if (map_entry.first.is_unsigned()) {
+      const int64_t map_key = map_entry.first.GetUnsigned();
+      if (!GetAssertionResponseContains(map_key)) {
+        device_tracker->AddObservation(absl::StrCat(
+            "Received unspecified GetAssertion map key ", map_key, "."));
+      }
+    } else {
+      device_tracker->AddObservation(
+          "Some GetAssertion map keys are not unsigned.");
+    }
   }
 
   return decoded_response->Clone();
@@ -586,6 +600,11 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
         << "maxSerializedLargeBlobArray is too small";
   }
 
+  map_iter = decoded_map.find(CborValue(InfoMember::kForcePinChange));
+  if (map_iter != decoded_map.end()) {
+    CHECK(map_iter->second.is_bool()) << "forcePINChangeentry is not a bool";
+  }
+
   map_iter = decoded_map.find(CborValue(InfoMember::kMinPinLength));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
@@ -627,11 +646,40 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
         << "uvModality entry is not an unsigned";
   }
 
+  map_iter = decoded_map.find(CborValue(InfoMember::kCertifications));
+  if (map_iter != decoded_map.end()) {
+    CHECK(map_iter->second.is_map()) << "certifications entry is not a map";
+  }
+
+  map_iter = decoded_map.find(
+      CborValue(InfoMember::kRemainingDiscoverableCredentials));
+  if (map_iter != decoded_map.end()) {
+    CHECK(map_iter->second.is_unsigned())
+        << "remainingDiscoverableCredentials entry is not an unsigned";
+  }
+
+  map_iter =
+      decoded_map.find(CborValue(InfoMember::kVendorPrototypeConfigCommands));
+  if (map_iter != decoded_map.end()) {
+    CHECK(map_iter->second.is_array())
+        << "vendorPrototypeConfigCommands entry is not an array";
+    for (const auto& command : map_iter->second.GetArray()) {
+      CHECK(command.is_unsigned())
+          << "vendorPrototypeConfigCommands elements are not unsigned";
+    }
+  }
+
   for (const auto& map_entry : decoded_map) {
-    CHECK(map_entry.first.is_unsigned()) << "some map keys are not unsigned";
-    const int64_t map_key = map_entry.first.GetUnsigned();
-    CHECK(map_key >= 0x01 && map_key <= 0x12 && map_key != 0x0C)
-        << "there are unspecified map keys";
+    if (map_entry.first.is_unsigned()) {
+      const int64_t map_key = map_entry.first.GetUnsigned();
+      if (!InfoMemberContains(map_key)) {
+        device_tracker->AddObservation(
+            absl::StrCat("Received unspecified GetInfo map key ",
+                         absl::Hex(map_key, absl::kZeroPad2), "."));
+      }
+    } else {
+      device_tracker->AddObservation("Some GetInfo map keys are not unsigned.");
+    }
   }
 
   device_tracker->Initialize(versions, extensions, options);
@@ -743,11 +791,18 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
   // Check for unexpected map keys.
   if (has_response_cbor) {
     for (const auto& map_entry : decoded_map) {
-      CHECK(map_entry.first.is_unsigned()) << "some map keys are not unsigned";
-      const int64_t map_key = map_entry.first.GetUnsigned();
-      CHECK(map_key <= UINT8_MAX &&
-            allowed_map_keys.contains(static_cast<ClientPinResponse>(map_key)))
-          << "there are unspecified map keys";
+      if (map_entry.first.is_unsigned()) {
+        const int64_t map_key = map_entry.first.GetUnsigned();
+        if (!GetAssertionResponseContains(map_key) ||
+            !allowed_map_keys.contains(
+                static_cast<ClientPinResponse>(map_key))) {
+          device_tracker->AddObservation(absl::StrCat(
+              "Received unspecified ClientPin map key ", map_key, "."));
+        }
+      } else {
+        device_tracker->AddObservation(
+            "Some ClientPin map keys are not unsigned.");
+      }
     }
   }
 

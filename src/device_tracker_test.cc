@@ -45,92 +45,78 @@ TEST(DeviceTracker, TestInitialize) {
   EXPECT_TRUE(device_tracker.HasOption("bioEnroll"));
 }
 
-TEST(DeviceTracker, TestAddObservation) {
-  DeviceTracker device_tracker = DeviceTracker();
-  device_tracker.AddObservation("OBSERVATION1");
-  device_tracker.AddObservation("OBSERVATION2");
-  testing::internal::CaptureStdout();
-  device_tracker.ReportFindings();
-  EXPECT_EQ(testing::internal::GetCapturedStdout(),
-            "All counters were constant zero.\n\n"
-            "OBSERVATION1\n"
-            "OBSERVATION2\n"
-            "\n\nPassed 0 out of 0 tests.\n");
-}
-
-TEST(DeviceTracker, TestAddProblem) {
-  DeviceTracker device_tracker = DeviceTracker();
-  device_tracker.AddObservation("PROBLEM1");
-  device_tracker.AddObservation("PROBLEM2");
-  testing::internal::CaptureStdout();
-  device_tracker.ReportFindings();
-  EXPECT_EQ(testing::internal::GetCapturedStdout(),
-            "All counters were constant zero.\n\n"
-            "PROBLEM1\n"
-            "PROBLEM2\n"
-            "\n\nPassed 0 out of 0 tests.\n");
-}
-
 TEST(DeviceTracker, TestCheckStatusOneArgument) {
   DeviceTracker device_tracker = DeviceTracker();
-  testing::internal::CaptureStdout();
   EXPECT_TRUE(device_tracker.CheckStatus(Status::kErrNone));
   EXPECT_FALSE(device_tracker.CheckStatus(Status::kErrOther));
-  EXPECT_EQ(testing::internal::GetCapturedStdout(),
-            "The failing error code is `CTAP1_ERR_OTHER`.\n");
 }
 
 TEST(DeviceTracker, TestCheckStatusTwoArguments) {
   DeviceTracker device_tracker = DeviceTracker();
-  testing::internal::CaptureStdout();
   EXPECT_TRUE(device_tracker.CheckStatus(Status::kErrNone, Status::kErrNone));
   EXPECT_TRUE(device_tracker.CheckStatus(Status::kErrOther, Status::kErrOther));
   EXPECT_TRUE(device_tracker.CheckStatus(Status::kErrOther,
                                          Status::kErrInvalidCommand));
   EXPECT_FALSE(device_tracker.CheckStatus(Status::kErrOther, Status::kErrNone));
   EXPECT_FALSE(device_tracker.CheckStatus(Status::kErrNone, Status::kErrOther));
-  EXPECT_EQ(testing::internal::GetCapturedStdout(),
-            "Expected error code `CTAP1_ERR_OTHER`, got "
-            "`CTAP1_ERR_INVALID_COMMAND`.\n"
-            "Expected error code `CTAP1_ERR_OTHER`, got `CTAP2_OK`.\n"
-            "The failing error code is `CTAP1_ERR_OTHER`.\n");
 }
 
 TEST(DeviceTracker, TestCheckStatusVariant) {
   DeviceTracker device_tracker = DeviceTracker();
-  testing::internal::CaptureStdout();
   absl::variant<cbor::Value, Status> value_variant = cbor::Value();
   EXPECT_TRUE(device_tracker.CheckStatus(value_variant));
   absl::variant<cbor::Value, Status> success_status_variant = Status::kErrNone;
   EXPECT_TRUE(device_tracker.CheckStatus(success_status_variant));
   absl::variant<cbor::Value, Status> fail_status_variant = Status::kErrOther;
   EXPECT_FALSE(device_tracker.CheckStatus(fail_status_variant));
-  EXPECT_EQ(testing::internal::GetCapturedStdout(),
-            "The failing error code is `CTAP1_ERR_OTHER`.\n");
 }
 
 TEST(DeviceTracker, TestGenerateResultsJson) {
   DeviceTracker device_tracker = DeviceTracker();
+  cbor::Value::ArrayValue versions;
+  versions.push_back(cbor::Value("VERSION"));
+  cbor::Value::ArrayValue extensions;
+  extensions.push_back(cbor::Value("EXTENSION"));
+  cbor::Value::MapValue options;
+  options[cbor::Value("OPTION")] = cbor::Value(true);
+
+  device_tracker.Initialize(versions, extensions, options);
   device_tracker.SetDeviceIdentifiers({.manufacturer = "M",
                                        .product_name = "P",
                                        .serial_number = "S",
                                        .vendor_id = 1,
                                        .product_id = 2});
   device_tracker.SetAaguid("ABCD0123");
+  device_tracker.SetCapabilities(/*wink=*/true, /*cbor=*/true, /*msg=*/false);
   device_tracker.AddObservation("OBSERVATION");
-  device_tracker.AddProblem("PROBLEM");
-  device_tracker.LogTest("FALSE_TEST", "FALSE_DESCRIPTION", "ERROR_MESSAGE");
-  device_tracker.LogTest("TRUE_TEST", "TRUE_DESCRIPTION", std::nullopt);
+  device_tracker.LogTest("FALSE_TEST", "FALSE_DESCRIPTION", "ERROR_MESSAGE",
+                         {});
+  device_tracker.LogTest("TRUE_TEST", "TRUE_DESCRIPTION", std::nullopt,
+                         {"TAG"});
 
   nlohmann::json output =
       device_tracker.GenerateResultsJson("c0", "2020-01-01");
   nlohmann::json expected_output = {
       {"passed_test_count", 1},
       {"total_test_count", 2},
-      {"failed_tests", {"FALSE_DESCRIPTION - ERROR_MESSAGE"}},
-      {"problems", {"PROBLEM"}},
-      {"observations", {"OBSERVATION"}},
-      {"counter", "All counters were constant zero."},
+      {"tests", nlohmann::json::array({
+                    {
+                        {"id", "FALSE_TEST"},
+                        {"description", "FALSE_DESCRIPTION"},
+                        {"result", "fail"},
+                        {"error_message", "ERROR_MESSAGE"},
+                        {"observations", {"OBSERVATION"}},
+                        {"tags", nlohmann::json::array()},
+                    },
+                    {
+                        {"id", "TRUE_TEST"},
+                        {"description", "TRUE_DESCRIPTION"},
+                        {"result", "pass"},
+                        {"error_message", {}},
+                        {"observations", nlohmann::json::array()},
+                        {"tags", {"TAG"}},
+                    },
+                })},
       {"date", "2020-01-01"},
       {"commit", "c0"},
       {
@@ -143,6 +129,19 @@ TEST(DeviceTracker, TestGenerateResultsJson) {
               {"product_id", "0x0002"},
               {"aaguid", "ABCD0123"},
               {"url", nullptr},
+          },
+      },
+      {"transport_used", "HID"},
+      {
+          "capabilities",
+          {
+              {"versions", {"VERSION"}},
+              {"options", {"OPTION"}},
+              {"extensions", {"EXTENSION"}},
+              {"wink", true},
+              {"cbor", true},
+              {"msg", false},
+              {"signature_counter", "All counters were constant zero."},
           },
       },
   };

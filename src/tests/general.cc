@@ -23,6 +23,20 @@
 
 namespace fido2_tests {
 
+WinkTest::WinkTest()
+    : BaseTest("wink", "Tests if the Wink response matches the capability bit.",
+               {.has_pin = false}, {}) {}
+
+std::optional<std::string> WinkTest::Execute(
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    CommandState* command_state) const {
+  bool can_wink = device->Wink() == Status::kErrNone;
+  if (can_wink != device_tracker->HasWinkCapability()) {
+    return "The reported WINK capability did not match the observed response.";
+  }
+  return std::nullopt;
+}
+
 GetInfoTest::GetInfoTest()
     : BaseTest("get_info", "Tests the return values of GetInfo.",
                {.has_pin = false}, {Tag::kClientPin}) {}
@@ -101,7 +115,8 @@ PersistentPinRetriesTest::PersistentPinRetriesTest()
 std::optional<std::string> PersistentPinRetriesTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  if (device_tracker->CheckStatus(
+  if (!device_tracker->CheckStatus(
+          Status::kErrPinInvalid,
           command_state->AttemptGetAuthToken(test_helpers::BadPin()))) {
     return "GetAuthToken did not fail with the wrong PIN.";
   }

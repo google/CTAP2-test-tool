@@ -28,9 +28,13 @@ namespace fido2_tests {
 
 // Contains all information that is logged in a test.
 struct TestResult {
+  nlohmann::json ToJson() const;
+
   std::string test_id;
   std::string test_description;
   std::optional<std::string> error_message;
+  std::vector<std::string> observations;
+  std::vector<std::string> tags;
 };
 
 // Tracks all interesting capabilities and findings during test execution. This
@@ -51,13 +55,21 @@ class DeviceTracker {
                   const cbor::Value::MapValue& options);
   // Returns if the device supports the version. Will always return false if not
   // initialized.
-  bool HasVersion(std::string_view version_name);
+  bool HasVersion(std::string_view version_name) const;
   // Returns if the device supports the extension. Will always return false if
   // not initialized.
-  bool HasExtension(std::string_view extension_name);
+  bool HasExtension(std::string_view extension_name) const;
   // Returns if the device supports the option. Will always return false if not
   // initialized.
-  bool HasOption(std::string_view option_name);
+  bool HasOption(std::string_view option_name) const;
+  // Returns if the device sets the wink capability in its response to Init.
+  // Must be set through SetCapabilities, or returns false.
+  bool HasWinkCapability() const;
+  // Returns if the device sets the cbor capability in its response to Init.
+  // Must be set through SetCapabilities or returns false.
+  bool HasCborCapability() const;
+  // Stores the capability responses to be included in the report.
+  void SetCapabilities(bool wink, bool cbor, bool msg);
   // Setter for the device identifiers, for writing to the result file. Must be
   // called at least once.
   void SetDeviceIdentifiers(DeviceIdentifiers device_identifiers);
@@ -69,13 +81,9 @@ class DeviceTracker {
   // Returns true if IgnoreNextTouchPrompt was called before, and then false
   // until IgnoreNextTouchPrompt is called again.
   bool IsTouchPromptIgnored();
-  // Adds a string to the list of observations. Duplicates are ignored. Use this
-  // function for merely informational comments.
+  // Adds a string to the list of observations. Duplicates are ignored.
+  // Observations are logged with the next finished test.
   void AddObservation(const std::string& observation);
-  // Adds a string to the list of problems. Duplicates are ignored. Problems
-  // are highlighted more prominently during a report. Use this if you suspect
-  // the finding to be potentially problematic.
-  void AddProblem(const std::string& problem);
   // Asserts a general condition, exits on failure. Prints all results collected
   // so far and saves them into a file.
   void AssertCondition(bool condition, std::string_view message);
@@ -94,7 +102,8 @@ class DeviceTracker {
   bool CheckStatus(const absl::variant<cbor::Value, Status>& returned_variant);
   // Logs a test and its result.
   void LogTest(std::string test_id, std::string test_description,
-               std::optional<std::string> error_message);
+               std::optional<std::string> error_message,
+               std::vector<std::string> tags);
   // Returns a reference to the KeyChecker instance.
   KeyChecker* GetKeyChecker();
   // Returns a reference to the CounterChecker instance.
@@ -104,12 +113,12 @@ class DeviceTracker {
   void ReportFindings() const;
   // Generates a JSON object with test results.
   nlohmann::json GenerateResultsJson(std::string_view commit_hash,
-                                     std::string_view time_string);
+                                     std::string_view time_string) const;
   // Saves the results to a JSON file. Creates a "results" directory, if
   // necessary. The file name will be derived from the product name as listed
   // through HID, or a default if none is found. Overwrites existing files of
   // the same name. The commit is stamped into the binary and read here.
-  void SaveResultsToFile();
+  void SaveResultsToFile() const;
 
  private:
   KeyChecker key_checker_;
@@ -117,20 +126,21 @@ class DeviceTracker {
   // You need to call SetDeviceIdentifiers to initialize.
   DeviceIdentifiers device_identifiers_;
   std::string aaguid_;
-  bool ignores_touch_prompt_;
+  bool ignores_touch_prompt_ = false;
   // We want the observations, problems and tests to be listed in order of
   // appearance.
   std::vector<std::string> observations_;
   std::vector<std::string> problems_;
   std::vector<TestResult> tests_;
-  std::vector<std::string> successful_tests_;
-  std::vector<std::string> failed_tests_;
   absl::flat_hash_set<std::string> versions_;
   absl::flat_hash_set<std::string> extensions_;
   // Some options have three states, unsupported, inactive and active.
   // We only care about being supported in general, and activate as necessary.
   absl::flat_hash_set<std::string> options_;
-  bool is_initialized_;
+  bool is_initialized_ = false;
+  bool has_wink_capability_ = false;
+  bool has_cbor_capability_ = false;
+  bool has_msg_capability_ = false;
 };
 
 }  // namespace fido2_tests

@@ -89,7 +89,8 @@ std::optional<std::string> DeletePinTest::Execute(
   if (absl::holds_alternative<std::string>(initial_counter)) {
     return absl::get<std::string>(initial_counter);
   }
-  if (device_tracker->CheckStatus(
+  if (!device_tracker->CheckStatus(
+          Status::kErrPinInvalid,
           command_state->AttemptGetAuthToken(test_helpers::BadPin()))) {
     return "GetAuthToken did not fail with the wrong PIN.";
   }

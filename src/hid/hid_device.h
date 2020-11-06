@@ -100,8 +100,6 @@ class HidDevice : public DeviceInterface {
   Status SendFrame(Frame* frame) const;
   // The lowest abstraction layer, receives a single frame with in a given time.
   Status ReceiveFrame(absl::Duration timeout, Frame* frame) const;
-  // Perform the Wink command.
-  Status ExecuteWink();
   void Log(std::string_view message) const;
   void Log(std::string_view direction, Frame* frame) const;
   // Scans connected HID devices for one with the same product ID as this device
@@ -123,8 +121,6 @@ class HidDevice : public DeviceInterface {
   unsigned int seed_ = 0;
   // This device's vendor & product ID (in this order) are used for reconnects.
   const DeviceIdentifiers device_identifiers_;
-  // The last seen device capability flag for WINK in the response to INIT.
-  bool has_wink_capability_ = false;
 };
 
 }  // namespace hid

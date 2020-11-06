@@ -69,6 +69,15 @@ enum class Status : uint8_t {
   kErrOther = 0x7F
 };
 
+// Returns a Status, if it is an error.
+#define OK_OR_RETURN(x)                 \
+  do {                                  \
+    Status __status = (x);              \
+    if (__status != Status::kErrNone) { \
+      return __status;                  \
+    }                                   \
+  } while (0)
+
 // Converts a Status to a string for printing.
 std::string StatusToString(Status status);
 
@@ -155,10 +164,15 @@ enum class MakeCredentialResponse : uint8_t {
   kFmt = 0x01,
   kAuthData = 0x02,
   kAttStmt = 0x03,
+  kEpAtt = 0x04,
+  kLargeBlobKey = 0x05,
 };
 
 // Converts a MakeCredential response key to a cbor::Value.
 cbor::Value CborValue(MakeCredentialResponse response);
+
+// Checks if the key is used in this enum.
+bool MakeCredentialResponseContains(int64_t key);
 
 // Contains the map keys for GetAssertion responses.
 enum class GetAssertionResponse : uint8_t {
@@ -167,10 +181,15 @@ enum class GetAssertionResponse : uint8_t {
   kSignature = 0x03,
   kUser = 0x04,
   kNumberOfCredentials = 0x05,
+  kUserSelected = 0x06,
+  kLargeBlobKey = 0x07,
 };
 
 // Converts a GetAssertion response key to a cbor::Value.
 cbor::Value CborValue(GetAssertionResponse response);
+
+// Checks if the key is used in this enum.
+bool GetAssertionResponseContains(int64_t key);
 
 // Contains the map keys for GetInfo responses.
 enum class InfoMember : uint8_t {
@@ -185,17 +204,23 @@ enum class InfoMember : uint8_t {
   kTransports = 0x09,
   kAlgorithms = 0x0A,
   kMaxSerializedLargeBlobArray = 0x0B,
-  // 0x0C is intentionally missing.
+  kForcePinChange = 0x0C,
   kMinPinLength = 0x0D,
   kFirmwareVersion = 0x0E,
   kMaxCredBlobLength = 0x0F,
   kMaxRpIdsForSetMinPinLength = 0x10,
   kPreferredPlatformUvAttempts = 0x11,
   kUvModality = 0x12,
+  kCertifications = 0x13,
+  kRemainingDiscoverableCredentials = 0x14,
+  kVendorPrototypeConfigCommands = 0x15,
 };
 
 // Converts a GetInfo response key to a cbor::Value.
 cbor::Value CborValue(InfoMember response);
+
+// Checks if the key is used in this enum.
+bool InfoMemberContains(int64_t key);
 
 // Contains the map keys for ClientPin responses.
 enum class ClientPinResponse : uint8_t {
@@ -208,6 +233,9 @@ enum class ClientPinResponse : uint8_t {
 
 // Converts a ClientPin response key to a cbor::Value.
 cbor::Value CborValue(ClientPinResponse response);
+
+// Checks if the key is used in this enum.
+bool ClientPinResponseContains(int64_t key);
 
 }  // namespace fido2_tests
 

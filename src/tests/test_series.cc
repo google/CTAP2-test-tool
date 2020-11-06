@@ -84,6 +84,7 @@ const std::vector<std::unique_ptr<BaseTest>>& GetTests() {
     test_list->push_back(
         std::make_unique<GetAssertionPinAuthMissingParameterTest>());
     test_list->push_back(std::make_unique<GetAssertionPhysicalPresenceTest>());
+    test_list->push_back(std::make_unique<GetAssertionEmptyUserIdTest>());
 
     test_list->push_back(
         std::make_unique<GetPinRetriesBadParameterTypesTest>());
@@ -118,6 +119,7 @@ const std::vector<std::unique_ptr<BaseTest>>& GetTests() {
     test_list->push_back(std::make_unique<ClientPinAuthBlockPinRetriesTest>());
     test_list->push_back(std::make_unique<ClientPinBlockPinRetriesTest>());
 
+    test_list->push_back(std::make_unique<WinkTest>());
     test_list->push_back(std::make_unique<GetInfoTest>());
     test_list->push_back(std::make_unique<PersistentCredentialsTest>());
     test_list->push_back(std::make_unique<PersistentPinRetriesTest>());
@@ -157,7 +159,7 @@ void RunTests(DeviceInterface* device, DeviceTracker* device_tracker,
       command_state->Reset();
     }
     device_tracker->LogTest(test->GetId(), test->GetDescription(),
-                            error_message);
+                            error_message, test->ListTags());
   }
 }
 

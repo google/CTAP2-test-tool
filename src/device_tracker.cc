@@ -55,10 +55,25 @@ void PrintFailMessage(std::string_view message) {
 
 }  // namespace
 
+nlohmann::json TestResult::ToJson() const {
+  nlohmann::json json_results = {
+      {"id", test_id},
+      {"description", test_description},
+      {"observations", observations},
+      {"tags", tags},
+  };
+  if (error_message.has_value()) {
+    json_results["result"] = "fail";
+    json_results["error_message"] = error_message.value();
+  } else {
+    json_results["result"] = "pass";
+    json_results["error_message"] = {};
+  }
+  return json_results;
+}
+
 DeviceTracker::DeviceTracker()
-    : key_checker_(std::vector<std::vector<uint8_t>>()),
-      ignores_touch_prompt_(false),
-      is_initialized_(false) {}
+    : key_checker_(std::vector<std::vector<uint8_t>>()) {}
 
 void DeviceTracker::Initialize(const cbor::Value::ArrayValue& versions,
                                const cbor::Value::ArrayValue& extensions,
@@ -93,16 +108,26 @@ void DeviceTracker::Initialize(const cbor::Value::ArrayValue& versions,
   }
 }
 
-bool DeviceTracker::HasVersion(std::string_view version_name) {
+bool DeviceTracker::HasVersion(std::string_view version_name) const {
   return versions_.contains(version_name);
 }
 
-bool DeviceTracker::HasExtension(std::string_view extension_name) {
+bool DeviceTracker::HasExtension(std::string_view extension_name) const {
   return extensions_.contains(extension_name);
 }
 
-bool DeviceTracker::HasOption(std::string_view option_name) {
+bool DeviceTracker::HasOption(std::string_view option_name) const {
   return options_.contains(option_name);
+}
+
+bool DeviceTracker::HasWinkCapability() const { return has_wink_capability_; }
+
+bool DeviceTracker::HasCborCapability() const { return has_cbor_capability_; }
+
+void DeviceTracker::SetCapabilities(bool wink, bool cbor, bool msg) {
+  has_wink_capability_ = wink;
+  has_cbor_capability_ = cbor;
+  has_msg_capability_ = msg;
 }
 
 void DeviceTracker::SetDeviceIdentifiers(DeviceIdentifiers device_identifiers) {
@@ -122,22 +147,12 @@ bool DeviceTracker::IsTouchPromptIgnored() {
 void DeviceTracker::AddObservation(const std::string& observation) {
   if (std::find(observations_.begin(), observations_.end(), observation) ==
       observations_.end()) {
-    std::cout << observation << std::endl;
     observations_.push_back(observation);
-  }
-}
-
-void DeviceTracker::AddProblem(const std::string& problem) {
-  PrintWarningMessage(problem);
-  if (std::find(problems_.begin(), problems_.end(), problem) ==
-      problems_.end()) {
-    problems_.push_back(problem);
   }
 }
 
 void DeviceTracker::AssertCondition(bool condition, std::string_view message) {
   if (!condition) {
-    ReportFindings();
     SaveResultsToFile();
   }
   CHECK(condition) << "Failed critical condition: " << message;
@@ -188,19 +203,25 @@ bool DeviceTracker::CheckStatus(
 }
 
 void DeviceTracker::LogTest(std::string test_id, std::string test_description,
-                            std::optional<std::string> error_message) {
-  tests_.push_back(
-      TestResult{std::move(test_id), test_description, error_message});
-  // Backwards compatibility by using the old interface.
-  if (error_message.has_value()) {
-    std::string fail_message =
-        absl::StrCat(test_description, " - ", error_message.value());
-    PrintFailMessage(absl::StrCat("Failed test: ", fail_message));
-    failed_tests_.push_back(fail_message);
+                            std::optional<std::string> error_message,
+                            std::vector<std::string> tags) {
+  TestResult result = {.test_id = std::move(test_id),
+                       .test_description = std::move(test_description),
+                       .error_message = std::move(error_message),
+                       .observations = std::move(observations_),
+                       .tags = std::move(tags)};
+  observations_ = {};
+  if (result.error_message.has_value()) {
+    PrintFailMessage(absl::StrCat("Failed test: ", result.test_description,
+                                  " - ", result.error_message.value()));
   } else {
-    PrintSuccessMessage(absl::StrCat("Test successful: ", test_description));
-    successful_tests_.push_back(test_description);
+    PrintSuccessMessage(
+        absl::StrCat("Test successful: ", result.test_description));
   }
+  for (std::string_view observation : result.observations) {
+    PrintWarningMessage(observation);
+  }
+  tests_.push_back(std::move(result));
 }
 
 KeyChecker* DeviceTracker::GetKeyChecker() { return &key_checker_; }
@@ -208,38 +229,37 @@ KeyChecker* DeviceTracker::GetKeyChecker() { return &key_checker_; }
 CounterChecker* DeviceTracker::GetCounterChecker() { return &counter_checker_; }
 
 void DeviceTracker::ReportFindings() const {
-  std::cout << counter_checker_.ReportFindings() << "\n\n";
-  for (std::string_view observation : observations_) {
-    std::cout << observation << "\n";
+  int failed_test_count = 0;
+  for (const TestResult& test : tests_) {
+    if (test.error_message.has_value()) {
+      failed_test_count += 1;
+      PrintFailMessage(absl::StrCat("Failed test: ", test.test_description,
+                                    " - ", test.error_message.value()));
+      for (std::string_view observation : test.observations) {
+        PrintWarningMessage(observation);
+      }
+    }
   }
-  std::cout << std::endl;
-  for (std::string_view problem : problems_) {
-    PrintWarningMessage(problem);
-  }
-  std::cout << std::endl;
-  for (std::string_view test : failed_tests_) {
-    PrintFailMessage(test);
-  }
-  int successful_test_count = successful_tests_.size();
-  int failed_test_count = failed_tests_.size();
-  int test_count = successful_test_count + failed_test_count;
+  int test_count = tests_.size();
+  int successful_test_count = test_count - failed_test_count;
   std::cout << "Passed " << successful_test_count << " out of " << test_count
             << " tests." << std::endl;
 }
 
 nlohmann::json DeviceTracker::GenerateResultsJson(
-    std::string_view commit_hash, std::string_view time_string) {
-  int successful_test_count = successful_tests_.size();
-  int failed_test_count = failed_tests_.size();
-  int test_count = successful_test_count + failed_test_count;
+    std::string_view commit_hash, std::string_view time_string) const {
+  int failed_test_count = 0;
+  for (const TestResult& test : tests_) {
+    if (test.error_message.has_value()) {
+      failed_test_count += 1;
+    }
+  }
+  int test_count = tests_.size();
+  int successful_test_count = test_count - failed_test_count;
 
   nlohmann::json results = {
       {"passed_test_count", successful_test_count},
       {"total_test_count", test_count},
-      {"failed_tests", failed_tests_},
-      {"problems", problems_},
-      {"observations", observations_},
-      {"counter", counter_checker_.ReportFindings()},
       {"date", time_string},
       {"commit", commit_hash},
       {
@@ -258,11 +278,30 @@ nlohmann::json DeviceTracker::GenerateResultsJson(
               {"url", nullptr},
           },
       },
+      {"transport_used", "HID"},
+      {
+          "capabilities",
+          {
+              {"versions",
+               std::vector<std::string>(versions_.begin(), versions_.end())},
+              {"options",
+               std::vector<std::string>(options_.begin(), options_.end())},
+              {"extensions", std::vector<std::string>(extensions_.begin(),
+                                                      extensions_.end())},
+              {"wink", has_wink_capability_},
+              {"cbor", has_cbor_capability_},
+              {"msg", has_msg_capability_},
+              {"signature_counter", counter_checker_.ReportFindings()},
+          },
+      },
   };
+  for (const TestResult& test : tests_) {
+    results["tests"].push_back(test.ToJson());
+  }
   return results;
 }
 
-void DeviceTracker::SaveResultsToFile() {
+void DeviceTracker::SaveResultsToFile() const {
   absl::Time now = absl::Now();
   absl::TimeZone local = absl::LocalTimeZone();
   std::string time_string = absl::FormatTime("%Y-%m-%d", now, local);

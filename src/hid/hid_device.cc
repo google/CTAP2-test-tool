@@ -183,16 +183,12 @@ Status HidDevice::Init() {
     challenge.init.data[i] = rand_r(&seed_);
   }
 
-  Status status = SendFrame(&challenge);
-  if (status != Status::kErrNone) return status;
+  OK_OR_RETURN(SendFrame(&challenge));
 
   for (;;) {
     Frame response;
-    status = ReceiveFrame(kReceiveTimeout, &response);
+    OK_OR_RETURN(ReceiveFrame(kReceiveTimeout, &response));
 
-    if (status == Status::kErrTimeout || status == Status::kErrOther) {
-      return status;
-    }
     if (response.cid != challenge.cid ||
         response.init.cmd != challenge.init.cmd ||
         response.PayloadLength() != kInitRespSize ||
@@ -205,37 +201,25 @@ Status HidDevice::Init() {
            (static_cast<uint32_t>(response.init.data[10]) << 8) |
            (static_cast<uint32_t>(response.init.data[11]) << 0);
 
-    has_wink_capability_ = response.init.data[16] & kWinkCapabilityMask;
-    if (response.init.data[16] & kCborCapabilityMask) {
-      tracker_->AddObservation("The CBOR capability was set.");
-    } else {
-      tracker_->AddProblem("The CBOR capability was NOT set.");
-    }
+    bool has_wink = response.init.data[16] & kWinkCapabilityMask;
+    bool has_cbor = response.init.data[16] & kCborCapabilityMask;
     // The negation is intended, because this is a negative feature flag.
-    if (!(response.init.data[16] & kNmsgCapabilityMask)) {
-      tracker_->AddObservation("The MSG capability was set.");
-    } else {
-      tracker_->AddObservation("The MSG capability was NOT set.");
-    }
-
+    bool has_msg = !(response.init.data[16] & kNmsgCapabilityMask);
+    tracker_->SetCapabilities(has_wink, has_cbor, has_msg);
     break;
   }
   return Status::kErrNone;
 }
 
 Status HidDevice::Wink() {
-  Status wink_status = ExecuteWink();
-  bool can_wink = wink_status == Status::kErrNone;
-  if (can_wink) {
-    tracker_->AddObservation("The optional command WINK worked.");
-  } else {
-    tracker_->AddObservation("The optional command WINK did not work.");
-  }
-  if (can_wink != has_wink_capability_) {
-    tracker_->AddProblem(
-        "The reported WINK capability did NOT match the observed response.");
-  }
-  return wink_status;
+  uint8_t cmd = kCtapHidWink;
+  OK_OR_RETURN(SendCommand(cmd, std::vector<uint8_t>()));
+
+  std::vector<uint8_t> recv_data;
+  Status status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
+  if (cmd != kCtapHidWink) return Status::kErrInvalidCommand;
+  if (!recv_data.empty()) return Status::kErrInvalidLength;
+  return status;
 }
 
 Status HidDevice::ExchangeCbor(Command command,
@@ -249,12 +233,10 @@ Status HidDevice::ExchangeCbor(Command command,
   send_data.insert(send_data.end(), payload.begin(), payload.end());
 
   uint8_t cmd = kCtapHidCbor;
-  Status status = SendCommand(cmd, send_data);
-  if (status != Status::kErrNone) return status;
+  OK_OR_RETURN(SendCommand(cmd, send_data));
 
   std::vector<uint8_t> recv_data;
-  status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
-  if (status != Status::kErrNone) return status;
+  OK_OR_RETURN(ReceiveCommand(kReceiveTimeout, &cmd, &recv_data));
 
   // The answer might also be a keepalive.
   bool has_sent_prompt = false;
@@ -269,8 +251,7 @@ Status HidDevice::ExchangeCbor(Command command,
         PromptUser();
       }
     }
-    status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
-    if (status != Status::kErrNone) return status;
+    OK_OR_RETURN(ReceiveCommand(kReceiveTimeout, &cmd, &recv_data));
   }
 
   if (cmd != kCtapHidCbor) return Status::kErrInvalidCommand;
@@ -280,10 +261,10 @@ Status HidDevice::ExchangeCbor(Command command,
                         recv_data.end());
 
   if (has_sent_prompt && !expect_up_check) {
-    tracker_->AddProblem("A prompt was sent unexpectedly.");
+    tracker_->AddObservation("A prompt was sent unexpectedly.");
   }
   if (!has_sent_prompt && expect_up_check) {
-    tracker_->AddProblem(
+    tracker_->AddObservation(
         "A prompt was expected, but not performed. Sometimes it is just not "
         "recognized if performed too fast.");
   }
@@ -320,8 +301,7 @@ Status HidDevice::SendCommand(uint8_t cmd,
 
   uint8_t seq = 0;
   do {
-    Status status = SendFrame(&frame);
-    if (status != Status::kErrNone) return status;
+    OK_OR_RETURN(SendFrame(&frame));
 
     remaining_data_size -= frame_len;
     data_it += frame_len;
@@ -342,8 +322,7 @@ Status HidDevice::ReceiveCommand(absl::Duration timeout, uint8_t* cmd,
 
   Frame frame;
   do {
-    Status status = ReceiveFrame(end_time - absl::Now(), &frame);
-    if (status != Status::kErrNone) return status;
+    OK_OR_RETURN(ReceiveFrame(end_time - absl::Now(), &frame));
   } while (frame.cid != cid_ || !frame.IsInitType());
 
   if (frame.init.cmd == kCtapHidError) return ByteToStatus(frame.init.data[0]);
@@ -360,8 +339,7 @@ Status HidDevice::ReceiveCommand(absl::Duration timeout, uint8_t* cmd,
 
   uint8_t seq = 0;
   while (total_len) {
-    Status status = ReceiveFrame(end_time - absl::Now(), &frame);
-    if (status != Status::kErrNone) return status;
+    OK_OR_RETURN(ReceiveFrame(end_time - absl::Now(), &frame));
 
     if (frame.cid != cid_) continue;
     if (frame.IsInitType()) return Status::kErrInvalidSeq;
@@ -408,18 +386,6 @@ Status HidDevice::ReceiveFrame(absl::Duration timeout, Frame* frame) const {
 
   Log("timeout");
   return Status::kErrTimeout;
-}
-
-Status HidDevice::ExecuteWink() {
-  uint8_t cmd = kCtapHidWink;
-  Status status = SendCommand(cmd, std::vector<uint8_t>());
-  if (status != Status::kErrNone) return status;
-
-  std::vector<uint8_t> recv_data;
-  status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
-  if (cmd != kCtapHidWink) return Status::kErrInvalidCommand;
-  if (!recv_data.empty()) return Status::kErrInvalidLength;
-  return status;
 }
 
 void HidDevice::Log(std::string_view message) const {
@@ -490,7 +456,7 @@ Status HidDevice::ByteToStatus(uint8_t status_byte) const {
     error_code_type = "vendor specific";
   }
 
-  tracker_->AddProblem(
+  tracker_->AddObservation(
       absl::StrCat("Received ", error_code_type, " error code `0x",
                    absl::Hex(status_byte, absl::kZeroPad2), "`"));
   return Status::kErrOther;
