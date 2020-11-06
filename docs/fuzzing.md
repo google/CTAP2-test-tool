@@ -18,8 +18,9 @@ out common solutions such as hardware emulation or binary instrumentation.
 Our idea is fuzzing by proxy. We take [OpenSK](https://github.com/google/OpenSK)
 (an open source implementation of a FIDO2 security key) as our fuzz target and 
 generate interesting input data guided by OpenSK's code coverage. At the moment,
-the fuzzing tool consists of running this input corpus on the device under test. 
-You can also use your own data set for testing.
+the fuzzing tool consists of running this input corpus on the device under test.
+The corpus is hosted at a [git repository](https://github.com/mingxguo27/test_corpus)
+and integrated as a submodule. You can also use your own data set for testing.
 
 ## Device monitoring
 
