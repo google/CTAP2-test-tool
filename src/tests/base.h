@@ -31,6 +31,9 @@ struct Preconditions {
 // results grouped by tag.
 enum class Tag { kClientPin, kFido2Point1, kHmacSecret };
 
+// Returns a readable name for each tag.
+std::string TagToString(Tag tag);
+
 // All tests inherit this base class to have the same interface to run them.
 // Run tests by first calling Setup, then Execute.
 class BaseTest {
@@ -53,6 +56,8 @@ class BaseTest {
   std::string GetDescription() const;
   // Checks if the test has a specific tag.
   bool HasTag(Tag tag) const;
+  // Returns a list of all tags.
+  std::vector<std::string> ListTags() const;
   // Generates an example relying party ID for tests. It is best practise to use
   // this RP ID outside of special tests to have less interference between
   // tests. The returned value is consistent between calls and unique for a test

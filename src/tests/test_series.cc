@@ -159,7 +159,7 @@ void RunTests(DeviceInterface* device, DeviceTracker* device_tracker,
       command_state->Reset();
     }
     device_tracker->LogTest(test->GetId(), test->GetDescription(),
-                            error_message);
+                            error_message, test->ListTags());
   }
 }
 

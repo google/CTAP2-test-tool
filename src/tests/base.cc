@@ -29,11 +29,33 @@ void BaseTest::Setup(CommandState* command_state) const {
   command_state->Prepare(preconditions_.has_pin);
 }
 
+std::string TagToString(Tag tag) {
+  switch (tag) {
+    case Tag::kClientPin:
+      return "Client PIN";
+    case Tag::kFido2Point1:
+      return "FIDO 2.1";
+    case Tag::kHmacSecret:
+      return "HMAC Secret";
+    default:
+      CHECK(false) << "unreachable default - TEST SUITE BUG";
+  }
+}
+
 std::string BaseTest::GetId() const { return test_id_; }
 
 std::string BaseTest::GetDescription() const { return test_description_; }
 
 bool BaseTest::HasTag(Tag tag) const { return tags_.contains(tag); }
+
+std::vector<std::string> BaseTest::ListTags() const {
+  std::vector<std::string> tag_list;
+  tag_list.reserve(tags_.size());
+  for (Tag tag : tags_) {
+    tag_list.push_back(TagToString(tag));
+  }
+  return tag_list;
+}
 
 std::string BaseTest::RpId() const {
   return absl::StrCat(test_id_, ".example.com");
