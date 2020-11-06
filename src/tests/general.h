@@ -22,6 +22,9 @@
 
 namespace fido2_tests {
 
+// Tests if the Wink response matches the capability bit.
+TEST_CLASS(WinkTest);
+
 // Checks if the GetInfo command has valid output implicitly. Also checks for
 // support of PIN protocol version 1, because it is used throughout all tests.
 TEST_CLASS(GetInfoTest);

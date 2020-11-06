@@ -221,13 +221,13 @@ absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
   CHECK(decoded_response->is_map()) << "CBOR response is not a map";
   const auto& decoded_map = decoded_response->GetMap();
 
-  auto map_iter = decoded_map.find(cbor::Value(1));
+  auto map_iter = decoded_map.find(CborValue(MakeCredentialResponse::kFmt));
   CHECK(map_iter != decoded_map.end())
       << "no fmt (key 1) in MakeCredential response";
   CHECK(map_iter->second.is_string()) << "fmt is not a string";
   std::string fmt = map_iter->second.GetString();
 
-  map_iter = decoded_map.find(cbor::Value(2));
+  map_iter = decoded_map.find(CborValue(MakeCredentialResponse::kAuthData));
   CHECK(map_iter != decoded_map.end())
       << "no authData (key 2) in MakeCredential response";
   CHECK(map_iter->second.is_bytestring())
@@ -284,7 +284,7 @@ absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
                     static_cast<int>(MakeCredentialParameters::kExtensions),
                     extension_data);
 
-  map_iter = decoded_map.find(cbor::Value(3));
+  map_iter = decoded_map.find(CborValue(MakeCredentialResponse::kAttStmt));
   CHECK(map_iter != decoded_map.end())
       << "no attStmt (key 3) in MakeCredential response";
 
@@ -316,9 +316,16 @@ absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
   }
 
   for (const auto& map_entry : decoded_map) {
-    CHECK(map_entry.first.is_unsigned()) << "some map keys are not unsigned";
-    const int64_t map_key = map_entry.first.GetUnsigned();
-    CHECK(map_key >= 1 && map_key <= 3) << "there are unspecified map keys";
+    if (map_entry.first.is_unsigned()) {
+      const int64_t map_key = map_entry.first.GetUnsigned();
+      if (!MakeCredentialResponseContains(map_key)) {
+        device_tracker->AddObservation(absl::StrCat(
+            "Received unspecified MakeCredential map key ", map_key, "."));
+      }
+    } else {
+      device_tracker->AddObservation(
+          "Some MakeCredential map keys are not unsigned.");
+    }
   }
 
   return decoded_response->Clone();
@@ -344,7 +351,8 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
   CHECK(decoded_response->is_map()) << "CBOR response is not a map";
   const auto& decoded_map = decoded_response->GetMap();
 
-  auto map_iter = decoded_map.find(cbor::Value(1));
+  auto map_iter =
+      decoded_map.find(CborValue(GetAssertionResponse::kCredential));
   cbor::Value::BinaryValue credential_id;
   if (map_iter == decoded_map.end()) {
     // Allow list length 1 can be enforced here because only then is not
@@ -362,7 +370,7 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
     credential_id = inner_iter->second.GetBytestring();
   }
 
-  map_iter = decoded_map.find(cbor::Value(2));
+  map_iter = decoded_map.find(CborValue(GetAssertionResponse::kAuthData));
   CHECK(map_iter != decoded_map.end())
       << "no authData (key 2) in GetAssertion response";
   CHECK(map_iter->second.is_bytestring())
@@ -402,7 +410,7 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
                     static_cast<int>(GetAssertionParameters::kExtensions),
                     extension_data);
 
-  map_iter = decoded_map.find(cbor::Value(3));
+  map_iter = decoded_map.find(CborValue(GetAssertionResponse::kSignature));
   CHECK(map_iter != decoded_map.end())
       << "no signature (key 3) in GetAssertion response";
   CHECK(map_iter->second.is_bytestring())
@@ -415,7 +423,7 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
   // What is the intended way to remember the algorithm used? Just somehow store
   // it along with the PublicKeyCredentialSource? What about non-resident keys?
 
-  map_iter = decoded_map.find(cbor::Value(4));
+  map_iter = decoded_map.find(CborValue(GetAssertionResponse::kUser));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_map()) << "user entry is not a map";
     const auto& user = map_iter->second.GetMap();
@@ -445,16 +453,24 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
     }
   }
 
-  map_iter = decoded_map.find(cbor::Value(5));
+  map_iter =
+      decoded_map.find(CborValue(GetAssertionResponse::kNumberOfCredentials));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "number of credentials entry is not an unsigned";
   }
 
   for (const auto& map_entry : decoded_map) {
-    CHECK(map_entry.first.is_unsigned()) << "some map keys are not unsigned";
-    const int64_t map_key = map_entry.first.GetUnsigned();
-    CHECK(map_key >= 1 && map_key <= 5) << "there are unspecified map keys";
+    if (map_entry.first.is_unsigned()) {
+      const int64_t map_key = map_entry.first.GetUnsigned();
+      if (!GetAssertionResponseContains(map_key)) {
+        device_tracker->AddObservation(absl::StrCat(
+            "Received unspecified GetAssertion map key ", map_key, "."));
+      }
+    } else {
+      device_tracker->AddObservation(
+          "Some GetAssertion map keys are not unsigned.");
+    }
   }
 
   return decoded_response->Clone();
@@ -482,8 +498,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
   CHECK(decoded_response->is_map()) << "CBOR response is not a map";
   const auto& decoded_map = decoded_response->GetMap();
 
-  auto map_iter = decoded_map.find(
-      cbor::Value(static_cast<uint8_t>(InfoMember::kVersions)));
+  auto map_iter = decoded_map.find(CborValue(InfoMember::kVersions));
   CHECK(map_iter != decoded_map.end())
       << "no versions (key 1) included in GetInfo response";
   CHECK(map_iter->second.is_array()) << "versions entry is not an array";
@@ -498,8 +513,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
       << "versions does not contain \"FIDO_2_0\"";
   const cbor::Value::ArrayValue& versions = map_iter->second.GetArray();
 
-  map_iter = decoded_map.find(
-      cbor::Value(static_cast<uint8_t>(InfoMember::kExtensions)));
+  map_iter = decoded_map.find(CborValue(InfoMember::kExtensions));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_array()) << "extensions entry is not an array";
     absl::flat_hash_set<std::string> extensions_set;
@@ -515,14 +529,12 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
                                                   ? map_iter->second.GetArray()
                                                   : empty_extensions;
 
-  map_iter =
-      decoded_map.find(cbor::Value(static_cast<uint8_t>(InfoMember::kAaguid)));
+  map_iter = decoded_map.find(CborValue(InfoMember::kAaguid));
   CHECK(map_iter != decoded_map.end())
       << "no AAGUID (key 3) in GetInfo response";
   CHECK(map_iter->second.is_bytestring()) << "aaguid entry is not a bytestring";
 
-  map_iter =
-      decoded_map.find(cbor::Value(static_cast<uint8_t>(InfoMember::kOptions)));
+  map_iter = decoded_map.find(CborValue(InfoMember::kOptions));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_map()) << "options entry is not a map";
     for (const auto& options_iter : map_iter->second.GetMap()) {
@@ -534,15 +546,13 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
   const cbor::Value::MapValue& options =
       map_iter != decoded_map.end() ? map_iter->second.GetMap() : empty_options;
 
-  map_iter = decoded_map.find(
-      cbor::Value(static_cast<uint8_t>(InfoMember::kMaxMsgSize)));
+  map_iter = decoded_map.find(CborValue(InfoMember::kMaxMsgSize));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "maxMsgSize entry is not an unsigned";
   }
 
-  map_iter = decoded_map.find(
-      cbor::Value(static_cast<uint8_t>(InfoMember::kPinUvAuthProtocols)));
+  map_iter = decoded_map.find(CborValue(InfoMember::kPinUvAuthProtocols));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_array())
         << "pinUvAuthProtocols entry is not an array";
@@ -552,22 +562,19 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
     }
   }
 
-  map_iter = decoded_map.find(
-      cbor::Value(static_cast<uint8_t>(InfoMember::kMaxCredentialCountInList)));
+  map_iter = decoded_map.find(CborValue(InfoMember::kMaxCredentialCountInList));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "maxCredentialCountInList entry is not an unsigned";
   }
 
-  map_iter = decoded_map.find(
-      cbor::Value(static_cast<uint8_t>(InfoMember::kMaxCredentialIdLength)));
+  map_iter = decoded_map.find(CborValue(InfoMember::kMaxCredentialIdLength));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "maxCredentialIdLength entry is not an unsigned";
   }
 
-  map_iter = decoded_map.find(
-      cbor::Value(static_cast<uint8_t>(InfoMember::kTransports)));
+  map_iter = decoded_map.find(CborValue(InfoMember::kTransports));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_array()) << "transports entry is not an array";
     absl::flat_hash_set<std::string> transports_set;
@@ -579,8 +586,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
     }
   }
 
-  map_iter = decoded_map.find(
-      cbor::Value(static_cast<uint8_t>(InfoMember::kAlgorithms)));
+  map_iter = decoded_map.find(CborValue(InfoMember::kAlgorithms));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_array()) << "algorithms entry is not an array";
     absl::flat_hash_set<int> algorithms_set;
@@ -606,8 +612,8 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
     }
   }
 
-  map_iter = decoded_map.find(cbor::Value(
-      static_cast<uint8_t>(InfoMember::kMaxSerializedLargeBlobArray)));
+  map_iter =
+      decoded_map.find(CborValue(InfoMember::kMaxSerializedLargeBlobArray));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "maxSerializedLargeBlobArray entry is not an unsigned";
@@ -615,23 +621,25 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
         << "maxSerializedLargeBlobArray is too small";
   }
 
-  map_iter = decoded_map.find(
-      cbor::Value(static_cast<uint8_t>(InfoMember::kMinPinLength)));
+  map_iter = decoded_map.find(CborValue(InfoMember::kForcePinChange));
+  if (map_iter != decoded_map.end()) {
+    CHECK(map_iter->second.is_bool()) << "forcePINChangeentry is not a bool";
+  }
+
+  map_iter = decoded_map.find(CborValue(InfoMember::kMinPinLength));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "minPINLength entry is not an unsigned";
     CHECK_GE(map_iter->second.GetUnsigned(), 4) << "minPINLength is too small";
   }
 
-  map_iter = decoded_map.find(
-      cbor::Value(static_cast<uint8_t>(InfoMember::kFirmwareVersion)));
+  map_iter = decoded_map.find(CborValue(InfoMember::kFirmwareVersion));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "firmwareVersion entry is not an unsigned";
   }
 
-  map_iter = decoded_map.find(
-      cbor::Value(static_cast<uint8_t>(InfoMember::kMaxCredBlobLength)));
+  map_iter = decoded_map.find(CborValue(InfoMember::kMaxCredBlobLength));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "maxCredBlobLength entry is not an unsigned";
@@ -639,32 +647,60 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
         << "maxCredBlobLength is too small";
   }
 
-  map_iter = decoded_map.find(cbor::Value(
-      static_cast<uint8_t>(InfoMember::kMaxRpIdsForSetMinPinLength)));
+  map_iter =
+      decoded_map.find(CborValue(InfoMember::kMaxRpIdsForSetMinPinLength));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "maxRPIDsForSetMinPINLength entry is not an unsigned";
   }
 
-  map_iter = decoded_map.find(cbor::Value(
-      static_cast<uint8_t>(InfoMember::kPreferredPlatformUvAttempts)));
+  map_iter =
+      decoded_map.find(CborValue(InfoMember::kPreferredPlatformUvAttempts));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "preferredPlatformUvAttempts entry is not an unsigned";
   }
 
-  map_iter = decoded_map.find(
-      cbor::Value(static_cast<uint8_t>(InfoMember::kUvModality)));
+  map_iter = decoded_map.find(CborValue(InfoMember::kUvModality));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "uvModality entry is not an unsigned";
   }
 
+  map_iter = decoded_map.find(CborValue(InfoMember::kCertifications));
+  if (map_iter != decoded_map.end()) {
+    CHECK(map_iter->second.is_map()) << "certifications entry is not a map";
+  }
+
+  map_iter = decoded_map.find(
+      CborValue(InfoMember::kRemainingDiscoverableCredentials));
+  if (map_iter != decoded_map.end()) {
+    CHECK(map_iter->second.is_unsigned())
+        << "remainingDiscoverableCredentials entry is not an unsigned";
+  }
+
+  map_iter =
+      decoded_map.find(CborValue(InfoMember::kVendorPrototypeConfigCommands));
+  if (map_iter != decoded_map.end()) {
+    CHECK(map_iter->second.is_array())
+        << "vendorPrototypeConfigCommands entry is not an array";
+    for (const auto& command : map_iter->second.GetArray()) {
+      CHECK(command.is_unsigned())
+          << "vendorPrototypeConfigCommands elements are not unsigned";
+    }
+  }
+
   for (const auto& map_entry : decoded_map) {
-    CHECK(map_entry.first.is_unsigned()) << "some map keys are not unsigned";
-    const int64_t map_key = map_entry.first.GetUnsigned();
-    CHECK(map_key >= 0x01 && map_key <= 0x12 && map_key != 0x0C)
-        << "there are unspecified map keys";
+    if (map_entry.first.is_unsigned()) {
+      const int64_t map_key = map_entry.first.GetUnsigned();
+      if (!InfoMemberContains(map_key)) {
+        device_tracker->AddObservation(
+            absl::StrCat("Received unspecified GetInfo map key ",
+                         absl::Hex(map_key, absl::kZeroPad2), "."));
+      }
+    } else {
+      device_tracker->AddObservation("Some GetInfo map keys are not unsigned.");
+    }
   }
 
   device_tracker->Initialize(versions, extensions, options);
@@ -698,18 +734,20 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
                                 ? decoded_response->GetMap()
                                 : cbor::Value(cbor::Value::Type::MAP).GetMap();
 
-  absl::flat_hash_set<int> allowed_map_keys;
+  absl::flat_hash_set<ClientPinResponse> allowed_map_keys;
 
   switch (subcommand) {
     case PinSubCommand::kGetPinRetries: {
-      allowed_map_keys.insert(3);
-      auto map_iter = decoded_map.find(cbor::Value(3));
+      allowed_map_keys.insert(ClientPinResponse::kPinRetries);
+      auto map_iter =
+          decoded_map.find(CborValue(ClientPinResponse::kPinRetries));
       CHECK(map_iter != decoded_map.end())
           << "no PIN retries (key 3) included in PIN protocol response";
       CHECK(map_iter->second.is_unsigned())
           << "PIN retries entry is not an unsigned";
-      allowed_map_keys.insert(4);
-      map_iter = decoded_map.find(cbor::Value(4));
+      allowed_map_keys.insert(ClientPinResponse::kPowerCycleState);
+      map_iter =
+          decoded_map.find(CborValue(ClientPinResponse::kPowerCycleState));
       if (map_iter != decoded_map.end()) {
         CHECK(map_iter->second.is_bool())
             << "powerCycleState entry is not a boolean";
@@ -717,8 +755,9 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
       break;
     }
     case PinSubCommand::kGetKeyAgreement: {
-      allowed_map_keys.insert(1);
-      auto map_iter = decoded_map.find(cbor::Value(1));
+      allowed_map_keys.insert(ClientPinResponse::kKeyAgreement);
+      auto map_iter =
+          decoded_map.find(CborValue(ClientPinResponse::kKeyAgreement));
       CHECK(map_iter != decoded_map.end())
           << "no KeyAgreement (key 1) in PIN protocol response";
       CHECK(map_iter->second.is_map()) << "KeyAgreement entry is not a map";
@@ -733,8 +772,9 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
       break;
     }
     case PinSubCommand::kGetPinUvAuthTokenUsingPin: {
-      allowed_map_keys.insert(2);
-      auto map_iter = decoded_map.find(cbor::Value(2));
+      allowed_map_keys.insert(ClientPinResponse::kPinUvAuthToken);
+      auto map_iter =
+          decoded_map.find(CborValue(ClientPinResponse::kPinUvAuthToken));
       CHECK(map_iter != decoded_map.end())
           << "no pinUvAuthToken (key 2) in PIN protocol response";
       CHECK(map_iter->second.is_bytestring())
@@ -742,8 +782,9 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
       break;
     }
     case PinSubCommand::kGetPinUvAuthTokenUsingUv: {
-      allowed_map_keys.insert(2);
-      auto map_iter = decoded_map.find(cbor::Value(2));
+      allowed_map_keys.insert(ClientPinResponse::kPinUvAuthToken);
+      auto map_iter =
+          decoded_map.find(CborValue(ClientPinResponse::kPinUvAuthToken));
       CHECK(map_iter != decoded_map.end())
           << "no pinUvAuthToken (key 2) in PIN protocol response";
       CHECK(map_iter->second.is_bytestring())
@@ -751,14 +792,15 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
       break;
     }
     case PinSubCommand::kGetUvRetries: {
-      allowed_map_keys.insert(4);
-      auto map_iter = decoded_map.find(cbor::Value(4));
+      allowed_map_keys.insert(ClientPinResponse::kPowerCycleState);
+      auto map_iter =
+          decoded_map.find(CborValue(ClientPinResponse::kPowerCycleState));
       if (map_iter != decoded_map.end()) {
         CHECK(map_iter->second.is_bool())
             << "powerCycleState entry is not a boolean";
       }
-      allowed_map_keys.insert(5);
-      map_iter = decoded_map.find(cbor::Value(5));
+      allowed_map_keys.insert(ClientPinResponse::kUvRetries);
+      map_iter = decoded_map.find(CborValue(ClientPinResponse::kUvRetries));
       CHECK(map_iter != decoded_map.end())
           << "no UV retries (key 5) included in PIN protocol response";
       CHECK(map_iter->second.is_unsigned())
@@ -770,10 +812,18 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
   // Check for unexpected map keys.
   if (has_response_cbor) {
     for (const auto& map_entry : decoded_map) {
-      CHECK(map_entry.first.is_unsigned()) << "some map keys are not unsigned";
-      const int64_t map_key = map_entry.first.GetUnsigned();
-      CHECK(allowed_map_keys.find(map_key) != allowed_map_keys.end())
-          << "there are unspecified map keys";
+      if (map_entry.first.is_unsigned()) {
+        const int64_t map_key = map_entry.first.GetUnsigned();
+        if (!GetAssertionResponseContains(map_key) ||
+            !allowed_map_keys.contains(
+                static_cast<ClientPinResponse>(map_key))) {
+          device_tracker->AddObservation(absl::StrCat(
+              "Received unspecified ClientPin map key ", map_key, "."));
+        }
+      } else {
+        device_tracker->AddObservation(
+            "Some ClientPin map keys are not unsigned.");
+      }
     }
   }
 

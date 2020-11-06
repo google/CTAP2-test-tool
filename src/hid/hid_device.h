@@ -68,7 +68,8 @@ class HidDevice : public DeviceInterface {
  public:
   // The constructor without the third parameter implicitly assumes false.
   // In both constructors, the ownership for tracker stays with the caller
-  // and it must outlive the HidDevice instance.
+  // and it must outlive the HidDevice instance. The device information is set
+  // and sent to the tracker.
   HidDevice(DeviceTracker* tracker, std::string_view pathname);
   // Prepares the object for sending packets. The pathname points to the device.
   HidDevice(DeviceTracker* tracker, std::string_view pathname,
@@ -99,13 +100,10 @@ class HidDevice : public DeviceInterface {
   Status SendFrame(Frame* frame) const;
   // The lowest abstraction layer, receives a single frame with in a given time.
   Status ReceiveFrame(absl::Duration timeout, Frame* frame) const;
-  // Perform the Wink command.
-  Status ExecuteWink();
   void Log(std::string_view message) const;
   void Log(std::string_view direction, Frame* frame) const;
   // Scans connected HID devices for one with the same product ID as this device
-  // and returns its filesystem path, or fails if none was found. Sets the
-  // product name in the DeviceTracker as a side effect.
+  // and returns its filesystem path, or fails if none was found.
   std::string FindDevicePath();
   // Converts the status byte to the Status enum. If no variant corresponds to
   // the given byte, returns kErrOther instead and reports unexpected behaviour.
@@ -122,9 +120,7 @@ class HidDevice : public DeviceInterface {
   // Kept constant for determinism, might get a setter.
   unsigned int seed_ = 0;
   // This device's vendor & product ID (in this order) are used for reconnects.
-  const std::pair<uint16_t, uint16_t> vendor_product_id_;
-  // The last seen device capability flag for WINK in the response to INIT.
-  bool has_wink_capability_ = false;
+  const DeviceIdentifiers device_identifiers_;
 };
 
 }  // namespace hid

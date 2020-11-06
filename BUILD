@@ -68,6 +68,7 @@ cc_library(
     srcs = ["src/constants.cc"],
     hdrs = ["src/constants.h"],
     deps = [
+        "//third_party/chromium_components_cbor:cbor",
         "@com_google_glog//:glog",
     ],
 )
@@ -90,6 +91,7 @@ cc_library(
     hdrs = ["src/device_tracker.h"],
     deps = [
         ":constants",
+        ":device_interface",
         ":parameter_check",
         ":stamp",
         "//third_party/chromium_components_cbor:cbor",

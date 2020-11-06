@@ -49,4 +49,4 @@ For more control, the following arguments are available:
     - `cortexm4_gdb`: You can use it when your device enables GDB remote serial
       protocol and runs on a ARM Cortex-M4 architecture.
 - `--port`: If a GDB monitor is selected, the port to listen on for GDB remote 
-  connection. 
+  connection.
