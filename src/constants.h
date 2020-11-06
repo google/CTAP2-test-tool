@@ -69,6 +69,15 @@ enum class Status : uint8_t {
   kErrOther = 0x7F
 };
 
+// Returns a Status, if it is an error.
+#define OK_OR_RETURN(x)                 \
+  do {                                  \
+    Status __status = (x);              \
+    if (__status != Status::kErrNone) { \
+      return __status;                  \
+    }                                   \
+  } while (0)
+
 // Converts a Status to a string for printing.
 std::string StatusToString(Status status);
 

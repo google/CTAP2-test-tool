@@ -56,9 +56,7 @@ void PrintFailMessage(std::string_view message) {
 }  // namespace
 
 DeviceTracker::DeviceTracker()
-    : key_checker_(std::vector<std::vector<uint8_t>>()),
-      ignores_touch_prompt_(false),
-      is_initialized_(false) {}
+    : key_checker_(std::vector<std::vector<uint8_t>>()) {}
 
 void DeviceTracker::Initialize(const cbor::Value::ArrayValue& versions,
                                const cbor::Value::ArrayValue& extensions,
@@ -93,16 +91,26 @@ void DeviceTracker::Initialize(const cbor::Value::ArrayValue& versions,
   }
 }
 
-bool DeviceTracker::HasVersion(std::string_view version_name) {
+bool DeviceTracker::HasVersion(std::string_view version_name) const {
   return versions_.contains(version_name);
 }
 
-bool DeviceTracker::HasExtension(std::string_view extension_name) {
+bool DeviceTracker::HasExtension(std::string_view extension_name) const {
   return extensions_.contains(extension_name);
 }
 
-bool DeviceTracker::HasOption(std::string_view option_name) {
+bool DeviceTracker::HasOption(std::string_view option_name) const {
   return options_.contains(option_name);
+}
+
+bool DeviceTracker::HasWinkCapability() const { return has_wink_capability_; }
+
+bool DeviceTracker::HasCborCapability() const { return has_cbor_capability_; }
+
+void DeviceTracker::SetCapabilities(bool wink, bool cbor, bool msg) {
+  has_wink_capability_ = wink;
+  has_cbor_capability_ = cbor;
+  has_msg_capability_ = msg;
 }
 
 void DeviceTracker::SetDeviceIdentifiers(DeviceIdentifiers device_identifiers) {
@@ -228,7 +236,7 @@ void DeviceTracker::ReportFindings() const {
 }
 
 nlohmann::json DeviceTracker::GenerateResultsJson(
-    std::string_view commit_hash, std::string_view time_string) {
+    std::string_view commit_hash, std::string_view time_string) const {
   int successful_test_count = successful_tests_.size();
   int failed_test_count = failed_tests_.size();
   int test_count = successful_test_count + failed_test_count;
@@ -239,7 +247,6 @@ nlohmann::json DeviceTracker::GenerateResultsJson(
       {"failed_tests", failed_tests_},
       {"problems", problems_},
       {"observations", observations_},
-      {"counter", counter_checker_.ReportFindings()},
       {"date", time_string},
       {"commit", commit_hash},
       {
@@ -258,11 +265,26 @@ nlohmann::json DeviceTracker::GenerateResultsJson(
               {"url", nullptr},
           },
       },
+      {
+          "capabilities",
+          {
+              {"versions",
+               std::vector<std::string>(versions_.begin(), versions_.end())},
+              {"options",
+               std::vector<std::string>(options_.begin(), options_.end())},
+              {"extensions", std::vector<std::string>(extensions_.begin(),
+                                                      extensions_.end())},
+              {"wink", has_wink_capability_},
+              {"cbor", has_cbor_capability_},
+              {"msg", has_msg_capability_},
+              {"signature_counter", counter_checker_.ReportFindings()},
+          },
+      },
   };
   return results;
 }
 
-void DeviceTracker::SaveResultsToFile() {
+void DeviceTracker::SaveResultsToFile() const {
   absl::Time now = absl::Now();
   absl::TimeZone local = absl::LocalTimeZone();
   std::string time_string = absl::FormatTime("%Y-%m-%d", now, local);

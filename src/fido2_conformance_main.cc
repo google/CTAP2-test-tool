@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
     std::cout << "Please add the --token_path flag for one of these devices:"
               << std::endl;
     fido2_tests::hid::PrintFidoDevices();
-    exit(0);
+    return 0;
   }
 
   if (FLAGS_token_path == "_") {
@@ -65,10 +65,12 @@ int main(int argc, char** argv) {
 
   // Resets and initializes.
   fido2_tests::CommandState command_state(device.get(), &tracker);
-  CHECK(tracker.HasOption("rk"))
-      << "The test tool expects resident key support.";
-  CHECK(tracker.HasOption("up"))
-      << "The test tool expects user presence support.";
+  tracker.AssertCondition(tracker.HasOption("rk"),
+                          "Resident key support expected.");
+  tracker.AssertCondition(tracker.HasOption("up"),
+                          "User presence support expected.");
+  tracker.AssertCondition(tracker.HasCborCapability(),
+                          "CBOR support expected.");
 
   // Setup and run all tests, while tracking their results.
   fido2_tests::runners::RunTests(device.get(), &tracker, &command_state);
