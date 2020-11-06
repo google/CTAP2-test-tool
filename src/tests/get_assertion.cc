@@ -424,7 +424,7 @@ std::optional<std::string> GetAssertionPinAuthEmptyTest::Execute(
   pin_auth_builder.SetDefaultPinUvAuthProtocol();
 
   Status returned_status = fido2_commands::GetAssertionNegativeTest(
-      device, pin_auth_builder.GetCbor(), true);
+      device, pin_auth_builder.GetCbor(), false);
   if (!device_tracker->CheckStatus(Status::kErrPinNotSet, returned_status)) {
     return "A zero length PIN auth param is not rejected.";
   }
@@ -506,7 +506,7 @@ std::optional<std::string> GetAssertionPinAuthEmptyWithPinTest::Execute(
   pin_auth_builder.SetDefaultPinUvAuthProtocol();
 
   Status returned_status = fido2_commands::GetAssertionNegativeTest(
-      device, pin_auth_builder.GetCbor(), true);
+      device, pin_auth_builder.GetCbor(), false);
   if (!device_tracker->CheckStatus(Status::kErrPinInvalid, returned_status)) {
     return "A zero length PIN auth param is not rejected with a PIN set.";
   }
@@ -612,6 +612,46 @@ std::optional<std::string> GetAssertionPhysicalPresenceTest::Execute(
   if (!device_tracker->CheckStatus(Status::kErrUserActionTimeout,
                                    returned_status)) {
     return "A credential was asserted without user presence.";
+  }
+  return std::nullopt;
+}
+
+GetAssertionEmptyUserIdTest::GetAssertionEmptyUserIdTest()
+    : BaseTest("get_assertion_empty_user_id",
+               "Tests if empty user IDs are omitted in the response.",
+               {.has_pin = false}, {}) {}
+
+std::optional<std::string> GetAssertionEmptyUserIdTest::Execute(
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    CommandState* command_state) const {
+  MakeCredentialCborBuilder empty_id_builder;
+  empty_id_builder.AddDefaultsForRequiredFields(RpId());
+  empty_id_builder.SetPublicKeyCredentialUserEntity({}, "Emma");
+  absl::variant<cbor::Value, Status> response =
+      fido2_commands::MakeCredentialPositiveTest(device, device_tracker,
+                                                 empty_id_builder.GetCbor());
+  if (!device_tracker->CheckStatus(response)) {
+    return "Cannot make credential with an empty user ID.";
+  }
+  cbor::Value credential_response = std::move(absl::get<cbor::Value>(response));
+  cbor::Value::BinaryValue credential_id =
+      test_helpers::ExtractCredentialId(credential_response);
+
+  GetAssertionCborBuilder get_assertion_builder;
+  get_assertion_builder.AddDefaultsForRequiredFields(RpId());
+  get_assertion_builder.SetAllowListCredential(credential_id);
+  response = fido2_commands::GetAssertionPositiveTest(
+      device, device_tracker, get_assertion_builder.GetCbor());
+  if (!device_tracker->CheckStatus(response)) {
+    return "Unable to assert a credential with empty user ID.";
+  }
+
+  cbor::Value assertion_response = std::move(absl::get<cbor::Value>(response));
+  const auto& decoded_map = assertion_response.GetMap();
+  auto map_iter = decoded_map.find(CborValue(GetAssertionResponse ::kUser));
+  if (map_iter != decoded_map.end()) {
+    return "The response includes user with an empty ID. This behaviour has "
+           "known interoperability hurdles.";
   }
   return std::nullopt;
 }
