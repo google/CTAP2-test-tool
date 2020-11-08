@@ -2,7 +2,10 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <iostream>
 #include <random>
+
+#include "glog/logging.h"
 
 namespace fido2_tests {
 namespace {
@@ -34,7 +37,7 @@ bool Mutator::InsertByte(std::vector<uint8_t> &data, size_t max_size) {
 }
 
 bool Mutator::ShuffleBytes(std::vector<uint8_t> &data, size_t max_size) {
-  if (data.size() > max_size) return false;
+  if (data.size() > max_size || data.size() <= 1) return false;
   int shuffle_count = std::rand() % data.size();
   int shuffle_offset = std::rand() % (data.size() - shuffle_count);
   std::shuffle(data.begin() + shuffle_offset,
@@ -44,17 +47,30 @@ bool Mutator::ShuffleBytes(std::vector<uint8_t> &data, size_t max_size) {
 }
 
 bool Mutator::Mutate(std::vector<uint8_t> &data, size_t max_size) {
-  int op = std::rand() % kMutationOperations;
-  switch (static_cast<MutationOperation>(op)) {
-    case kEraseByte:
-      return EraseByte(data, max_size);
-    case kInsertByte:
-      return InsertByte(data, max_size);
-    case kShuffleBytes:
-      return ShuffleBytes(data, max_size);
-    default:
-      return true;
+  int mutation_degree = std::rand() % max_mutation_degree_;
+  while (mutation_degree--) {
+    int op = std::rand() % kMutationOperations;
+    bool ok = true;
+    switch (static_cast<MutationOperation>(op)) {
+      case kEraseByte:
+        ok = EraseByte(data, max_size);
+        break;
+      case kInsertByte:
+        ok = InsertByte(data, max_size);
+        break;
+      case kShuffleBytes:
+        ok = ShuffleBytes(data, max_size);
+        break;
+      default:
+        CHECK(false) << "unreachable default - TEST SUITE BUG";
+    }
+    // If the mutation operation failed (e.g. max_size exceeded),
+    // retry in next iteration.
+    if (!ok) {
+      ++mutation_degree;
+    }
   }
+  return true;
 }
 
 }  // namespace fido2_tests
