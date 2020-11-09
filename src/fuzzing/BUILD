@@ -28,6 +28,30 @@ cc_library(
     deps = [
         ":fuzzing_helpers",
         "//:device_interface",
-        "@com_google_glog//:glog"
+        "@com_google_glog//:glog",
     ],
+)
+
+cc_library(
+    name = "mutator",
+    srcs = ["mutator.cc"],
+    hdrs = ["mutator.h"],
+    deps = [
+        "@com_google_glog//:glog",
+    ]
+)
+
+cc_library(
+    name = "fuzzer",
+    srcs = ["fuzzer.cc"],
+    hdrs = ["fuzzer.h"],
+    deps = [
+        ":corpus_controller",
+        ":fuzzing_helpers",
+        ":mutator",
+        "//:command_state",
+        "//:hid_device",
+        "//src/monitors:monitor",
+        "@com_google_absl//absl/strings",
+    ]
 )

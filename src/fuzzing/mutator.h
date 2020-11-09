@@ -19,6 +19,7 @@
 
 namespace fido2_tests {
 
+// Mutates the given data by applying combined basic mutation operations.
 class Mutator {
  public:
   enum MutationOperation {
