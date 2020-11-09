@@ -72,7 +72,9 @@ void Fuzzer::Run(CommandState* command_state, DeviceInterface* device,
                  Monitor* monitor) {
   PrintFuzzingOptions(fuzzing_options_);
   size_t last_input_name_len = 0;
-  while (1) {  // TODO: add num_runs
+  int iteration = 0;
+  while (fuzzing_options_.num_runs == 0 ||
+         iteration < fuzzing_options_.num_runs) {
     auto [mutated_input_data, seed_input_name] = GetNextInput();
     PrintMutatingFile(seed_input_name, last_input_name_len);
     fuzzing_helpers::SendInput(device, fuzzing_options_.fuzzing_input_type,
@@ -85,6 +87,7 @@ void Fuzzer::Run(CommandState* command_state, DeviceInterface* device,
       break;
     }
     last_input_name_len = seed_input_name.size();
+    ++iteration;
   }
 }
 
