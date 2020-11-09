@@ -15,6 +15,9 @@
 #ifndef MUTATOR_H_
 #define MUTATOR_H_
 
+#include <stdint.h>
+
+#include <ctime>
 #include <vector>
 
 namespace fido2_tests {
