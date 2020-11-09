@@ -23,25 +23,29 @@
 
 namespace fido2_tests {
 
-// Iterates input files of the given type from a given corpus.
-// We assume the corpus directory to contain subdirectories for
+// Manages the corpus containing input files of the given type.
+// We assume the root corpus directory to contain subdirectories for
 // each type of inputs. For example, given directory /corpus,
 // all possible subdirectories are:
 //  /corpus/Cbor_MakeCredentialParameters/
 //  /corpus/Cbor_GetAssertionParameters/
 // TODO (mingxguo) issue #27
 // All files that are not a directory in the given corpus are ignored.
-class CorpusIterator {
+class CorpusController {
  public:
-  CorpusIterator(fuzzing_helpers::InputType input_type,
-                 const std::string_view& base_corpus_path);
-  // Returns whether there is a next input available.
+  CorpusController(fuzzing_helpers::InputType input_type,
+                   const std::string_view& base_corpus_path);
+  // Returns whether there is a next input file available.
   bool HasNextInput();
-  // Returns the content and the file name of the next available input.
+  // Returns the content and the name of the next available input file.
   std::tuple<std::vector<uint8_t>, std::string> GetNextInput();
+  // Returns the content and the name of a random input file.
+  std::tuple<std::vector<uint8_t>, std::string> GetRandomInput();
 
  private:
   std::filesystem::directory_iterator current_input_;
+  size_t corpus_size_;
+  std::string corpus_path_;
 };
 
 }  // namespace fido2_tests
