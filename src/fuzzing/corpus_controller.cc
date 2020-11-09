@@ -23,12 +23,19 @@
 
 namespace fido2_tests {
 namespace {
-std::vector<uint8_t> GetDataFromFile(std::string input_path) {
+
+// Returns the data and the name of the file at the given path.
+std::tuple<std::vector<uint8_t>, std::string> GetDataFromFile(
+    const std::string& input_path) {
   std::ifstream file(input_path, std::ios::in | std::ios::binary);
   std::vector<uint8_t> input_data = std::vector<uint8_t>(
       (std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-  return input_data;
+  std::string input_name =
+      static_cast<std::vector<std::string>>(absl::StrSplit(input_path, '/'))
+          .back();
+  return {input_data, input_name};
 }
+
 }  // namespace
 
 // Returns the file data at the given path.
@@ -71,22 +78,6 @@ CorpusController::GetRandomInput() {
   int index = std::rand() % corpus_metadata_.size();
   return {GetFileData(corpus_metadata_[index].file_name),
           corpus_metadata_[index].file_name};
-}
-
-std::tuple<std::vector<uint8_t>, std::string>
-CorpusController::GetRandomInput() {
-  std::filesystem::directory_iterator seed_input =
-      std::filesystem::directory_iterator(corpus_path_);
-  int index = std::rand() % corpus_size_;
-  while (index--) {
-    seed_input++;
-  }
-  std::vector<uint8_t> seed_input_data = GetDataFromFile(seed_input->path());
-  std::string seed_input_name =
-      static_cast<std::vector<std::string>>(
-          absl::StrSplit(static_cast<std::string>(seed_input->path()), '/'))
-          .back();
-  return {seed_input_data, seed_input_name};
 }
 
 }  // namespace fido2_tests

@@ -23,9 +23,11 @@ static bool ValidateMonitor(const char* flagname, const std::string& value) {
   return kSupportedMonitors.contains(value);
 }
 
-static bool ValidateFuzzingMode(const char* flagname, const std::string& value) {
+static bool ValidateFuzzingMode(const char* flagname,
+                                const std::string& value) {
   const absl::flat_hash_set<std::string> kSupportedModes = {
-      "cbor_make_credential", "cbor_get_assertion", "cbor_client_pin", "ctap2_raw"};
+      "cbor_make_credential", "cbor_get_assertion", "cbor_client_pin",
+      "ctap2_raw"};
   return kSupportedModes.contains(value);
 }
 
@@ -38,7 +40,8 @@ DEFINE_string(
     "The path to the corpus containing seed files to test the device.");
 
 DEFINE_string(monitor, "blackbox", "The monitor type used in fuzzing.");
-DEFINE_string(fuzzing_mode, "cbor_make_credential", "The type of inputs to be fuzzed.");
+DEFINE_string(fuzzing_mode, "cbor_make_credential",
+              "The type of inputs to be fuzzed.");
 
 DEFINE_bool(verbose, false, "Printing debug logs, i.e. transmitted packets.");
 
@@ -119,8 +122,8 @@ int main(int argc, char** argv) {
     CHECK(false) << "unreachable else - TEST SUITE BUG";
   }
   fido2_tests::Fuzzer fuzzer({corpus_dir, fuzzing_input_type, FLAGS_num_runs,
-                              FLAGS_max_length,
-                              FLAGS_max_mutation_degree, FLAGS_seed});
+                              FLAGS_max_length, FLAGS_max_mutation_degree,
+                              FLAGS_seed});
   fuzzer.Run(&command_state, device.get(), monitor.get());
   return 0;
 }

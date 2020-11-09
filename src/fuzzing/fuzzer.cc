@@ -29,22 +29,25 @@ void PrintMutatingFile(std::string_view file_name, size_t last_file_name_len) {
   std::cout << "\rMutating from file " << file_name << ". " << std::flush;
 }
 
-void PrintFuzzingOptions(fuzzing_helpers::FuzzingOptions fuzzing_options){
-    std::cout << "\n|--- Fuzzer information ---|\n";
-    std::cout << "Initial corpus path: " << fuzzing_options.corpus_path << InputTypeToDirectoryName(fuzzing_options.fuzzing_input_type)<< "/\n";
-    if(fuzzing_options.num_runs == 0) {
-        std::cout << "--num_runs is not provided. The fuzzer will run indefinitely\n";
-    }
-    else{
-        std::cout <<"Number of runs: " << fuzzing_options.num_runs << "\n";
-    }if(fuzzing_options.max_length == 0) {
-        std::cout << "--max_length is not provided. There will be no limit\n";
-    }
-    else{
-        std::cout <<"Maximum input length: " << fuzzing_options.max_length << "\n";
-    }
-    std::cout << "Maximum mutation degree: " << fuzzing_options.max_mutation_degree << "\n";
-    std::cout << "Seed: " << fuzzing_options.seed << "\n\n" << std::flush;
+void PrintFuzzingOptions(fuzzing_helpers::FuzzingOptions fuzzing_options) {
+  std::cout << "\n|--- Fuzzer information ---|\n";
+  std::cout << "Initial corpus path: " << fuzzing_options.corpus_path
+            << InputTypeToDirectoryName(fuzzing_options.fuzzing_input_type)
+            << "/\n";
+  if (fuzzing_options.num_runs == 0) {
+    std::cout
+        << "--num_runs is not provided. The fuzzer will run indefinitely\n";
+  } else {
+    std::cout << "Number of runs: " << fuzzing_options.num_runs << "\n";
+  }
+  if (fuzzing_options.max_length == 0) {
+    std::cout << "--max_length is not provided. There will be no limit\n";
+  } else {
+    std::cout << "Maximum input length: " << fuzzing_options.max_length << "\n";
+  }
+  std::cout << "Maximum mutation degree: "
+            << fuzzing_options.max_mutation_degree << "\n";
+  std::cout << "Seed: " << fuzzing_options.seed << "\n\n" << std::flush;
 }
 
 // Returns the string of the current timestamp in microseconds since epoch.
