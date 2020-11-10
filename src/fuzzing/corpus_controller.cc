@@ -14,59 +14,62 @@
 
 #include "src/fuzzing/corpus_controller.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <vector>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
+#include "glog/logging.h"
 
 namespace fido2_tests {
-namespace {
 
-// Returns the data and the name of the file at the given path.
-std::tuple<std::vector<uint8_t>, std::string> GetDataFromFile(
-    const std::string& input_path) {
-  std::ifstream file(input_path, std::ios::in | std::ios::binary);
-  std::vector<uint8_t> input_data = std::vector<uint8_t>(
-      (std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-  std::string input_name =
-      static_cast<std::vector<std::string>>(absl::StrSplit(input_path, '/'))
-          .back();
-  return {input_data, input_name};
+// Returns the file data at the given path.
+std::vector<uint8_t> CorpusController::GetFileData(
+    const std::string& file_name) {
+  std::string input_path = absl::StrCat(corpus_path_, file_name);
+  std::ifstream input_file(input_path, std::ios::in | std::ios::binary);
+  CHECK(input_file.is_open()) << "Unable to open file: " << input_path;
+  std::vector<uint8_t> input_data =
+      std::vector<uint8_t>((std::istreambuf_iterator<char>(input_file)),
+                           std::istreambuf_iterator<char>());
+  return input_data;
 }
-
-}  // namespace
 
 CorpusController::CorpusController(fuzzing_helpers::InputType input_type,
                                    const std::string_view& base_corpus_path) {
   corpus_path_ =
       absl::StrCat(base_corpus_path, InputTypeToDirectoryName(input_type), "/");
-  current_input_ = std::filesystem::directory_iterator(corpus_path_);
-  corpus_size_ =
-      std::distance(std::filesystem::directory_iterator(corpus_path_),
-                    std::filesystem::directory_iterator());
+  current_input_index_ = 0;
+  // Construct corpus metadata and sort by file size, then by file name.
+  corpus_metadata_.clear();
+  for (auto& corpus_iter : std::filesystem::directory_iterator(corpus_path_)) {
+    std::uintmax_t file_size = std::filesystem::file_size(corpus_iter.path());
+    std::string file_name =
+        static_cast<std::vector<std::string>>(
+            absl::StrSplit(corpus_iter.path().string(), '/'))
+            .back();
+    corpus_metadata_.push_back({file_size, file_name});
+  }
+  sort(corpus_metadata_.begin(), corpus_metadata_.end());
 }
 
 bool CorpusController::HasNextInput() {
-  return current_input_ != std::filesystem::directory_iterator();
+  return current_input_index_ < corpus_metadata_.size();
 }
 
 std::tuple<std::vector<uint8_t>, std::string> CorpusController::GetNextInput() {
-  std::string input_path = current_input_->path();
-  ++current_input_;
-  return GetDataFromFile(input_path);
+  std::string input_name = corpus_metadata_[current_input_index_].file_name;
+  ++current_input_index_;
+  return {GetFileData(input_name), input_name};
 }
 
 std::tuple<std::vector<uint8_t>, std::string>
 CorpusController::GetRandomInput() {
-  std::filesystem::directory_iterator seed_input =
-      std::filesystem::directory_iterator(corpus_path_);
-  int index = std::rand() % corpus_size_;
-  while (index--) {
-    seed_input++;
-  }
-  return GetDataFromFile(seed_input->path());
+  int index = std::rand() % corpus_metadata_.size();
+  return {GetFileData(corpus_metadata_[index].file_name),
+          corpus_metadata_[index].file_name};
 }
 
 }  // namespace fido2_tests

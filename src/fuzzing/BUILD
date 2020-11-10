@@ -18,9 +18,7 @@ cc_library(
     name = "fuzzing_helpers",
     srcs = ["fuzzing_helpers.cc"],
     hdrs = ["fuzzing_helpers.h"],
-    deps = [
-        "//:device_interface",
-    ],
+    deps = ["//:device_interface"],
 )
 
 cc_library(
@@ -31,5 +29,6 @@ cc_library(
         ":fuzzing_helpers",
         "//:device_interface",
         "@com_google_absl//absl/strings",
+        "@com_google_glog//:glog"
     ],
 )

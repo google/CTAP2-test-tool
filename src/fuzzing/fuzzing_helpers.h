@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef FUZZING_HELPERS_H_
-#define FUZZING_HELPERS_H_
+#ifndef FUZZING_FUZZING_HELPERS_H_
+#define FUZZING_FUZZING_HELPERS_H_
 
 #include <string>
 #include <vector>
@@ -52,5 +52,5 @@ Status SendInput(DeviceInterface* device, InputType input_type,
 }  // namespace fuzzing_helpers
 }  // namespace fido2_tests
 
-#endif  // FUZZING_HELPERS_H_
+#endif  // FUZZING_FUZZING_HELPERS_H_
 

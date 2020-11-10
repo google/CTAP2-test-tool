@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CORPUS_CONTROLLER_H_
-#define CORPUS_CONTROLLER_H_
+#ifndef FUZZING_CORPUS_CONTROLLER_H_
+#define FUZZING_CORPUS_CONTROLLER_H_
 
+#include <cstdint>
 #include <filesystem>
 #include <tuple>
 #include <vector>
@@ -29,26 +30,43 @@ namespace fido2_tests {
 // all possible subdirectories are:
 //  /corpus/Cbor_MakeCredentialParameters/
 //  /corpus/Cbor_GetAssertionParameters/
+//  /corpus/Cbor_ClientPinParameters/
+//  /corpus/CtapHidRawData/
 // TODO (mingxguo) issue #27
-// All files that are not a directory in the given corpus are ignored.
 class CorpusController {
  public:
   CorpusController(fuzzing_helpers::InputType input_type,
                    const std::string_view& base_corpus_path);
-  // Returns whether there is a next input file available.
+  // Returns whether there is a next input file available in an iterative
+  // manner.
   bool HasNextInput();
-  // Returns the content and the name of the next available input file.
+  // Returns the content and the name of the next available input file in an
+  // iterative manner.
   std::tuple<std::vector<uint8_t>, std::string> GetNextInput();
-  // Returns the content and the name of a random input file.
+  // Returns the content and the name of a random input file, independently from
+  // the iterative mode.
   std::tuple<std::vector<uint8_t>, std::string> GetRandomInput();
 
  private:
-  std::filesystem::directory_iterator current_input_;
-  size_t corpus_size_;
+  // Returns the data of the file with the given name.
+  std::vector<uint8_t> GetFileData(const std::string& file_name);
+
+  struct FileMetadata {
+    std::uintmax_t file_size;
+    std::string file_name;
+    bool operator<(const FileMetadata& other) const {
+      return (file_size < other.file_size) ||
+             (file_size == other.file_size && file_name < other.file_name);
+    }
+  };
   std::string corpus_path_;
+  std::vector<FileMetadata> corpus_metadata_;
+  // An index in the vector of corpus metadata pointing to the current file
+  // under iteration.
+  size_t current_input_index_;
 };
 
 }  // namespace fido2_tests
 
-#endif  // CORPUS_CONTROLLER_H_
+#endif  // FUZZING_CORPUS_CONTROLLER_H_
 

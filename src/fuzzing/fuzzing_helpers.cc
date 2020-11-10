@@ -17,7 +17,7 @@ std::string InputTypeToDirectoryName(InputType input_type) {
     case InputType::kCborRaw:
       return "Cbor_Raw";
     case InputType::kRawData:
-      return "RawData";
+      return "CtapHidRawData";
     default:
       CHECK(false) << "unreachable default - TEST SUITE BUG";
   }
