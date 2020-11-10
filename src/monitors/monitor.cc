@@ -15,11 +15,13 @@
 #include "src/monitors/monitor.h"
 
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
 #include "glog/logging.h"
+#include "src/fuzzing/fuzzing_helpers.h"
 
 namespace fido2_tests {
 namespace {
@@ -46,20 +48,18 @@ void Monitor::PrintCrashReport() {
   std::cout << "\nDEVICE CRASHED!" << std::endl;
 }
 
-std::string Monitor::SaveCrashFile(InputType input_type,
-                                   const std::string_view& input_path) {
-  std::string input_name =
-      static_cast<std::vector<std::string>>(absl::StrSplit(input_path, '/'))
-          .back();
-  std::filesystem::path save_path = absl::StrCat(
-      CreateArtifactsSubdirectory(InputTypeToDirectoryName(input_type)), "/",
-      input_name);
-  if (input_path != save_path) {
-    CHECK(std::filesystem::copy_file(
-        input_path, save_path,
-        std::filesystem::copy_options::overwrite_existing))
-        << "Unable to save file!";
-  }
+std::string Monitor::SaveCrashFile(fuzzing_helpers::InputType input_type,
+                                   const std::vector<uint8_t>& data,
+                                   const std::string_view& file_name) {
+  std::filesystem::path save_path =
+      absl::StrCat(CreateArtifactsSubdirectory(
+                       fuzzing_helpers::InputTypeToDirectoryName(input_type)),
+                   "/", file_name);
+  std::ofstream crash_file(save_path, std::ios::out | std::ios::binary);
+  CHECK(crash_file.is_open()) << "Unable to open file: " << save_path;
+  crash_file.write(reinterpret_cast<const char*>(&data[0]),
+                   data.size() * sizeof(uint8_t));
+  crash_file.close();
   std::cout << "Saving file to " << save_path << std::endl;
   return save_path.string();
 }
