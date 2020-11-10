@@ -194,21 +194,3 @@ cc_binary(
         "@com_google_glog//:glog",
     ],
 )
-
-cc_binary(
-    name = "fuzzing",
-    srcs = ["src/fuzzing_main.cc"],
-    deps = [
-        ":command_state",
-        ":constants",
-        ":hid_device",
-        "//src/fuzzing:fuzzer",
-        "//src/fuzzing:fuzzing_helpers",
-        "//src/monitors:blackbox_monitor",
-        "//src/monitors:cortexm4_gdb_monitor",
-        "//src/monitors:gdb_monitor",
-        "@com_github_gflags_gflags//:gflags",
-        "@com_google_absl//absl/container:flat_hash_set",
-        "@com_google_glog//:glog",
-    ],
-)
