@@ -18,7 +18,7 @@
 
 #include "absl/strings/str_split.h"
 #include "src/constants.h"
-#include "src/corpus_controller.h"
+#include "src/fuzzing/corpus_controller.h"
 
 namespace fido2_tests {
 namespace {
@@ -38,23 +38,22 @@ void PrintRunningFile(std::string_view file_name, size_t last_file_name_len) {
 // the monitor detects a crash, stops execution.
 std::optional<std::string> Execute(DeviceInterface* device,
                                    CommandState* command_state,
-                                   Monitor* monitor, InputType input_type,
+                                   Monitor* monitor,
+                                   fuzzing_helpers::InputType input_type,
                                    const std::string_view& base_corpus_path) {
-  CorpusIterator corpus_iterator(input_type, base_corpus_path);
+  CorpusController corpus_controller(input_type, base_corpus_path);
   int passed_test_files = 0;
   size_t last_file_name_len = 0;
   std::cout << "\n|--- Processing corpus "
             << InputTypeToDirectoryName(input_type) << " ---|\n\n";
-  while (corpus_iterator.HasNextInput()) {
-    auto [input_data, input_path] = corpus_iterator.GetNextInput();
-    std::string input_name =
-        static_cast<std::vector<std::string>>(absl::StrSplit(input_path, '/'))
-            .back();
+  while (corpus_controller.HasNextInput()) {
+    auto [input_data, input_name] = corpus_controller.GetNextInput();
     PrintRunningFile(input_name, last_file_name_len);
     SendInput(device, input_type, input_data);
     if (monitor->DeviceCrashed(command_state, kRetries)) {
       monitor->PrintCrashReport();
-      std::string save_path = monitor->SaveCrashFile(input_type, input_path);
+      std::string save_path =
+          monitor->SaveCrashFile(input_type, input_data, input_name);
       return absl::StrCat("Saved crash input to ", save_path,
                           ". Ran a total of ", passed_test_files, " files.");
     }
@@ -83,9 +82,10 @@ MakeCredentialCorpusTest::MakeCredentialCorpusTest(
 std::optional<std::string> MakeCredentialCorpusTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  return ::fido2_tests::Execute(device, command_state, monitor_,
-                                InputType::kCborMakeCredentialParameter,
-                                base_corpus_path_);
+  return ::fido2_tests::Execute(
+      device, command_state, monitor_,
+      fuzzing_helpers::InputType::kCborMakeCredentialParameter,
+      base_corpus_path_);
 }
 
 void MakeCredentialCorpusTest::Setup(CommandState* command_state) const {
@@ -104,9 +104,10 @@ GetAssertionCorpusTest::GetAssertionCorpusTest(
 std::optional<std::string> GetAssertionCorpusTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  return ::fido2_tests::Execute(device, command_state, monitor_,
-                                InputType::kCborGetAssertionParameter,
-                                base_corpus_path_);
+  return ::fido2_tests::Execute(
+      device, command_state, monitor_,
+      fuzzing_helpers::InputType::kCborGetAssertionParameter,
+      base_corpus_path_);
 }
 
 void GetAssertionCorpusTest::Setup(CommandState* command_state) const {
@@ -125,9 +126,9 @@ ClientPinCorpusTest::ClientPinCorpusTest(
 std::optional<std::string> ClientPinCorpusTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  return ::fido2_tests::Execute(device, command_state, monitor_,
-                                InputType::kCborClientPinParameter,
-                                base_corpus_path_);
+  return ::fido2_tests::Execute(
+      device, command_state, monitor_,
+      fuzzing_helpers::InputType::kCborClientPinParameter, base_corpus_path_);
 }
 
 void ClientPinCorpusTest::Setup(CommandState* command_state) const {

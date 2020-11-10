@@ -19,7 +19,7 @@
 #include "glog/logging.h"
 #include "src/command_state.h"
 #include "src/constants.h"
-#include "src/corpus_controller.h"
+#include "src/fuzzing/corpus_controller.h"
 #include "src/hid/hid_device.h"
 #include "src/monitors/blackbox_monitor.h"
 #include "src/monitors/cortexm4_gdb_monitor.h"
