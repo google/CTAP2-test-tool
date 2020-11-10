@@ -29,7 +29,8 @@ class BlackboxMonitor : public Monitor {
   // Checks for an occured failure in the device through the identification of a
   // hang (no response) or a reboot after crash by comparing the pin token of
   // the security key.
-  bool DeviceCrashed(CommandState* command_state, int retries = 1) override;
+  std::tuple<bool, std::vector<std::string>> DeviceCrashed(
+      CommandState* command_state, int retries = 1) override;
 
  private:
   cbor::Value::BinaryValue initial_pin_token_;

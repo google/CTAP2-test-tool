@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-#include "glog/logging.h"
+#include "absl/strings/str_cat.h"
 
 namespace fido2_tests {
 
@@ -28,18 +28,21 @@ bool BlackboxMonitor::Prepare(CommandState* command_state) {
   return ok;
 }
 
-bool BlackboxMonitor::DeviceCrashed(CommandState* command_state, int retries) {
+std::tuple<bool, std::vector<std::string>> BlackboxMonitor::DeviceCrashed(
+    CommandState* command_state, int retries) {
   Status status = Status::kErrNone;
+  std::vector<std::string> observations;
   for (int i = 0; i < retries; ++i) {
     status = command_state->GetAuthToken();
     if (status == Status::kErrNone) {
       break;
     }
-    std::cout << "GetAuthToken got error - " << StatusToString(status)
-              << ". Retrying..." << std::endl;
+    observations.push_back(
+        absl::StrCat("GetAuthToken got error code - ", StatusToString(status)));
   }
-  return status != Status::kErrNone ||
-         command_state->GetCurrentAuthToken() != initial_pin_token_;
+  return {status != Status::kErrNone ||
+              command_state->GetCurrentAuthToken() != initial_pin_token_,
+          observations};
 }
 
 }  // namespace fido2_tests

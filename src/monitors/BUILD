@@ -50,6 +50,7 @@ cc_library(
     deps = [
         "//src/monitors:monitor",
         "//:command_state",
+        "@com_google_absl//absl/strings",
     ],
 )
 
