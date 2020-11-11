@@ -20,7 +20,7 @@ cc_library(
     hdrs = ["monitor.h"],
     deps = [
         "//:command_state",
-        "//:corpus_controller"
+        "//src/fuzzing:corpus_controller"
     ],
 )
 

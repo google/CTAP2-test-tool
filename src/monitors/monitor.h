@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "src/command_state.h"
-#include "src/corpus_controller.h"
+#include "src/fuzzing/corpus_controller.h"
 
 namespace fido2_tests {
 
@@ -51,8 +51,9 @@ class Monitor {
   virtual void PrintCrashReport();
   // Saves the given file crashing the device in the artifacts directory.
   // Returns the path of the saved file.
-  std::string SaveCrashFile(InputType input_type,
-                            std::string_view const& input_path);
+  std::string SaveCrashFile(fuzzing_helpers::InputType input_type,
+                            const std::vector<uint8_t>& data,
+                            const std::string_view& file_name);
 };
 
 }  // namespace fido2_tests

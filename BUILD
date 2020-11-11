@@ -162,16 +162,6 @@ cc_library(
     linkstamp = "src/stamp.cc"
 )
 
-cc_library(
-    name = "corpus_controller",
-    srcs = ["src/corpus_controller.cc"],
-    hdrs = ["src/corpus_controller.h"],
-    deps = [
-        ":device_interface",
-        "@com_google_absl//absl/strings",
-    ],
-)
-
 cc_binary(
     name = "fido2_conformance",
     srcs = ["src/fido2_conformance_main.cc"],
@@ -192,8 +182,8 @@ cc_binary(
     deps = [
         ":command_state",
         ":constants",
-        ":corpus_controller",
         ":hid_device",
+        "//src/fuzzing:corpus_controller",
         "//src/monitors:blackbox_monitor",
         "//src/monitors:cortexm4_gdb_monitor",
         "//src/monitors:gdb_monitor",
