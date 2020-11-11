@@ -96,6 +96,13 @@ class HidDevice : public DeviceInterface {
   // Waits for incoming frames, returning their content in an output parameter.
   Status ReceiveCommand(absl::Duration timeout, uint8_t* cmd,
                         std::vector<uint8_t>* data) const;
+  // Sends a CTAPHID command and awaits for a response determined by the given
+  // flags. Reports an unexpected response or returns the content otherwise.
+  Status SendRecvCommand(uint8_t send_cmd,
+                         const std::vector<uint8_t>& send_data,
+                         std::vector<uint8_t>* recv_data, bool expect_response,
+                         bool expect_status, bool expect_empty_data,
+                         bool expect_up_check) const;
   // The lowest abstraction layer, just sends a single frame.
   Status SendFrame(Frame* frame) const;
   // The lowest abstraction layer, receives a single frame with in a given time.

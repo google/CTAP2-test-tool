@@ -212,14 +212,9 @@ Status HidDevice::Init() {
 }
 
 Status HidDevice::Wink() {
-  uint8_t cmd = kCtapHidWink;
-  OK_OR_RETURN(SendCommand(cmd, std::vector<uint8_t>()));
-
   std::vector<uint8_t> recv_data;
-  Status status = ReceiveCommand(kReceiveTimeout, &cmd, &recv_data);
-  if (cmd != kCtapHidWink) return Status::kErrInvalidCommand;
-  if (!recv_data.empty()) return Status::kErrInvalidLength;
-  return status;
+  return SendRecvCommand(kCtapHidWink, std::vector<uint8_t>(), &recv_data, true,
+                         false, true, false);
 }
 
 Status HidDevice::ExchangeCbor(Command command,
@@ -231,45 +226,8 @@ Status HidDevice::ExchangeCbor(Command command,
   if (1 + payload.size() > kMaxDataSize) return Status::kErrInvalidLength;
   std::vector<uint8_t> send_data = {static_cast<uint8_t>(command)};
   send_data.insert(send_data.end(), payload.begin(), payload.end());
-
-  uint8_t cmd = kCtapHidCbor;
-  OK_OR_RETURN(SendCommand(cmd, send_data));
-
-  std::vector<uint8_t> recv_data;
-  OK_OR_RETURN(ReceiveCommand(kReceiveTimeout, &cmd, &recv_data));
-
-  // The answer might also be a keepalive.
-  bool has_sent_prompt = false;
-  while (cmd == kCtapHidKeepalive) {
-    KeepaliveStatus keepalive_response = ProcessKeepalive(recv_data);
-    if (keepalive_response == KeepaliveStatus::kStatusError)
-      return Status::kErrOther;
-    if (keepalive_response == KeepaliveStatus::kStatusUpNeeded &&
-        !has_sent_prompt) {
-      has_sent_prompt = true;
-      if (!tracker_->IsTouchPromptIgnored()) {
-        PromptUser();
-      }
-    }
-    OK_OR_RETURN(ReceiveCommand(kReceiveTimeout, &cmd, &recv_data));
-  }
-
-  if (cmd != kCtapHidCbor) return Status::kErrInvalidCommand;
-  if (recv_data.empty()) return Status::kErrInvalidLength;
-
-  response_cbor->insert(response_cbor->end(), recv_data.begin() + 1,
-                        recv_data.end());
-
-  if (has_sent_prompt && !expect_up_check) {
-    tracker_->AddObservation("A prompt was sent unexpectedly.");
-  }
-  if (!has_sent_prompt && expect_up_check) {
-    tracker_->AddObservation(
-        "A prompt was expected, but not performed. Sometimes it is just not "
-        "recognized if performed too fast.");
-  }
-
-  return ByteToStatus(recv_data[0]);
+  return SendRecvCommand(kCtapHidCbor, send_data, response_cbor, true, true,
+                         false, expect_up_check);
 }
 
 KeepaliveStatus HidDevice::ProcessKeepalive(
@@ -351,6 +309,60 @@ Status HidDevice::ReceiveCommand(absl::Duration timeout, uint8_t* cmd,
     total_len -= frame_len;
   }
 
+  return Status::kErrNone;
+}
+
+Status HidDevice::SendRecvCommand(uint8_t send_cmd,
+                                  const std::vector<uint8_t>& send_data,
+                                  std::vector<uint8_t>* recv_data,
+                                  bool expect_response, bool expect_status,
+                                  bool expect_empty_data,
+                                  bool expect_up_check) const {
+  OK_OR_RETURN(SendCommand(send_cmd, send_data));
+  uint8_t recv_cmd;
+  Status recv_status = ReceiveCommand(kReceiveTimeout, &recv_cmd, recv_data);
+  if (!expect_response && recv_status != Status::kErrTimeout) {
+    tracker_->AddObservation(
+        "The command doesn't expect response but got one.");
+  }
+  if (recv_status != Status::kErrNone) {
+    return recv_status;
+  }
+  // The answer might also be a keepalive.
+  bool has_sent_prompt = false;
+  while (recv_cmd == kCtapHidKeepalive) {
+    KeepaliveStatus keepalive_response = ProcessKeepalive(*recv_data);
+    if (keepalive_response == KeepaliveStatus::kStatusError)
+      return Status::kErrOther;
+    if (keepalive_response == KeepaliveStatus::kStatusUpNeeded &&
+        !has_sent_prompt) {
+      has_sent_prompt = true;
+      if (!tracker_->IsTouchPromptIgnored()) {
+        PromptUser();
+      }
+    }
+    OK_OR_RETURN(ReceiveCommand(kReceiveTimeout, &recv_cmd, recv_data));
+  }
+
+  if (has_sent_prompt && !expect_up_check) {
+    tracker_->AddObservation("A prompt was sent unexpectedly.");
+  }
+  if (!has_sent_prompt && expect_up_check) {
+    tracker_->AddObservation(
+        "A prompt was expected, but not performed. Sometimes it is just not "
+        "recognized if performed too fast.");
+  }
+
+  if (recv_cmd != send_cmd) return Status::kErrInvalidCommand;
+  if ((!expect_empty_data && recv_data->empty()) ||
+      (expect_empty_data && !recv_data->empty()))
+    return Status::kErrInvalidLength;
+
+  if (expect_status) {
+    uint8_t status_byte = recv_data->front();
+    recv_data->erase(recv_data->begin());
+    return ByteToStatus(status_byte);
+  }
   return Status::kErrNone;
 }
 
