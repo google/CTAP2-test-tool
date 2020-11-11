@@ -26,8 +26,7 @@ namespace fido2_tests {
 // Returns the file data at the given path.
 std::vector<uint8_t> CorpusController::GetFileData(
     const std::string& file_name) {
-  std::filesystem::path input_path = corpus_path_;
-  input_path /= file_name;
+  std::filesystem::path input_path = corpus_path_ / file_name;
   std::ifstream input_file(input_path, std::ios::in | std::ios::binary);
   CHECK(input_file.is_open()) << "Unable to open file: " << input_path;
   std::vector<uint8_t> input_data =
