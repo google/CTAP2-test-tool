@@ -37,6 +37,7 @@ void PrintRunningFile(std::string_view file_name, size_t last_file_name_len) {
 // the corpus under a naming convention (see src/test_input_controller.h). When
 // the monitor detects a crash, stops execution.
 std::optional<std::string> Execute(DeviceInterface* device,
+                                   DeviceTracker* device_tracker,
                                    CommandState* command_state,
                                    Monitor* monitor, InputType input_type,
                                    const std::string_view& base_corpus_path) {
@@ -52,7 +53,13 @@ std::optional<std::string> Execute(DeviceInterface* device,
             .back();
     PrintRunningFile(input_name, last_file_name_len);
     SendInput(device, input_type, input_data);
-    if (monitor->DeviceCrashed(command_state, kRetries)) {
+    auto [device_crashed, observations] =
+        monitor->DeviceCrashed(command_state, kRetries);
+    for (const std::string& observation : observations) {
+      device_tracker->AddObservation(
+          absl::StrCat("In file ", input_name, " ", observation));
+    }
+    if (device_crashed) {
       monitor->PrintCrashReport();
       std::string save_path = monitor->SaveCrashFile(input_type, input_path);
       return absl::StrCat("Saved crash input to ", save_path,
@@ -83,7 +90,7 @@ MakeCredentialCorpusTest::MakeCredentialCorpusTest(
 std::optional<std::string> MakeCredentialCorpusTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  return ::fido2_tests::Execute(device, command_state, monitor_,
+  return ::fido2_tests::Execute(device, device_tracker, command_state, monitor_,
                                 InputType::kCborMakeCredentialParameter,
                                 base_corpus_path_);
 }
@@ -104,7 +111,7 @@ GetAssertionCorpusTest::GetAssertionCorpusTest(
 std::optional<std::string> GetAssertionCorpusTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  return ::fido2_tests::Execute(device, command_state, monitor_,
+  return ::fido2_tests::Execute(device, device_tracker, command_state, monitor_,
                                 InputType::kCborGetAssertionParameter,
                                 base_corpus_path_);
 }
@@ -125,7 +132,7 @@ ClientPinCorpusTest::ClientPinCorpusTest(
 std::optional<std::string> ClientPinCorpusTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  return ::fido2_tests::Execute(device, command_state, monitor_,
+  return ::fido2_tests::Execute(device, device_tracker, command_state, monitor_,
                                 InputType::kCborClientPinParameter,
                                 base_corpus_path_);
 }

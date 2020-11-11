@@ -33,7 +33,8 @@ class GdbMonitor : public Monitor {
   bool Prepare(CommandState* command_state) override;
   // Checks for an occured failure in the device by attempting to
   // receive data from the RSP server.
-  bool DeviceCrashed(CommandState* command_state, int retries = 1) override;
+  std::tuple<bool, std::vector<std::string>> DeviceCrashed(
+      CommandState* command_state, int retries = 1) override;
   // Prints the stop response received from the RSP server.
   void PrintCrashReport() override;
   // Prints the details of the stop reply according to

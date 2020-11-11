@@ -79,13 +79,14 @@ bool GdbMonitor::Prepare(CommandState* command_state) {
                                 kRetries);
 }
 
-bool GdbMonitor::DeviceCrashed(CommandState* command_state, int retries) {
+std::tuple<bool, std::vector<std::string>> GdbMonitor::DeviceCrashed(
+    CommandState* command_state, int retries) {
   auto response = rsp_client_.ReceivePacket();
   if (!response.has_value()) {
-    return false;
+    return {false, {}};
   }
   stop_message_ = response.value();
-  return true;
+  return {true, {}};
 }
 
 void GdbMonitor::PrintCrashReport() {
