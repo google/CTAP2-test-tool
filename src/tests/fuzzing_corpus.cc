@@ -89,9 +89,10 @@ MakeCredentialCorpusTest::MakeCredentialCorpusTest(
 std::optional<std::string> MakeCredentialCorpusTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  return ::fido2_tests::Execute(device, device_tracker, command_state, monitor_,
-                                InputType::kCborMakeCredentialParameter,
-                                base_corpus_path_);
+  return ::fido2_tests::Execute(
+      device, device_tracker, command_state, monitor_,
+      fuzzing_helpers::InputType::kCborMakeCredentialParameter,
+      base_corpus_path_);
 }
 
 void MakeCredentialCorpusTest::Setup(CommandState* command_state) const {
@@ -110,9 +111,10 @@ GetAssertionCorpusTest::GetAssertionCorpusTest(
 std::optional<std::string> GetAssertionCorpusTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  return ::fido2_tests::Execute(device, device_tracker, command_state, monitor_,
-                                InputType::kCborGetAssertionParameter,
-                                base_corpus_path_);
+  return ::fido2_tests::Execute(
+      device, device_tracker, command_state, monitor_,
+      fuzzing_helpers::InputType::kCborGetAssertionParameter,
+      base_corpus_path_);
 }
 
 void GetAssertionCorpusTest::Setup(CommandState* command_state) const {
@@ -131,9 +133,9 @@ ClientPinCorpusTest::ClientPinCorpusTest(
 std::optional<std::string> ClientPinCorpusTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
-  return ::fido2_tests::Execute(device, device_tracker, command_state, monitor_,
-                                InputType::kCborClientPinParameter,
-                                base_corpus_path_);
+  return ::fido2_tests::Execute(
+      device, device_tracker, command_state, monitor_,
+      fuzzing_helpers::InputType::kCborClientPinParameter, base_corpus_path_);
 }
 
 void ClientPinCorpusTest::Setup(CommandState* command_state) const {
