@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef FUZZER_H_
-#define FUZZER_H_
+#ifndef FUZZING_FUZZER_H_
+#define FUZZING_FUZZER_H_
 
 #include "src/command_state.h"
 #include "src/fuzzing/corpus_controller.h"
@@ -46,5 +46,5 @@ class Fuzzer {
 
 }  // namespace fido2_tests
 
-#endif  // FUZZER_H_
+#endif  // FUZZING_FUZZER_H_
 

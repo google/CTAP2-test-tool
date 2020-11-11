@@ -28,7 +28,7 @@ cc_library(
     deps = [
         ":fuzzing_helpers",
         "//:device_interface",
-        "@com_google_glog//:glog",
+        "@com_google_glog//:glog"
     ],
 )
 

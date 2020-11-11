@@ -21,11 +21,14 @@
 namespace fido2_tests {
 namespace {
 
+// Default number of retries.
+constexpr int kRetries = 3;
+
 // Prints a line stating the file being mutated, rewriting the last line of
 // output.
 void PrintMutatingFile(std::string_view file_name, size_t last_file_name_len) {
   // Clean last line output in case the current line to be printed is shorter.
-  std::cout << "\r                   " << std::string(last_file_name_len, ' ');
+  std::cout << "\r                   " << std::string(last_file_name_len+1, ' ');
   std::cout << "\rMutating from file " << file_name << ". " << std::flush;
 }
 
@@ -79,7 +82,9 @@ void Fuzzer::Run(CommandState* command_state, DeviceInterface* device,
     PrintMutatingFile(seed_input_name, last_input_name_len);
     fuzzing_helpers::SendInput(device, fuzzing_options_.fuzzing_input_type,
                                mutated_input_data);
-    if (monitor->DeviceCrashed(command_state)) {
+    auto [device_crashed, observations] =
+        monitor->DeviceCrashed(command_state, kRetries);
+    if (device_crashed) {
       monitor->PrintCrashReport();
       std::string save_path =
           monitor->SaveCrashFile(fuzzing_options_.fuzzing_input_type,

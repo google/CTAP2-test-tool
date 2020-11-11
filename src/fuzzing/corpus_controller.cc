@@ -22,21 +22,6 @@
 #include "glog/logging.h"
 
 namespace fido2_tests {
-namespace {
-
-// Returns the data and the name of the file at the given path.
-std::tuple<std::vector<uint8_t>, std::string> GetDataFromFile(
-    const std::string& input_path) {
-  std::ifstream file(input_path, std::ios::in | std::ios::binary);
-  std::vector<uint8_t> input_data = std::vector<uint8_t>(
-      (std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-  std::string input_name =
-      static_cast<std::vector<std::string>>(absl::StrSplit(input_path, '/'))
-          .back();
-  return {input_data, input_name};
-}
-
-}  // namespace
 
 // Returns the file data at the given path.
 std::vector<uint8_t> CorpusController::GetFileData(

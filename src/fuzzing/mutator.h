@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef MUTATOR_H_
-#define MUTATOR_H_
+#ifndef FUZZING_MUTATOR_H_
+#define FUZZING_MUTATOR_H_
 
 #include <stdint.h>
 
@@ -43,5 +43,5 @@ class Mutator {
 
 }  // namespace fido2_tests
 
-#endif  // MUTATOR_H_
+#endif  // FUZZING_MUTATOR_H_
 
