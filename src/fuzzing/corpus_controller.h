@@ -59,7 +59,7 @@ class CorpusController {
              (file_size == other.file_size && file_name < other.file_name);
     }
   };
-  std::string corpus_path_;
+  std::filesystem::path corpus_path_;
   std::vector<FileMetadata> corpus_metadata_;
   // An index in the vector of corpus metadata pointing to the current file
   // under iteration.

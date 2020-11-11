@@ -19,7 +19,6 @@
 #include <fstream>
 #include <vector>
 
-#include "absl/strings/str_cat.h"
 #include "glog/logging.h"
 
 namespace fido2_tests {
@@ -39,8 +38,8 @@ std::vector<uint8_t> CorpusController::GetFileData(
 
 CorpusController::CorpusController(fuzzing_helpers::InputType input_type,
                                    const std::string_view& base_corpus_path)
-    : corpus_path_(absl::StrCat(base_corpus_path,
-                                InputTypeToDirectoryName(input_type), "/")) {
+    : corpus_path_(base_corpus_path) {
+  corpus_path_ /= InputTypeToDirectoryName(input_type);
   // Construct corpus metadata and sort by file size, then by file name.
   for (auto& corpus_iter : std::filesystem::directory_iterator(corpus_path_)) {
     std::uintmax_t file_size = std::filesystem::file_size(corpus_iter.path());
