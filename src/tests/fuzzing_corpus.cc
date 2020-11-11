@@ -29,7 +29,7 @@ constexpr int kRetries = 3;
 // Prints a line stating the file being run, rewriting the last line of output.
 void PrintRunningFile(std::string_view file_name, size_t last_file_name_len) {
   // Clean last line output in case the current line to be printed is shorter.
-  std::cout << "\r             " << std::string(last_file_name_len, ' ');
+  std::cout << "\r             " << std::string(last_file_name_len + 1, ' ');
   std::cout << "\rRunning file " << file_name << ". " << std::flush;
 }
 

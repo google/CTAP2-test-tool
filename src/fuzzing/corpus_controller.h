@@ -63,7 +63,7 @@ class CorpusController {
   std::vector<FileMetadata> corpus_metadata_;
   // An index in the vector of corpus metadata pointing to the current file
   // under iteration.
-  size_t current_input_index_;
+  size_t current_input_index_ = 0;
 };
 
 }  // namespace fido2_tests

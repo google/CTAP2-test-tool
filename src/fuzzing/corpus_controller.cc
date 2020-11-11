@@ -20,7 +20,6 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_split.h"
 #include "glog/logging.h"
 
 namespace fido2_tests {
@@ -28,7 +27,8 @@ namespace fido2_tests {
 // Returns the file data at the given path.
 std::vector<uint8_t> CorpusController::GetFileData(
     const std::string& file_name) {
-  std::string input_path = absl::StrCat(corpus_path_, file_name);
+  std::filesystem::path input_path = corpus_path_;
+  input_path /= file_name;
   std::ifstream input_file(input_path, std::ios::in | std::ios::binary);
   CHECK(input_file.is_open()) << "Unable to open file: " << input_path;
   std::vector<uint8_t> input_data =
@@ -38,18 +38,13 @@ std::vector<uint8_t> CorpusController::GetFileData(
 }
 
 CorpusController::CorpusController(fuzzing_helpers::InputType input_type,
-                                   const std::string_view& base_corpus_path) {
-  corpus_path_ =
-      absl::StrCat(base_corpus_path, InputTypeToDirectoryName(input_type), "/");
-  current_input_index_ = 0;
+                                   const std::string_view& base_corpus_path)
+    : corpus_path_(absl::StrCat(base_corpus_path,
+                                InputTypeToDirectoryName(input_type), "/")) {
   // Construct corpus metadata and sort by file size, then by file name.
-  corpus_metadata_.clear();
   for (auto& corpus_iter : std::filesystem::directory_iterator(corpus_path_)) {
     std::uintmax_t file_size = std::filesystem::file_size(corpus_iter.path());
-    std::string file_name =
-        static_cast<std::vector<std::string>>(
-            absl::StrSplit(corpus_iter.path().string(), '/'))
-            .back();
+    std::string file_name = corpus_iter.path().filename();
     corpus_metadata_.push_back({file_size, file_name});
   }
   sort(corpus_metadata_.begin(), corpus_metadata_.end());
