@@ -28,7 +28,8 @@ constexpr int kRetries = 3;
 // output.
 void PrintMutatingFile(std::string_view file_name, size_t last_file_name_len) {
   // Clean last line output in case the current line to be printed is shorter.
-  std::cout << "\r                   " << std::string(last_file_name_len+1, ' ');
+  std::cout << "\r                   "
+            << std::string(last_file_name_len + 1, ' ');
   std::cout << "\rMutating from file " << file_name << ". " << std::flush;
 }
 
