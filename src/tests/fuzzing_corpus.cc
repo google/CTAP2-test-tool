@@ -57,7 +57,7 @@ std::optional<std::string> Execute(DeviceInterface* device,
         monitor->DeviceCrashed(command_state, kRetries);
     for (const std::string& observation : observations) {
       device_tracker->AddObservation(
-          absl::StrCat("In file ", input_name, observation));
+          absl::StrCat("In file ", input_name, " ", observation));
     }
     if (device_crashed) {
       monitor->PrintCrashReport();
