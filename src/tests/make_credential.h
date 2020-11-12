@@ -55,10 +55,6 @@ TEST_CLASS(MakeCredentialOptionRkTest);
 // Tests if user presence set to false is rejected.
 TEST_CLASS(MakeCredentialOptionUpFalseTest);
 
-// Tests if user presence set to true is accepted.
-// Option {up: true} was specified ambiguously in CTAP 2.0.
-TEST_CLASS(MakeCredentialOptionUpTrueTest);
-
 // Tests if user verification set to false is accepted.
 TEST_CLASS(MakeCredentialOptionUvFalseTest);
 
