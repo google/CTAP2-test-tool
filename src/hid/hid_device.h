@@ -85,6 +85,10 @@ class HidDevice : public DeviceInterface {
   Status ExchangeCbor(Command command, const std::vector<uint8_t>& payload,
                       bool expect_up_check,
                       std::vector<uint8_t>* response_cbor) const override;
+  // Sends and potentially receives any CTAPHID raw message including the
+  // command byte over the allocated channel.
+  Status SendCtapHid(const std::vector<uint8_t>& payload,
+                     std::vector<uint8_t>* response) const override;
 
  private:
   // A received response can be status 0, an error, or a keepalive in case the

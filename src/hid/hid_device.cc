@@ -230,6 +230,49 @@ Status HidDevice::ExchangeCbor(Command command,
                          false, expect_up_check);
 }
 
+Status HidDevice::SendCtapHid(const std::vector<uint8_t>& payload,
+                              std::vector<uint8_t>* response) const {
+  if (payload.empty() || payload.size() - 1 > kMaxDataSize) {
+    return Status::kErrInvalidLength;
+  }
+
+  uint8_t cmd = Frame::kTypeInitMask | payload[0];
+  std::vector<uint8_t> send_data(payload.begin() + 1, payload.end());
+  std::vector<uint8_t> recv_data;
+  // Cancel requires no response.
+  if (cmd == kCtapHidCancel) {
+    return SendRecvCommand(cmd, send_data, &recv_data, false, false, true,
+                           false);
+  }
+  // Wink and Lock require response with empty data at success.
+  else if (cmd == kCtapHidWink || cmd == kCtapHidLock) {
+    return SendRecvCommand(cmd, send_data, &recv_data, true, false, true,
+                           false);
+  }
+  // Init requires non-empty response (cid) and no status code is return.
+  else if (cmd == kCtapHidInit) {
+    return SendRecvCommand(cmd, send_data, &recv_data, true, false, false,
+                           false);
+  }
+  // Ping requires response and no status code is return.
+  else if (cmd == kCtapHidPing) {
+    bool expect_empty_data = send_data.empty();
+    return SendRecvCommand(cmd, send_data, &recv_data, true, false,
+                           expect_empty_data, false);
+  }
+  // Msg, Cbor and Keepalive require non-empty response with status code.
+  else if (cmd == kCtapHidMsg || cmd == kCtapHidCbor ||
+           cmd == kCtapHidKeepalive) {
+    return SendRecvCommand(cmd, send_data, &recv_data, true, true, false,
+                           false);
+  }
+  // The rest are non-defined or vendor specific commands. We only send the raw
+  // message over.
+  else {
+    return SendCommand(cmd, send_data);
+  }
+}
+
 KeepaliveStatus HidDevice::ProcessKeepalive(
     const std::vector<uint8_t>& data) const {
   if (data.size() != 1) return KeepaliveStatus::kStatusError;

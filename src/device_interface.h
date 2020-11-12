@@ -39,6 +39,10 @@ class DeviceInterface {
                               const std::vector<uint8_t>& payload,
                               bool expect_up_check,
                               std::vector<uint8_t>* response_cbor) const = 0;
+  // Sends a CTAPHID raw message to the device. Returns the response if received
+  // one.
+  virtual Status SendCtapHid(const std::vector<uint8_t>& payload,
+                             std::vector<uint8_t>* response) const = 0;
 };
 
 // Contains all device identifier for logging and to re-identify the device.
