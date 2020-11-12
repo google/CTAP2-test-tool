@@ -496,7 +496,7 @@ MakeCredentialPinAuthEmptyTest::MakeCredentialPinAuthEmptyTest()
     : BaseTest("make_credential_pin_auth_empty",
                "Tests the response on an empty PIN auth without a PIN in "
                "MakeCredential.",
-               {.has_pin = false}, {Tag::kClientPin, Tag::kFido2Point1}) {}
+               {.has_pin = false}, {Tag::kClientPin}) {}
 
 std::optional<std::string> MakeCredentialPinAuthEmptyTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
@@ -562,7 +562,7 @@ MakeCredentialPinAuthEmptyWithPinTest::MakeCredentialPinAuthEmptyWithPinTest()
     : BaseTest("make_credential_pin_auth_empty_with_pin",
                "Tests the response on an empty PIN auth with a PIN in "
                "MakeCredential.",
-               {.has_pin = true}, {Tag::kClientPin, Tag::kFido2Point1}) {}
+               {.has_pin = true}, {Tag::kClientPin}) {}
 
 std::optional<std::string> MakeCredentialPinAuthEmptyWithPinTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,

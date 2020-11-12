@@ -408,7 +408,7 @@ GetAssertionPinAuthEmptyTest::GetAssertionPinAuthEmptyTest()
     : BaseTest("get_assertion_pin_auth_empty",
                "Tests the response on an empty PIN auth without a PIN in "
                "GetAssertion.",
-               {.has_pin = false}, {Tag::kClientPin, Tag::kFido2Point1}) {}
+               {.has_pin = false}, {Tag::kClientPin}) {}
 
 std::optional<std::string> GetAssertionPinAuthEmptyTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
@@ -490,7 +490,7 @@ GetAssertionPinAuthEmptyWithPinTest::GetAssertionPinAuthEmptyWithPinTest()
     : BaseTest(
           "get_assertion_pin_auth_empty_with_pin",
           "Tests the response on an empty PIN auth with a PIN in GetAssertion.",
-          {.has_pin = true}, {Tag::kClientPin, Tag::kFido2Point1}) {}
+          {.has_pin = true}, {Tag::kClientPin}) {}
 
 std::optional<std::string> GetAssertionPinAuthEmptyWithPinTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
