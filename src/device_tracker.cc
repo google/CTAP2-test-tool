@@ -153,6 +153,9 @@ void DeviceTracker::AddObservation(const std::string& observation) {
 void DeviceTracker::AssertCondition(bool condition, std::string_view message) {
   if (!condition) {
     SaveResultsToFile();
+    for (std::string_view observation : observations_) {
+      PrintWarningMessage(observation);
+    }
   }
   CHECK(condition) << "Failed critical condition: " << message;
 }
