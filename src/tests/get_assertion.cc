@@ -424,7 +424,7 @@ std::optional<std::string> GetAssertionPinAuthEmptyTest::Execute(
   pin_auth_builder.SetDefaultPinUvAuthProtocol();
 
   Status returned_status = fido2_commands::GetAssertionNegativeTest(
-      device, pin_auth_builder.GetCbor(), false);
+      device, pin_auth_builder.GetCbor(), true);
   if (!device_tracker->CheckStatus(Status::kErrPinNotSet, returned_status)) {
     return "A zero length PIN auth param is not rejected.";
   }
@@ -506,7 +506,7 @@ std::optional<std::string> GetAssertionPinAuthEmptyWithPinTest::Execute(
   pin_auth_builder.SetDefaultPinUvAuthProtocol();
 
   Status returned_status = fido2_commands::GetAssertionNegativeTest(
-      device, pin_auth_builder.GetCbor(), false);
+      device, pin_auth_builder.GetCbor(), true);
   if (!device_tracker->CheckStatus(Status::kErrPinInvalid, returned_status)) {
     return "A zero length PIN auth param is not rejected with a PIN set.";
   }
