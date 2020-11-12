@@ -421,28 +421,6 @@ std::optional<std::string> MakeCredentialOptionUpFalseTest::Execute(
   return std::nullopt;
 }
 
-MakeCredentialOptionUpTrueTest::MakeCredentialOptionUpTrueTest()
-    : BaseTest(
-          "make_credential_option_up_true",
-          "Tests if user presence set to true is accepted in MakeCredential.",
-          {.has_pin = false}, {Tag::kFido2Point1}) {}
-
-std::optional<std::string> MakeCredentialOptionUpTrueTest::Execute(
-    DeviceInterface* device, DeviceTracker* device_tracker,
-    CommandState* command_state) const {
-  MakeCredentialCborBuilder options_builder;
-  options_builder.AddDefaultsForRequiredFields(RpId());
-
-  options_builder.SetUserPresenceOptions(true);
-  absl::variant<cbor::Value, Status> response =
-      fido2_commands::MakeCredentialPositiveTest(device, device_tracker,
-                                                 options_builder.GetCbor());
-  if (!device_tracker->CheckStatus(response)) {
-    return "Falsely rejected user presence option set to true.";
-  }
-  return std::nullopt;
-}
-
 MakeCredentialOptionUvFalseTest::MakeCredentialOptionUvFalseTest()
     : BaseTest("make_credential_option_uv_false",
                "Tests if user verification set to false is accepted in "
