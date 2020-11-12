@@ -1,0 +1,803 @@
+{
+  "capabilities": {
+    "cbor": true,
+    "extensions": [
+      "hmac-secret",
+      "credProtect"
+    ],
+    "msg": false,
+    "options": [
+      "clientPin",
+      "rk",
+      "up",
+      "credentialMgmtPreview"
+    ],
+    "signature_counter": "All counters were strictly increasing, but not necessarily incremented by 1.",
+    "versions": [
+      "FIDO_2_0",
+      "FIDO_2_1_PRE",
+      "U2F_V2"
+    ],
+    "wink": true
+  },
+  "commit": "6b72e2b841be897ba0dc09e02f8afba1c9221544",
+  "date": "2020-11-12",
+  "device_under_test": {
+    "aaguid": "da776f39f6c84a89b2521d86137a46ba",
+    "manufacturer": "TrustKey",
+    "product_id": "0xa7f9",
+    "product_name": "TrustKey T110",
+    "serial_number": "A00000000017",
+    "url": null,
+    "vendor_id": "0x311f"
+  },
+  "passed_test_count": 70,
+  "tests": [
+    {
+      "description": "Tests if MakeCredential works with parameters of the wrong type.",
+      "error_message": null,
+      "id": "make_credential_bad_parameter_types",
+      "observations": [
+        "Expected error code `CTAP2_ERR_CBOR_UNEXPECTED_TYPE`, got `CTAP2_ERR_UNSUPPORTED_ALGORITHM`.",
+        "A prompt was sent unexpectedly.",
+        "Expected error code `CTAP2_ERR_CBOR_UNEXPECTED_TYPE`, got `CTAP2_ERR_PIN_AUTH_INVALID`.",
+        "Expected error code `CTAP2_ERR_CBOR_UNEXPECTED_TYPE`, got `CTAP2_ERR_PIN_AUTH_BLOCKED`."
+      ],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if MakeCredential works with missing parameters.",
+      "error_message": null,
+      "id": "make_credential_missing_parameter",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests bad parameters in RP entity parameter of MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_relying_party_entity",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests bad parameters in user parameter of MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_user_entity",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests nested CBOR in the exclude list of MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_exclude_list_depth",
+      "observations": [
+        "Expected error code `CTAP2_ERR_INVALID_CBOR`, got `CTAP2_ERR_CBOR_UNEXPECTED_TYPE`."
+      ],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests credential descriptors in the exclude list of MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_exclude_list_credential_descriptor",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if unknown extensions are ignored in MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_extensions",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if the exclude list is used correctly.",
+      "error_message": null,
+      "id": "make_credential_exclude_list",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests entries in the credential parameters list.",
+      "error_message": "Falsely rejected cred params list with 1 good and 1 bad element.",
+      "id": "make_credential_cred_params",
+      "observations": [
+        "A prompt was expected, but not performed. Sometimes it is just not recognized if performed too fast.",
+        "The failing error code is `CTAP2_ERR_UNSUPPORTED_ALGORITHM`."
+      ],
+      "result": "fail",
+      "tags": []
+    },
+    {
+      "description": "Tests if the resident key option is supported in MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_option_rk",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if user presence set to false is rejected in MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_option_up_false",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if user verification set to false is accepted in MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_option_uv_false",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests is user verification set to true is accepted in MakeCredential.",
+      "error_message": "The user verification option (true) was not accepted.",
+      "id": "make_credential_option_uv_true",
+      "observations": [
+        "A prompt was expected, but not performed. Sometimes it is just not recognized if performed too fast.",
+        "The failing error code is `CTAP2_ERR_UNSUPPORTED_OPTION`."
+      ],
+      "result": "fail",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if unknown options are ignored in MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_option_unknown",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests the response on an empty PIN auth without a PIN in MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_pin_auth_empty",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if the PIN protocol parameter is checked in MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_pin_auth_protocol",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if a PIN auth is rejected without a PIN set in MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_pin_auth_no_pin",
+      "observations": [
+        "A prompt was sent unexpectedly.",
+        "Expected error code `CTAP2_ERR_PIN_NOT_SET`, got `CTAP2_ERR_PIN_AUTH_INVALID`."
+      ],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests the response on an empty PIN auth with a PIN in MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_pin_auth_empty_with_pin",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if the PIN auth is correctly checked with a PIN set in MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_pin_auth",
+      "observations": [
+        "A prompt was sent unexpectedly."
+      ],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if client PIN fails with missing parameters in MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_pin_auth_missing_parameter",
+      "observations": [
+        "A prompt was sent unexpectedly.",
+        "Expected error code `CTAP2_ERR_MISSING_PARAMETER`, got `CTAP2_ERR_PIN_AUTH_INVALID`."
+      ],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if two credentials have the same ID.",
+      "error_message": null,
+      "id": "make_credential_duplicate",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if storing lots of credentials is handled gracefully.",
+      "error_message": null,
+      "id": "make_credential_full_store",
+      "observations": [
+        "The test for full store errors was aborted after 50 credentials were successfully created."
+      ],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if user touch is required for MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_physical_presence",
+      "observations": [
+        "Expected error code `CTAP2_ERR_USER_ACTION_TIMEOUT`, got `CTAP2_ERR_OPERATION_DENIED`.",
+        "A prompt was sent unexpectedly."
+      ],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if non-ASCII display name are accepted.",
+      "error_message": null,
+      "id": "make_credential_non_ascii_display_name",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if invalid UTF8 is caught in displayName.",
+      "error_message": "UTF-8 correctness is not checked.",
+      "id": "make_credential_utf8_display_name",
+      "observations": [
+        "A prompt was sent unexpectedly.",
+        "Expected error code `CTAP2_ERR_INVALID_CBOR`, got `CTAP2_OK`."
+      ],
+      "result": "fail",
+      "tags": [
+        "FIDO 2.1"
+      ]
+    },
+    {
+      "description": "Tests the HMAC secret extension with MakeCredential.",
+      "error_message": null,
+      "id": "make_credential_hmac_secret",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "HMAC Secret"
+      ]
+    },
+    {
+      "description": "Tests if GetAssertion works with parameters of the wrong type.",
+      "error_message": null,
+      "id": "get_assertion_bad_parameter_types",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if GetAssertion works with missing parameters.",
+      "error_message": null,
+      "id": "get_assertion_missing_parameter",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests nested CBOR in the allow list of GetAssertion.",
+      "error_message": null,
+      "id": "get_assertion_allow_list_depth",
+      "observations": [
+        "Expected error code `CTAP2_ERR_INVALID_CBOR`, got `CTAP2_ERR_CBOR_UNEXPECTED_TYPE`."
+      ],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests credential descriptors in the allow list of GetAssertion.",
+      "error_message": null,
+      "id": "get_assertion_allow_list_credential_descriptor",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if unknown extensions are ignored in GetAssertion.",
+      "error_message": null,
+      "id": "get_assertion_extensions",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if the resident key option is rejected in GetAssertion.",
+      "error_message": null,
+      "id": "get_assertion_option_rk",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if the user presence option is supported in GetAssertion.",
+      "error_message": null,
+      "id": "get_assertion_option_up",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if user verification set to false is accepted in GetAssertion.",
+      "error_message": null,
+      "id": "get_assertion_option_uv_false",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests is user verification set to true is accepted in GetAssertion.",
+      "error_message": "The user verification option (true) was not accepted.",
+      "id": "get_assertion_option_uv_true",
+      "observations": [
+        "A prompt was expected, but not performed. Sometimes it is just not recognized if performed too fast.",
+        "The failing error code is `CTAP2_ERR_UNSUPPORTED_OPTION`."
+      ],
+      "result": "fail",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if unknown options are ignored in GetAssertion.",
+      "error_message": null,
+      "id": "get_assertion_option_unknown",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if assertions with resident keys work.",
+      "error_message": null,
+      "id": "get_assertion_resident_key",
+      "observations": [
+        "A prompt was sent unexpectedly."
+      ],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if assertions with non-resident keys work.",
+      "error_message": null,
+      "id": "get_assertion_non_resident_key",
+      "observations": [
+        "A prompt was sent unexpectedly."
+      ],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests the response on an empty PIN auth without a PIN in GetAssertion.",
+      "error_message": null,
+      "id": "get_assertion_pin_auth_empty",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if the PIN protocol parameter is checked in GetAssertion.",
+      "error_message": null,
+      "id": "get_assertion_pin_auth_protocol",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if a PIN auth is rejected without a PIN set in GetAssertion.",
+      "error_message": null,
+      "id": "get_assertion_pin_auth_no_pin",
+      "observations": [
+        "A prompt was sent unexpectedly.",
+        "Expected error code `CTAP2_ERR_PIN_NOT_SET`, got `CTAP2_ERR_PIN_AUTH_INVALID`."
+      ],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests the response on an empty PIN auth with a PIN in GetAssertion.",
+      "error_message": null,
+      "id": "get_assertion_pin_auth_empty_with_pin",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if the PIN auth is correctly checked with a PIN set in GetAssertion.",
+      "error_message": null,
+      "id": "get_assertion_pin_auth",
+      "observations": [
+        "A prompt was sent unexpectedly."
+      ],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if client PIN fails with missing parameters in GetAssertion.",
+      "error_message": null,
+      "id": "get_assertion_pin_auth_missing_parameter",
+      "observations": [
+        "A prompt was sent unexpectedly.",
+        "Expected error code `CTAP2_ERR_MISSING_PARAMETER`, got `CTAP2_ERR_PIN_AUTH_INVALID`."
+      ],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if user touch is required for GetAssertion.",
+      "error_message": null,
+      "id": "get_assertion_physical_presence",
+      "observations": [
+        "Expected error code `CTAP2_ERR_USER_ACTION_TIMEOUT`, got `CTAP2_ERR_OPERATION_DENIED`."
+      ],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if empty user IDs are omitted in the response.",
+      "error_message": null,
+      "id": "get_assertion_empty_user_id",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if GetPinRetries works with parameters of the wrong type.",
+      "error_message": null,
+      "id": "client_pin_get_pin_retries_bad_parameter_types",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if GetPinRetries works with missing parameters.",
+      "error_message": null,
+      "id": "client_pin_get_pin_retries_missing_parameter",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if GetKeyAgreement works with parameters of the wrong type.",
+      "error_message": null,
+      "id": "client_pin_get_key_agreement_bad_parameter_types",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if GetKeyAgreement works with missing parameters.",
+      "error_message": null,
+      "id": "client_pin_get_key_agreement_missing_parameter",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if SetPin works with parameters of the wrong type.",
+      "error_message": null,
+      "id": "client_pin_set_pin_bad_parameter_types",
+      "observations": [
+        "Expected error code `CTAP2_ERR_CBOR_UNEXPECTED_TYPE`, got `CTAP2_ERR_PIN_AUTH_INVALID`."
+      ],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if SetPin works with missing parameters.",
+      "error_message": null,
+      "id": "client_pin_set_pin_missing_parameter",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if ChangePin works with parameters of the wrong type.",
+      "error_message": null,
+      "id": "client_pin_change_pin_bad_parameter_types",
+      "observations": [
+        "Expected error code `CTAP2_ERR_CBOR_UNEXPECTED_TYPE`, got `CTAP2_ERR_PIN_NOT_SET`."
+      ],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if ChangePin works with missing parameters.",
+      "error_message": null,
+      "id": "client_pin_change_pin_missing_parameter",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if GetPinUvAuthTokenUsingPin works with parameters of the wrong type.",
+      "error_message": null,
+      "id": "client_pin_get_pin_uv_auth_token_using_pin_bad_parameter_types",
+      "observations": [
+        "Expected error code `CTAP2_ERR_CBOR_UNEXPECTED_TYPE`, got `CTAP2_ERR_PIN_NOT_SET`."
+      ],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if GetPinUvAuthTokenUsingPin works with missing parameters.",
+      "error_message": null,
+      "id": "client_pin_get_pin_uv_auth_token_using_pin_missing_parameter",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if GetPinUvAuthTokenUsingUv works with parameters of the wrong type.",
+      "error_message": null,
+      "id": "client_pin_get_pin_uv_auth_token_using_uv_bad_parameter_types",
+      "observations": [
+        "Expected error code `CTAP2_ERR_CBOR_UNEXPECTED_TYPE`, got `CTAP2_ERR_MISSING_PARAMETER`."
+      ],
+      "result": "pass",
+      "tags": [
+        "FIDO 2.1",
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if GetPinUvAuthTokenUsingUv works with missing parameters.",
+      "error_message": null,
+      "id": "client_pin_get_pin_uv_auth_token_using_uv_missing_parameter",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN",
+        "FIDO 2.1"
+      ]
+    },
+    {
+      "description": "Tests if GetUVRetries works with parameters of the wrong type.",
+      "error_message": null,
+      "id": "client_pin_get_uv_retries_bad_parameter_types",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN",
+        "FIDO 2.1"
+      ]
+    },
+    {
+      "description": "Tests if GetUVRetries works with missing parameters.",
+      "error_message": null,
+      "id": "client_pin_get_uv_retries_missing_parameter",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN",
+        "FIDO 2.1"
+      ]
+    },
+    {
+      "description": "Tests if PIN requirement are enforced in SetPin.",
+      "error_message": null,
+      "id": "client_pin_requirements_set_pin",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if PIN requirement are enforced in ChangePin.",
+      "error_message": null,
+      "id": "client_pin_requirements_change_pin",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if new PIN requirement are enforced in SetPin.",
+      "error_message": "Accepted a PIN with padding of length 32.",
+      "id": "client_pin_new_requirements_set_pin",
+      "observations": [
+        "Expected error code `CTAP2_ERR_PIN_POLICY_VIOLATION`, got `CTAP2_OK`."
+      ],
+      "result": "fail",
+      "tags": [
+        "Client PIN",
+        "FIDO 2.1"
+      ]
+    },
+    {
+      "description": "Tests if new PIN requirement are enforced in ChangePin.",
+      "error_message": "Accepted a PIN with padding of length 32.",
+      "id": "client_pin_new_requirements_change_pin",
+      "observations": [
+        "Expected error code `CTAP2_ERR_PIN_POLICY_VIOLATION`, got `CTAP2_OK`."
+      ],
+      "result": "fail",
+      "tags": [
+        "Client PIN",
+        "FIDO 2.1"
+      ]
+    },
+    {
+      "description": "Tests if key material is regenerated correctly.",
+      "error_message": null,
+      "id": "client_pin_old_key_material",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if PIN retries are decreased and reset.",
+      "error_message": null,
+      "id": "client_pin_general_pin_retries",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if PIN auth attempts are blocked correctly.",
+      "error_message": null,
+      "id": "client_pin_auth_block_pin_retries",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if PINs are blocked correctly.",
+      "error_message": null,
+      "id": "client_pin_block_pin_retries",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests the return values of GetInfo.",
+      "error_message": null,
+      "id": "get_info",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests whether credentials persist after replug.",
+      "error_message": null,
+      "id": "persistent_credentials",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests whether PIN retries persist after replug.",
+      "error_message": null,
+      "id": "persistent_pin_retries",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests whether the PIN auth token regenerates after replug.",
+      "error_message": null,
+      "id": "regenerates_pin_auth",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if the Wink response matches the capability bit.",
+      "error_message": null,
+      "id": "wink",
+      "observations": [],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if Reset actually deletes credentials.",
+      "error_message": null,
+      "id": "delete_credential",
+      "observations": [
+        "A prompt was sent unexpectedly."
+      ],
+      "result": "pass",
+      "tags": []
+    },
+    {
+      "description": "Tests if Reset actually deletes the PIN.",
+      "error_message": null,
+      "id": "delete_pin",
+      "observations": [
+        "A prompt was sent unexpectedly."
+      ],
+      "result": "pass",
+      "tags": [
+        "Client PIN"
+      ]
+    },
+    {
+      "description": "Tests if Reset requirements are enforced.",
+      "error_message": null,
+      "id": "reset_physical_presence",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "FIDO 2.1"
+      ]
+    }
+  ],
+  "total_test_count": 76,
+  "transport_used": "HID"
+}
