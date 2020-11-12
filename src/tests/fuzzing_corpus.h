@@ -68,6 +68,21 @@ class ClientPinCorpusTest : public BaseTest {
   std::string_view base_corpus_path_;
 };
 
+// Tests the corpus of ctap hid raw data.
+class CtapHidCorpusTest : public BaseTest {
+ public:
+  CtapHidCorpusTest(fido2_tests::Monitor* monitor,
+                    const std::string_view& base_corpus_path);
+  std::optional<std::string> Execute(
+      DeviceInterface* device, DeviceTracker* device_tracker,
+      CommandState* command_state) const override;
+  void Setup(CommandState* command_state) const override;
+
+ private:
+  fido2_tests::Monitor* monitor_;
+  std::string_view base_corpus_path_;
+};
+
 }  // namespace fido2_tests
 
 #endif  // TESTS_FUZZING_CORPUS_H_

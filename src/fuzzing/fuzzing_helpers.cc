@@ -16,7 +16,7 @@ std::string InputTypeToDirectoryName(InputType input_type) {
       return "Cbor_ClientPinParameters";
     case InputType::kCborRaw:
       return "Cbor_Raw";
-    case InputType::kRawData:
+    case InputType::kCtapHidRaw:
       return "CtapHidRawData";
     default:
       CHECK(false) << "unreachable default - TEST SUITE BUG";
@@ -37,6 +37,8 @@ Status SendInput(DeviceInterface* device, InputType input_type,
     case InputType::kCborClientPinParameter:
       return device->ExchangeCbor(Command::kAuthenticatorClientPIN, input,
                                   false, &response);
+    case InputType::kCtapHidRaw:
+      return device->SendCtapHid(input, &response);
     default:
       return Status::kErrOther;
   }

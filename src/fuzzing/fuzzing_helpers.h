@@ -30,7 +30,7 @@ enum InputType {
   kCborGetAssertionParameter,
   kCborClientPinParameter,
   kCborRaw,
-  kRawData
+  kCtapHidRaw
 };
 
 struct FuzzingOptions {

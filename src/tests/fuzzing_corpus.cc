@@ -143,5 +143,25 @@ void ClientPinCorpusTest::Setup(CommandState* command_state) const {
   ::fido2_tests::Setup(command_state, monitor_);
 }
 
+CtapHidCorpusTest::CtapHidCorpusTest(Monitor* monitor,
+                                     const std::string_view& base_corpus_path)
+    : BaseTest("ctap_hid_corpus", "Tests the corpus of CTAPHID raw messages.",
+               {.has_pin = false}, {Tag::kFuzzing}),
+      monitor_(monitor),
+      base_corpus_path_(base_corpus_path) {}
+
+std::optional<std::string> CtapHidCorpusTest::Execute(
+    DeviceInterface* device, DeviceTracker* device_tracker,
+    CommandState* command_state) const {
+  return ::fido2_tests::Execute(device, device_tracker, command_state, monitor_,
+                                fuzzing_helpers::InputType::kCtapHidRaw,
+                                base_corpus_path_);
+}
+
+void CtapHidCorpusTest::Setup(CommandState* command_state) const {
+  BaseTest::Setup(command_state);
+  ::fido2_tests::Setup(command_state, monitor_);
+}
+
 }  // namespace fido2_tests
 
