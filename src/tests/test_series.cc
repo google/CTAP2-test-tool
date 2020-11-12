@@ -119,11 +119,11 @@ const std::vector<std::unique_ptr<BaseTest>>& GetTests() {
     test_list->push_back(std::make_unique<ClientPinAuthBlockPinRetriesTest>());
     test_list->push_back(std::make_unique<ClientPinBlockPinRetriesTest>());
 
-    test_list->push_back(std::make_unique<WinkTest>());
     test_list->push_back(std::make_unique<GetInfoTest>());
     test_list->push_back(std::make_unique<PersistentCredentialsTest>());
     test_list->push_back(std::make_unique<PersistentPinRetriesTest>());
     test_list->push_back(std::make_unique<RegeneratesPinAuthTest>());
+    test_list->push_back(std::make_unique<WinkTest>());
 
     test_list->push_back(std::make_unique<DeleteCredentialsTest>());
     test_list->push_back(std::make_unique<DeletePinTest>());
