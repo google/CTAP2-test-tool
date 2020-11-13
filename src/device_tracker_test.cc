@@ -122,7 +122,7 @@ TEST(DeviceTracker, TestGenerateResultsJson) {
                         {"id", "TRUE_TEST"},
                         {"description", "TRUE_DESCRIPTION"},
                         {"result", "pass"},
-                        {"error_message", {}},
+                        {"error_message", nullptr},
                         {"observations", nlohmann::json::array()},
                         {"tags", {"TAG"}},
                     },

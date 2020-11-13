@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Run bazel tests
+name: Run bazel tests on Linux
 on:
   push:
     paths-ignore:
@@ -22,7 +22,7 @@ on:
 
 jobs:
   bazel_test:
-    name: bazel test all
+    name: bazel test all (Linux)
     runs-on: ubuntu-20.04
 
     steps:
