@@ -54,3 +54,13 @@ For more control, the following arguments are available:
       protocol and runs on an ARM Cortex-M4 architecture.
 - `--port`: If a GDB monitor is selected, the port to listen on for GDB remote 
   connection.
+
+## How to reproduce
+
+The files causing a reported crash are saved to `corpus_tests/artifacts/` by
+default. You can run the fuzzing test again providing this corpus path to reproduce
+the crash.
+```shell
+./run_fuzzing.sh --corpus_path=corpus_tests/artifacts/
+```
+
