@@ -373,7 +373,7 @@ void AuthenticatorClientPinCborBuilder::AddDefaultsForGetPinUvAuthTokenUsingUv(
     SetDefaultPinProtocol();
   }
   if (!HasEntry(2)) {
-    SetSubCommand(PinSubCommand::kGetPinToken);
+    SetSubCommand(PinSubCommand::kGetPinUvAuthTokenUsingUv);
   }
   if (!HasEntry(3)) {
     SetKeyAgreement(cose_key);
