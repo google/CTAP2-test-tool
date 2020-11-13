@@ -20,7 +20,7 @@ apt-get install bazel libudev-dev autotools-dev autoconf automake libtool
 ```
 
 On your first run, the build system will fetch all other necessary libraries
-using git.
+using git. The tool is tested on Linux and MacOS with GCC 9 and higher.
 
 ### How to run
 
