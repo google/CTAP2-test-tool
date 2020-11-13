@@ -63,3 +63,4 @@ the crash.
 ```shell
 ./run_fuzzing.sh --corpus_path=corpus_tests/artifacts/
 ```
+
