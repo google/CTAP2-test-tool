@@ -18,6 +18,8 @@
 #include <string>
 #include <vector>
 
+#include "absl/time/clock.h"
+
 namespace fido2_tests {
 namespace {
 
@@ -39,13 +41,14 @@ void PrintFuzzingOptions(fuzzing_helpers::FuzzingOptions fuzzing_options) {
             << InputTypeToDirectoryName(fuzzing_options.fuzzing_input_type)
             << "/\n";
   if (fuzzing_options.num_runs == 0) {
-    std::cout
-        << "--num_runs is not provided. The fuzzer will run indefinitely\n";
+    std::cout << "Number of runs is not specified. The fuzzer will run "
+                 "indefinitely\n";
   } else {
     std::cout << "Number of runs: " << fuzzing_options.num_runs << "\n";
   }
   if (fuzzing_options.max_length == 0) {
-    std::cout << "--max_length is not provided. There will be no limit\n";
+    std::cout
+        << "Maximum input length is not specified. There will be no limit\n";
   } else {
     std::cout << "Maximum input length: " << fuzzing_options.max_length << "\n";
   }
@@ -54,12 +57,9 @@ void PrintFuzzingOptions(fuzzing_helpers::FuzzingOptions fuzzing_options) {
   std::cout << "Seed: " << fuzzing_options.seed << "\n\n" << std::flush;
 }
 
-// Returns the string of the current timestamp in microseconds since epoch.
-// Placeholder for the fuzzing input's filename.
-std::string CurrentTimestampString() {
-  return std::to_string(
-      std::chrono::system_clock::now().time_since_epoch().count());
-}
+// Returns the string of the current timestamp. Placeholder for the fuzzing
+// input's filename.
+std::string CurrentTimestampString() { return absl::FormatTime(absl::Now()); }
 
 }  // namespace
 
@@ -73,23 +73,23 @@ Fuzzer::Fuzzer(fuzzing_helpers::FuzzingOptions fuzzing_options)
 }
 
 void Fuzzer::Run(CommandState* command_state, DeviceInterface* device,
-                 Monitor* monitor) {
+                 Monitor& monitor) {
   PrintFuzzingOptions(fuzzing_options_);
   size_t last_input_name_len = 0;
   int iteration = 0;
   while (fuzzing_options_.num_runs == 0 ||
          iteration < fuzzing_options_.num_runs) {
-    auto [mutated_input_data, seed_input_name] = GetNextInput();
+    auto [mutated_input_data, seed_input_name] = CreateNextInput();
     PrintMutatingFile(seed_input_name, last_input_name_len);
     fuzzing_helpers::SendInput(device, fuzzing_options_.fuzzing_input_type,
                                mutated_input_data);
     auto [device_crashed, observations] =
-        monitor->DeviceCrashed(command_state, kRetries);
+        monitor.DeviceCrashed(command_state, kRetries);
     if (device_crashed) {
-      monitor->PrintCrashReport();
+      monitor.PrintCrashReport();
       std::string save_path =
-          monitor->SaveCrashFile(fuzzing_options_.fuzzing_input_type,
-                                 mutated_input_data, CurrentTimestampString());
+          monitor.SaveCrashFile(fuzzing_options_.fuzzing_input_type,
+                                mutated_input_data, CurrentTimestampString());
       break;
     }
     last_input_name_len = seed_input_name.size();
@@ -97,7 +97,7 @@ void Fuzzer::Run(CommandState* command_state, DeviceInterface* device,
   }
 }
 
-std::tuple<std::vector<uint8_t>, std::string> Fuzzer::GetNextInput() {
+std::tuple<std::vector<uint8_t>, std::string> Fuzzer::CreateNextInput() {
   auto [input_data, input_name] = corpus_controller_.GetRandomInput();
   mutator_.Mutate(input_data, fuzzing_options_.max_length);
   return {input_data, input_name};

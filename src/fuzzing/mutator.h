@@ -15,8 +15,7 @@
 #ifndef FUZZING_MUTATOR_H_
 #define FUZZING_MUTATOR_H_
 
-#include <stdint.h>
-
+#include <cstdint>
 #include <ctime>
 #include <vector>
 
@@ -30,7 +29,7 @@ class Mutator {
     kInsertByte,
     kShuffleBytes,
   };
-  Mutator(int max_mutation_degree = 10, int seed = time(NULL));
+  Mutator(int max_mutation_degree, int seed);
   bool EraseByte(std::vector<uint8_t> &data, size_t max_size);
   bool InsertByte(std::vector<uint8_t> &data, size_t max_size);
   bool ShuffleBytes(std::vector<uint8_t> &data, size_t max_size);

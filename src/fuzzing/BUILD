@@ -53,5 +53,16 @@ cc_library(
         "//:hid_device",
         "//src/monitors:monitor",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
     ]
+)
+
+cc_test(
+    name = "mutator_test",
+    srcs = ["mutator_test.cc"],
+    deps = [
+        ":mutator",
+        "@com_google_googletest//:gtest_main",
+    ],
+    size = "small",
 )

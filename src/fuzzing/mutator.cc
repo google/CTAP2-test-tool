@@ -50,26 +50,22 @@ bool Mutator::Mutate(std::vector<uint8_t> &data, size_t max_size) {
   int mutation_degree = std::rand() % max_mutation_degree_;
   while (mutation_degree--) {
     int op = std::rand() % kMutationOperations;
-    bool ok = true;
     switch (static_cast<MutationOperation>(op)) {
       case kEraseByte:
-        ok = EraseByte(data, max_size);
+        EraseByte(data, max_size);
         break;
       case kInsertByte:
-        ok = InsertByte(data, max_size);
+        InsertByte(data, max_size);
         break;
       case kShuffleBytes:
-        ok = ShuffleBytes(data, max_size);
+        ShuffleBytes(data, max_size);
         break;
       default:
         CHECK(false) << "unreachable default - TEST SUITE BUG";
     }
-    // If the mutation operation failed (e.g. max_size exceeded),
-    // retry in next iteration.
-    if (!ok) {
-      ++mutation_degree;
-    }
   }
+  // For now, mutate always succeeds. If no mutation operation could apply, data
+  // remains unmutated.
   return true;
 }
 

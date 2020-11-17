@@ -30,14 +30,14 @@ namespace fido2_tests {
 class Fuzzer {
  public:
   Fuzzer(fuzzing_helpers::FuzzingOptions fuzzing_options);
-  // Starts fuzzing and sending the inputs to the given decice while tracking
+  // Starts fuzzing and sending the inputs to the given device while tracking
   // device crash with the given monitor.
   void Run(CommandState* command_state, DeviceInterface* device,
-           Monitor* monitor);
+           Monitor& monitor);
 
  private:
   // Returns a new mutated input and its assigned file name.
-  std::tuple<std::vector<uint8_t>, std::string> GetNextInput();
+  std::tuple<std::vector<uint8_t>, std::string> CreateNextInput();
 
   fuzzing_helpers::FuzzingOptions fuzzing_options_;
   CorpusController corpus_controller_;
