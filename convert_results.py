@@ -48,7 +48,7 @@ def summary_table(tests, passed_test_count, total_test_count):
   return tabulate(table, headers, tablefmt='github')
 
 
-def parse_bulleted_list(value):
+def convert_bulleted_list(value):
   """Maps list entries from string to indented Markdown list entries."""
   if not isinstance(value, list):
     value = []
@@ -63,7 +63,7 @@ def test_to_string(test):
   error_message = test.get('error_message', 'No error message.')
   entries.append('  * {}'.format(error_message))
   observations = test.get('observations', [])
-  entries += parse_bulleted_list(observations)
+  entries += convert_bulleted_list(observations)
   return '\n'.join(entries)
 
 
@@ -81,17 +81,17 @@ def capabilities_to_text(capabilities):
   versions = capabilities.get('versions', [])
   if versions:
     entries.append('* Versions')
-  entries += parse_bulleted_list(versions)
+  entries += convert_bulleted_list(versions)
 
   options = capabilities.get('options', [])
   if options:
     entries.append('* Options')
-  entries += parse_bulleted_list(options)
+  entries += convert_bulleted_list(options)
 
   extensions = capabilities.get('extensions', [])
   if extensions:
     entries.append('* Extensions')
-  entries += parse_bulleted_list(extensions)
+  entries += convert_bulleted_list(extensions)
 
   signature_counter = capabilities.get('signature_counter',
                                        'No signature counter information.')
