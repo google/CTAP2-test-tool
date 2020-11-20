@@ -16,30 +16,29 @@
 #define FUZZING_MUTATOR_H_
 
 #include <cstdint>
-#include <ctime>
 #include <vector>
 
 namespace fido2_tests {
+namespace mutator {
 
-// Mutates the given data by applying combined basic mutation operations.
-class Mutator {
- public:
-  enum MutationOperation {
-    kEraseByte,
-    kInsertByte,
-    kShuffleBytes,
-  };
-  Mutator(int max_mutation_degree, int seed);
-  bool EraseByte(std::vector<uint8_t> &data, size_t max_size);
-  bool InsertByte(std::vector<uint8_t> &data, size_t max_size);
-  bool ShuffleBytes(std::vector<uint8_t> &data, size_t max_size);
-
-  bool Mutate(std::vector<uint8_t> &data, size_t max_size);
-
- private:
-  int max_mutation_degree_;
+enum MutationOperation {
+  kEraseByte,
+  kInsertByte,
+  kShuffleBytes,
 };
+// Erases one byte from a random position of the given data (in-out parameter).
+bool EraseByte(std::vector<uint8_t> &data, size_t max_size);
+// Inserts a random byte in a random position of the given data (in-out
+// parameter).
+bool InsertByte(std::vector<uint8_t> &data, size_t max_size);
+// Rearranges a random section of the given data (in-out parameter).
+bool ShuffleBytes(std::vector<uint8_t> &data, size_t max_size);
+// Applies a random degree (up to max_mutation_degree) of basic mutation
+// operations to the given data (in-out parameter).
+bool Mutate(std::vector<uint8_t> &data, size_t max_size,
+            int max_mutation_degree);
 
+}  // namespace mutator
 }  // namespace fido2_tests
 
 #endif  // FUZZING_MUTATOR_H_

@@ -132,6 +132,7 @@ int main(int argc, char** argv) {
     CHECK(false) << "TEST SUITE BUG: unimplemented fuzzing mode "
                  << FLAGS_fuzzing_mode;
   }
+  srand(FLAGS_seed);
   fido2_tests::Fuzzer fuzzer({corpus_dir, fuzzing_input_type, FLAGS_num_runs,
                               FLAGS_max_length, FLAGS_max_mutation_degree,
                               FLAGS_seed});

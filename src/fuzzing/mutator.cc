@@ -8,6 +8,7 @@
 #include "glog/logging.h"
 
 namespace fido2_tests {
+namespace mutator {
 namespace {
 
 constexpr int kMutationOperations = 3;
@@ -16,19 +17,14 @@ uint8_t RandomByte() { return static_cast<uint8_t>(std::rand() % 256); }
 
 }  // namespace
 
-Mutator::Mutator(int max_mutation_degree, int seed)
-    : max_mutation_degree_(max_mutation_degree) {
-  srand(seed);
-}
-
-bool Mutator::EraseByte(std::vector<uint8_t> &data, size_t max_size) {
+bool EraseByte(std::vector<uint8_t> &data, size_t max_size) {
   if (data.size() <= 1) return false;
   int index = std::rand() % data.size();
   data.erase(data.begin() + index);
   return true;
 }
 
-bool Mutator::InsertByte(std::vector<uint8_t> &data, size_t max_size) {
+bool InsertByte(std::vector<uint8_t> &data, size_t max_size) {
   if (data.size() >= max_size) return false;
   int index = std::rand() % data.size();
   uint8_t elem = RandomByte();
@@ -36,7 +32,7 @@ bool Mutator::InsertByte(std::vector<uint8_t> &data, size_t max_size) {
   return true;
 }
 
-bool Mutator::ShuffleBytes(std::vector<uint8_t> &data, size_t max_size) {
+bool ShuffleBytes(std::vector<uint8_t> &data, size_t max_size) {
   if (data.size() > max_size || data.size() <= 1) return false;
   int shuffle_count = std::rand() % data.size();
   int shuffle_offset = std::rand() % (data.size() - shuffle_count);
@@ -46,8 +42,12 @@ bool Mutator::ShuffleBytes(std::vector<uint8_t> &data, size_t max_size) {
   return true;
 }
 
-bool Mutator::Mutate(std::vector<uint8_t> &data, size_t max_size) {
-  int mutation_degree = std::rand() % max_mutation_degree_;
+bool Mutate(std::vector<uint8_t> &data, size_t max_size,
+            int max_mutation_degree) {
+  if (max_mutation_degree < 0) return false;
+  if (max_mutation_degree == 0) return true;
+  // Mutation degree in range (0, max_mutation_degree]
+  int mutation_degree = std::rand() % max_mutation_degree + 1;
   while (mutation_degree--) {
     int op = std::rand() % kMutationOperations;
     switch (static_cast<MutationOperation>(op)) {
@@ -68,6 +68,6 @@ bool Mutator::Mutate(std::vector<uint8_t> &data, size_t max_size) {
   // remains unmutated.
   return true;
 }
-
+}  // namespace mutator
 }  // namespace fido2_tests
 

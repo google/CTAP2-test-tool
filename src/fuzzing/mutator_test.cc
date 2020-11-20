@@ -14,50 +14,98 @@
 
 #include "src/fuzzing/mutator.h"
 
+#include <algorithm>
 #include <iostream>
+#include <set>
 #include <vector>
 
 #include "gtest/gtest.h"
 
 namespace fido2_tests {
+namespace mutator {
 namespace {
 
+bool CheckStrictAscending(std::vector<uint8_t> const& data) {
+  if (data.empty()) return true;
+  for (int i = 1; i < data.size(); ++i) {
+    if (data[i] <= data[i - 1]) return false;
+  }
+  return true;
+}
+
 TEST(Mutator, TestEraseByte) {
-  Mutator mutator(10, 0);
-  std::vector<uint8_t> data = {1, 2, 3, 4, 5, 6, 7, 8};
+  std::vector<uint8_t> data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   std::vector<uint8_t> empty_data = {};
-  ASSERT_FALSE(mutator.EraseByte(empty_data, 0));
-  ASSERT_TRUE(mutator.EraseByte(data, 10));
-  std::vector<uint8_t> expected_mutation = {1, 2, 4, 5, 6, 7, 8};
-  EXPECT_EQ(data, expected_mutation);
+  ASSERT_FALSE(mutator::EraseByte(empty_data, /* max_size = */ 0));
+  for (int i = 0; i < data.size(); ++i) {
+    srand(i);
+    size_t expected_current_size = data.size() - 1;
+    ASSERT_TRUE(mutator::EraseByte(data, data.size()));
+    ASSERT_TRUE(data.size() == expected_current_size);
+    EXPECT_TRUE(CheckStrictAscending(data));
+  }
 }
 
 TEST(Mutator, TestInsertByte) {
-  Mutator mutator(10, 0);
-  std::vector<uint8_t> data = {1, 2, 3, 4, 5, 6, 7, 8};
-  ASSERT_FALSE(mutator.InsertByte(data, 4));
-  ASSERT_TRUE(mutator.InsertByte(data, 10));
-  std::vector<uint8_t> expected_mutation = {1, 2, 251, 3, 4, 5, 6, 7, 8};
-  EXPECT_EQ(data, expected_mutation);
+  std::vector<uint8_t> data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  for (int i = 0; i < 100; ++i) {
+    srand(i);
+    size_t expected_current_size = data.size() + 1;
+    std::multiset<uint8_t> data_before_mutation(data.begin(), data.end());
+    ASSERT_FALSE(mutator::InsertByte(data, /* max_size = */ 1));
+    ASSERT_TRUE(mutator::InsertByte(data, expected_current_size));
+    ASSERT_TRUE(data.size() == expected_current_size);
+    std::multiset<uint8_t> data_after_mutation(data.begin(), data.end());
+    EXPECT_TRUE(std::includes(
+        data_after_mutation.begin(), data_after_mutation.end(),
+        data_before_mutation.begin(), data_before_mutation.end()));
+  }
 }
 
 TEST(Mutator, TestShuffleBytes) {
-  Mutator mutator(10, 0);
-  std::vector<uint8_t> data = {1, 2, 3, 4, 5, 6, 7, 8};
-  ASSERT_FALSE(mutator.ShuffleBytes(data, 4));
-  ASSERT_TRUE(mutator.ShuffleBytes(data, 10));
-  std::vector<uint8_t> expected_mutation = {1, 2, 3, 4, 5, 6, 7, 8};
-  EXPECT_EQ(data, expected_mutation);
+  std::vector<uint8_t> data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  for (int i = 0; i < 100; ++i) {
+    srand(i);
+    size_t expected_current_size = data.size();
+    std::multiset<uint8_t> data_before_mutation(data.begin(), data.end());
+    ASSERT_FALSE(mutator::ShuffleBytes(data, /* max_size = */ 1));
+    ASSERT_TRUE(mutator::ShuffleBytes(data, expected_current_size));
+    ASSERT_TRUE(data.size() == expected_current_size);
+    std::multiset<uint8_t> data_after_mutation(data.begin(), data.end());
+    ASSERT_TRUE(data_before_mutation == data_after_mutation);
+  }
 }
 
 TEST(Mutator, TestMutate) {
-  Mutator mutator(10, 1);
-  std::vector<uint8_t> data = {1, 2, 3, 4, 5, 6, 7, 8};
-  ASSERT_TRUE(mutator.Mutate(data, 10));
-  std::vector<uint8_t> expected_mutation = {1, 3, 42, 2, 152, 4, 6, 7};
-  EXPECT_EQ(data, expected_mutation);
+  std::vector<uint8_t> data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  std::vector<uint8_t> data_before_mutation = data;
+  ASSERT_TRUE(
+      mutator::Mutate(data, data.size(), /* max_mutation_degree = */ 0));
+  EXPECT_EQ(data, data_before_mutation);
+  for (int i = 1; i < 100; ++i) {
+    srand(i);
+    size_t expected_min_current_size =
+        std::max(0, (int)data_before_mutation.size() - i);
+    size_t expected_max_current_size = data_before_mutation.size() + i;
+    data = data_before_mutation;
+    ASSERT_TRUE(mutator::Mutate(data, expected_max_current_size,
+                                /* max_mutation_degree = */ i));
+    // Expected data size range in [expected_min_current_size,
+    // expected_max_current_size].
+    ASSERT_TRUE(expected_min_current_size <= data.size() &&
+                data.size() <= expected_max_current_size);
+    // Expect all changed elements are from the original data.
+    std::vector<uint8_t> set_diff;
+    std::set_difference(data_before_mutation.begin(),
+                        data_before_mutation.end(), data.begin(), data.end(),
+                        std::inserter(set_diff, set_diff.begin()));
+    EXPECT_TRUE(std::includes(data_before_mutation.begin(),
+                              data_before_mutation.end(), set_diff.begin(),
+                              set_diff.end()));
+  }
 }
 
 }  // namespace
+}  // namespace mutator
 }  // namespace fido2_tests
 

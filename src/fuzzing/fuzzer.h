@@ -41,7 +41,6 @@ class Fuzzer {
 
   fuzzing_helpers::FuzzingOptions fuzzing_options_;
   CorpusController corpus_controller_;
-  Mutator mutator_;
 };
 
 }  // namespace fido2_tests

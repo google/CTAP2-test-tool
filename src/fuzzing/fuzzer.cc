@@ -35,6 +35,7 @@ void PrintMutatingFile(std::string_view file_name, size_t last_file_name_len) {
   std::cout << "\rMutating from file " << file_name << ". " << std::flush;
 }
 
+// Prints fuzzing options information.
 void PrintFuzzingOptions(fuzzing_helpers::FuzzingOptions fuzzing_options) {
   std::cout << "\n|--- Fuzzer information ---|\n";
   std::cout << "Initial corpus path: " << fuzzing_options.corpus_path
@@ -66,11 +67,7 @@ std::string CurrentTimestampString() { return absl::FormatTime(absl::Now()); }
 Fuzzer::Fuzzer(fuzzing_helpers::FuzzingOptions fuzzing_options)
     : fuzzing_options_(fuzzing_options),
       corpus_controller_(CorpusController(fuzzing_options.fuzzing_input_type,
-                                          fuzzing_options.corpus_path)),
-      mutator_(
-          Mutator(fuzzing_options.max_mutation_degree, fuzzing_options.seed)) {
-  srand(fuzzing_options.seed);
-}
+                                          fuzzing_options.corpus_path)) {}
 
 void Fuzzer::Run(CommandState* command_state, DeviceInterface* device,
                  Monitor& monitor) {
@@ -99,7 +96,8 @@ void Fuzzer::Run(CommandState* command_state, DeviceInterface* device,
 
 std::tuple<std::vector<uint8_t>, std::string> Fuzzer::CreateNextInput() {
   auto [input_data, input_name] = corpus_controller_.GetRandomInput();
-  mutator_.Mutate(input_data, fuzzing_options_.max_length);
+  mutator::Mutate(input_data, fuzzing_options_.max_length,
+                  fuzzing_options_.max_mutation_degree);
   return {input_data, input_name};
 }
 
