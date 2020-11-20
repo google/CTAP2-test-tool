@@ -13,12 +13,14 @@ vulnerabilities are not observable, and even the crash behaviour varies from cas
 to case. Furthermore, the goal to find a general approach for any authenticator
 rules out common solutions such as hardware emulation or binary instrumentation.
 
-## Corpus testing
+## How does it work
 
 Our idea is fuzzing by proxy. We take [OpenSK](https://github.com/google/OpenSK)
 (an open source implementation of a FIDO2 security key) as our fuzz target and 
 generate interesting input data guided by OpenSK's code coverage. At the moment,
-the fuzzing tool consists of running this input corpus on the device under test.
+we support two fuzzing modes: 
+1. Run this input corpus directly on the device under test.
+2. Fuzz the device under test using this input corpus as initial corpus.
 The corpus is hosted at a [git repository](https://github.com/google/CTAP2-test-tool-corpus)
 and integrated as a submodule, which will be downloaded upon cloning the test
 tool repository. When downloading the test tool manually, you can copy the corpus
@@ -42,10 +44,12 @@ you can simply run:
 ```shell
 ./run_fuzzing.sh
 ```
-By default, our predefined data set is run with a blackbox monitor.
+By default, our predefined data set is run on the device with a blackbox monitor.
 
 For more control, the following arguments are available:
 
+- `--run_mode`: `corpus_test` runs the given corpus and `fuzzing` starts mutation-
+  based fuzzing.
 - `--corpus_path`: The path to the corpus containing the test files.
 - `--monitor`: The monitor type to be used. All supported options are:
     - `blackbox`: General blackbox monitor.
@@ -54,6 +58,18 @@ For more control, the following arguments are available:
       protocol and runs on an ARM Cortex-M4 architecture.
 - `--port`: If a GDB monitor is selected, the port to listen on for GDB remote 
   connection.
+
+In the fuzzing mode, more options are supported:
+
+- `--fuzzing_mode`: The type of inputs to be fuzzed. All supported options are:
+    - `cbor_make_credential`
+    - `cbor_get_assertion`
+    - `cbor_client_pin`
+    - `ctaphid_raw`
+- `--num_runs`: Number of inputs to be run. By default, the fuzzer will run indefinitely.
+- `--max_length`: Maximum length of an input. By default, there is no limit.
+- `--max_mutation_degree`: Maximum number of successive mutation operations to be
+  applied. By default, the degree is 10.
 
 ## How to reproduce
 

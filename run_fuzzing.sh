@@ -25,6 +25,11 @@ path=_
 corpus=corpus_tests/test_corpus/
 monitor=blackbox
 port=2331
+run_mode=corpus_test
+fuzzing_mode=ctaphid_raw
+num_runs=0
+max_length=0
+max_mutation_degree=10
 
 # parse parameters
 for arg in "$@"
@@ -46,6 +51,26 @@ case $arg in
     port="${arg#*=}"
     shift
     ;;
+    --run_mode=*)
+    run_mode="${arg#*=}"
+    shift
+    ;;
+    --fuzzing_mode=*)
+    fuzzing_mode="${arg#*=}"
+    shift
+    ;;
+    --num_runs=*)
+    num_runs="${arg#*=}"
+    shift
+    ;;
+    --max_length=*)
+    max_length="${arg#*=}"
+    shift
+    ;;
+    --max_mutation_degree=*)
+    max_mutation_degree="${arg#*=}"
+    shift
+    ;;
 esac
 done
 
@@ -54,5 +79,12 @@ then
     git submodule init
     git submodule update
 fi
-
-bazel run //:corpus_test -- --token_path="$path" --corpus_path="$corpus" --monitor="$monitor" --port="$port"
+if [ "$run_mode" = "corpus_test" ]
+then
+    bazel run //:corpus_test -- --token_path="$path" --corpus_path="$corpus" --monitor="$monitor" --port="$port"
+elif [ "$run_mode" = "fuzzing" ]
+then
+    bazel run //:fuzzing -- --token_path="$path" --corpus_path="$corpus" --monitor="$monitor" --port="$port" --fuzzing_mode="$fuzzing_mode" --num_runs="$num_runs" --max_length="$max_length" --max_mutation_degree="$max_mutation_degree"
+else
+    echo "Unsupported run mode."
+fi
