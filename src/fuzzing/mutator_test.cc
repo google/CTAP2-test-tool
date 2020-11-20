@@ -64,16 +64,21 @@ TEST(Mutator, TestInsertByte) {
 
 TEST(Mutator, TestShuffleBytes) {
   std::vector<uint8_t> data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  std::vector<uint8_t> data_before_mutation = data;
+  bool data_changed = false;
   for (int i = 0; i < 100; ++i) {
     srand(i);
     size_t expected_current_size = data.size();
-    std::multiset<uint8_t> data_before_mutation(data.begin(), data.end());
+    std::multiset<uint8_t> data_before_mutation_set(data.begin(), data.end());
     ASSERT_FALSE(mutator::ShuffleBytes(data, /* max_size = */ 1));
     ASSERT_TRUE(mutator::ShuffleBytes(data, expected_current_size));
     ASSERT_TRUE(data.size() == expected_current_size);
-    std::multiset<uint8_t> data_after_mutation(data.begin(), data.end());
-    ASSERT_TRUE(data_before_mutation == data_after_mutation);
+    std::multiset<uint8_t> data_after_mutation_set(data.begin(), data.end());
+    ASSERT_TRUE(data_before_mutation_set == data_after_mutation_set);
+    // Check for at least one change throughout all iterations.
+    data_changed = data_changed || (data != data_before_mutation);
   }
+  EXPECT_TRUE(data_changed);
 }
 
 TEST(Mutator, TestMutate) {
@@ -94,14 +99,13 @@ TEST(Mutator, TestMutate) {
     // expected_max_current_size].
     ASSERT_TRUE(expected_min_current_size <= data.size() &&
                 data.size() <= expected_max_current_size);
-    // Expect all changed elements are from the original data.
-    std::vector<uint8_t> set_diff;
-    std::set_difference(data_before_mutation.begin(),
-                        data_before_mutation.end(), data.begin(), data.end(),
-                        std::inserter(set_diff, set_diff.begin()));
-    EXPECT_TRUE(std::includes(data_before_mutation.begin(),
-                              data_before_mutation.end(), set_diff.begin(),
-                              set_diff.end()));
+    // Check for reproducibility.
+    srand(i);
+    std::vector<uint8_t> expected_mutation = data;
+    data = data_before_mutation;
+    ASSERT_TRUE(mutator::Mutate(data, expected_max_current_size,
+                                /* max_mutation_degree = */ i));
+    EXPECT_EQ(data, expected_mutation);
   }
 }
 
