@@ -17,6 +17,7 @@
 #include <iostream>
 
 #include "absl/strings/escaping.h"
+#include "absl/time/clock.h"
 #include "absl/types/variant.h"
 #include "src/cbor_builders.h"
 #include "src/constants.h"
@@ -26,6 +27,7 @@
 namespace fido2_tests {
 namespace {
 constexpr size_t kPinByteLength = 64;
+constexpr int kResetRetries = 3;
 }  // namespace
 
 CommandState::CommandState(DeviceInterface* device,
@@ -60,8 +62,17 @@ void CommandState::PromptReplugAndInit() {
 void CommandState::Reset() {
   std::cout << "You have 10 seconds for the next touch after pressing enter.\n";
   PromptReplugAndInit();
-  absl::variant<cbor::Value, Status> response =
-      fido2_commands::ResetPositiveTest(device_);
+  absl::variant<cbor::Value, Status> response;
+  for (int i = 0; i < kResetRetries; ++i) {
+    // Linear increase of waiting time by using the iteration index as a
+    // multiplier. This has the nice advantage of not waiting on the first
+    // iteration.
+    absl::SleepFor(absl::Milliseconds(100) * i);
+    response = fido2_commands::ResetPositiveTest(device_);
+    if (device_tracker_->CheckStatus(response)) {
+      break;
+    }
+  }
   device_tracker_->AssertResponse(response, "Reset");
 
   platform_cose_key_ = cbor::Value::MapValue();
