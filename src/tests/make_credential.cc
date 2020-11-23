@@ -181,22 +181,6 @@ std::optional<std::string> MakeCredentialUserEntityTest::Execute(
   return std::nullopt;
 }
 
-MakeCredentialExcludeListDepth::MakeCredentialExcludeListDepth()
-    : BaseTest("make_credential_exclude_list_depth",
-               "Tests nested CBOR in the exclude list of MakeCredential.",
-               {.has_pin = false}, {}) {}
-
-std::optional<std::string> MakeCredentialExcludeListDepth::Execute(
-    DeviceInterface* device, DeviceTracker* device_tracker,
-    CommandState* command_state) const {
-  MakeCredentialCborBuilder exclude_list_builder;
-  exclude_list_builder.AddDefaultsForRequiredFields(RpId());
-  return test_helpers::TestCredentialDescriptorsArrayForCborDepth(
-      device, device_tracker, Command::kAuthenticatorMakeCredential,
-      &exclude_list_builder,
-      static_cast<int>(MakeCredentialParameters::kExcludeList), RpId());
-}
-
 MakeCredentialExcludeListCredentialDescriptorTest::
     MakeCredentialExcludeListCredentialDescriptorTest()
     : BaseTest(
