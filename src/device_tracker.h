@@ -136,6 +136,7 @@ class DeviceTracker {
   absl::flat_hash_set<std::string> extensions_;
   // Some options have three states, unsupported, inactive and active.
   // We only care about being supported in general, and activate as necessary.
+  // Also, options that default to true are always initialized.
   absl::flat_hash_set<std::string> options_;
   bool is_initialized_ = false;
   bool has_wink_capability_ = false;
