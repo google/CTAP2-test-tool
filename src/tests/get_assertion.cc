@@ -627,6 +627,7 @@ std::optional<std::string> GetAssertionEmptyUserIdTest::Execute(
   MakeCredentialCborBuilder empty_id_builder;
   empty_id_builder.AddDefaultsForRequiredFields(RpId());
   empty_id_builder.SetPublicKeyCredentialUserEntity({}, "Emma");
+  empty_id_builder.SetResidentKeyOptions(true);
   absl::variant<cbor::Value, Status> response =
       fido2_commands::MakeCredentialPositiveTest(device, device_tracker,
                                                  empty_id_builder.GetCbor());
@@ -648,7 +649,7 @@ std::optional<std::string> GetAssertionEmptyUserIdTest::Execute(
 
   cbor::Value assertion_response = std::move(absl::get<cbor::Value>(response));
   const auto& decoded_map = assertion_response.GetMap();
-  auto map_iter = decoded_map.find(CborValue(GetAssertionResponse ::kUser));
+  auto map_iter = decoded_map.find(CborValue(GetAssertionResponse::kUser));
   if (map_iter != decoded_map.end()) {
     return "The response includes user with an empty ID. This behaviour has "
            "known interoperability hurdles.";
