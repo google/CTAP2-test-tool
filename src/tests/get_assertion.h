@@ -28,9 +28,6 @@ TEST_CLASS(GetAssertionBadParameterTypesTest);
 // Tests if GetAssertion works with missing parameters.
 TEST_CLASS(GetAssertionMissingParameterTest);
 
-// Tests nested CBOR in the allow list of GetAssertion.
-TEST_CLASS(GetAssertionAllowListDepthTest);
-
 // Tests credential descriptors in the allow list of GetAssertion.
 TEST_CLASS(GetAssertionAllowListCredentialDescriptorTest);
 
