@@ -105,6 +105,14 @@ void DeviceTracker::Initialize(const cbor::Value::ArrayValue& versions,
       }
     }
   }
+
+  std::vector<std::string> default_true_options = {"up"};
+  for (const std::string& option : default_true_options) {
+    auto iter = options.find(cbor::Value(option));
+    if (iter == options.end()) {
+      options_.insert(option);
+    }
+  }
 }
 
 bool DeviceTracker::HasVersion(std::string_view version_name) const {
