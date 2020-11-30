@@ -34,9 +34,6 @@ TEST_CLASS(MakeCredentialRelyingPartyEntityTest);
 // Tests bad parameters in user parameter of MakeCredential.
 TEST_CLASS(MakeCredentialUserEntityTest);
 
-// Tests nested CBOR in the exclude list of MakeCredential.
-TEST_CLASS(MakeCredentialExcludeListDepth);
-
 // Tests credential descriptors in the exclude list of MakeCredential.
 TEST_CLASS(MakeCredentialExcludeListCredentialDescriptorTest);
 

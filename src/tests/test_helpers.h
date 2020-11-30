@@ -84,15 +84,6 @@ std::optional<std::string> TestBadParametersInInnerArray(
     DeviceInterface* device, DeviceTracker* device_tracker, Command command,
     CborBuilder* builder, int outer_map_key, const cbor::Value& array_element);
 
-// Tries to insert a map or an array as a transport in an array of public key
-// credential descriptors. Both excludeList in MakeCredential and allowList in
-// GetAssertion expect this kind of value and share this test. Authenticators
-// must ignore unknown items in the transports list, so unexpected types are
-// untested. For arrays and maps though, the maximum nesting depth is reached.
-std::optional<std::string> TestCredentialDescriptorsArrayForCborDepth(
-    DeviceInterface* device, DeviceTracker* device_tracker, Command command,
-    CborBuilder* builder, int map_key, const std::string& rp_id);
-
 // Returns an optional's string value, if it exists.
 #define NONE_OR_RETURN(x)                             \
   do {                                                \
