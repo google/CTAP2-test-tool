@@ -305,42 +305,6 @@ std::optional<std::string> TestBadParametersInInnerArray(
   return std::nullopt;
 }
 
-std::optional<std::string> TestCredentialDescriptorsArrayForCborDepth(
-    DeviceInterface* device, DeviceTracker* device_tracker, Command command,
-    CborBuilder* builder, int map_key, const std::string& rp_id) {
-  Status returned_status;
-  absl::variant<cbor::Value, Status> response;
-
-  cbor::Value::BinaryValue cred_descriptor_id(32, 0xce);
-  for (const auto& item : GetTypeExamples()) {
-    if (item.first == cbor::Value::Type::ARRAY ||
-        item.first == cbor::Value::Type::MAP) {
-      cbor::Value::ArrayValue credential_descriptor_list;
-      cbor::Value::MapValue test_cred_descriptor;
-      test_cred_descriptor[cbor::Value("type")] = cbor::Value("public-key");
-      test_cred_descriptor[cbor::Value("id")] = cbor::Value(cred_descriptor_id);
-      cbor::Value::ArrayValue transports;
-      transports.push_back(cbor::Value("usb"));
-      transports.push_back(item.second.Clone());
-      test_cred_descriptor[cbor::Value("transports")] = cbor::Value(transports);
-      credential_descriptor_list.push_back(cbor::Value(test_cred_descriptor));
-      builder->SetArbitraryMapEntry(map_key,
-                                    cbor::Value(credential_descriptor_list));
-      returned_status = fido2_commands::GenericNegativeTest(
-          device, builder->GetCbor(), command, false);
-      if (!device_tracker->CheckStatus(Status::kErrInvalidCbor,
-                                       returned_status)) {
-        return absl::StrCat("Maximum CBOR nesting depth exceeded with ",
-                            CborTypeToString(item.first),
-                            " in credential descriptor transport list item in ",
-                            CommandToString(command), " for key ", map_key,
-                            ".");
-      }
-    }
-  }
-  return std::nullopt;
-}
-
 absl::variant<int, std::string> GetPinRetries(DeviceInterface* device,
                                               DeviceTracker* device_tracker) {
   AuthenticatorClientPinCborBuilder get_retries_builder;
