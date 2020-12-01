@@ -25,10 +25,12 @@ reports and write them into an eye-friendly markdown file.
 
 import argparse
 from collections import defaultdict
-import jinja2
 import json
-import os
+from pathlib import Path
+
+import jinja2
 from tabulate import tabulate
+from tqdm.auto import tqdm
 
 
 def summary_table(tests):
@@ -51,7 +53,7 @@ def summary_table(tests):
 def convert(result, template_file='template.md'):
   """Converts the result file JSON content to Markdown file content."""
   try:
-      result = json.loads(result)
+    result = json.loads(result)
   except ValueError as _:
     print('File was not valid JSON.')
     return ''
@@ -81,18 +83,17 @@ def convert(result, template_file='template.md'):
 
 def main(args):
   """Converts all JSON file from the source directory to Markdown."""
-  if os.path.exists(args.output_dir):
-    print('Directory', args.output_dir, 'exists already, files may be overwritten.')
+  output_path = Path(args.output_dir)
+  if output_path.exists():
+    print('Directory', args.output_dir, 'exists, files may be overwritten.')
   else:
-    os.mkdir(args.target_dir)
-  for json_file in os.listdir(args.source_dir):
-    sk_name, extension = os.path.splitext(json_file)
-    if extension == '.json':
-      print('Converting', sk_name, '...')
-      with open(os.path.join(args.source_dir, json_file), 'r') as source_file:
-        json_text = source_file.read()
-      with open(os.path.join(args.output_dir, sk_name + '.md'), 'w') as target_file:
-        target_file.write(convert(json_text))
+    output_path.mkdir(parents=True)
+  progress_bar = tqdm(Path(args.source_dir).glob('*.json'))
+  for path in progress_bar:
+    progress_bar.set_description('Converting {}...'.format(path.stem))
+    output_file = output_path / path.with_suffix('.md').name
+    json_text = path.read_text()
+    output_file.write_text(convert(json_text))
 
 
 if __name__ == '__main__':
@@ -110,4 +111,3 @@ if __name__ == '__main__':
       help=("Directory for writing the converted Markdown files."),
   )
   main(main_parser.parse_args())
-
