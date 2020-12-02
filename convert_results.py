@@ -20,7 +20,7 @@ reports and write them into an eye-friendly markdown file.
 
   Typical usage example:
 
-  python convert_results.py --source=results/ --output=result_summaries/
+  python convert_results.py --source=results/ --output=results/summaries/
 """
 
 import argparse
@@ -34,7 +34,16 @@ from tqdm.auto import tqdm
 
 
 def summary_table(tests):
-  """Returns a Markdown table summing passed tests for all tags."""
+  """Creates a Markdown table summarizing passed tests for all tags.
+
+    Args:
+      tests: A list of tests, that have a 'result' entry, and possibly 'tags'.
+        The value of 'result' is 'pass' for a passing test.
+        If a test contains the key 'tags', it must be a list of strings.
+
+    Returns:
+      A string with a summary table in Markdown.
+  """
   tags = defaultdict(lambda: defaultdict(int))
   for test in tests:
     # The 'All' tag is added to count all test results.
@@ -51,7 +60,15 @@ def summary_table(tests):
 
 
 def convert(result, template_file='template.md'):
-  """Converts the result file JSON content to Markdown file content."""
+  """Converts the result file JSON content to a Markdown text.
+
+    Args:
+      result: A string with the content of a JSON file output by the test tool.
+      template_file: Markdown template for jinja.
+
+    Returns:
+      A string with the text of a Markdown file.
+  """
   try:
     result = json.loads(result)
   except ValueError as _:
@@ -99,15 +116,15 @@ def main(args):
 if __name__ == '__main__':
   main_parser = argparse.ArgumentParser()
   main_parser.add_argument(
-      "--source",
+      '--source',
       default='results/',
-      dest="source_dir",
-      help=("Directory containing the test result files in JSON."),
+      dest='source_dir',
+      help=('Directory containing the test result files in JSON.'),
   )
   main_parser.add_argument(
-      "--output",
-      default='result_summaries/',
-      dest="output_dir",
-      help=("Directory for writing the converted Markdown files."),
+      '--output',
+      default='results/summaries/',
+      dest='output_dir',
+      help=('Directory for writing the converted Markdown files.'),
   )
   main(main_parser.parse_args())
