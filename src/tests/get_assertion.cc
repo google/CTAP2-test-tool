@@ -84,27 +84,6 @@ std::optional<std::string> GetAssertionMissingParameterTest::Execute(
       &missing_required_builder);
 }
 
-GetAssertionAllowListDepthTest::GetAssertionAllowListDepthTest()
-    : BaseTest("get_assertion_allow_list_depth",
-               "Tests nested CBOR in the allow list of GetAssertion.",
-               {.has_pin = false}, {}) {}
-
-std::optional<std::string> GetAssertionAllowListDepthTest::Execute(
-    DeviceInterface* device, DeviceTracker* device_tracker,
-    CommandState* command_state) const {
-  if (!device_tracker->CheckStatus(
-          command_state->MakeTestCredential(RpId(), true))) {
-    return "Cannot make credential for further tests.";
-  }
-
-  GetAssertionCborBuilder allow_list_builder;
-  allow_list_builder.AddDefaultsForRequiredFields(RpId());
-  return test_helpers::TestCredentialDescriptorsArrayForCborDepth(
-      device, device_tracker, Command::kAuthenticatorGetAssertion,
-      &allow_list_builder, static_cast<int>(GetAssertionParameters::kAllowList),
-      RpId());
-}
-
 GetAssertionAllowListCredentialDescriptorTest::
     GetAssertionAllowListCredentialDescriptorTest()
     : BaseTest(
@@ -627,6 +606,7 @@ std::optional<std::string> GetAssertionEmptyUserIdTest::Execute(
   MakeCredentialCborBuilder empty_id_builder;
   empty_id_builder.AddDefaultsForRequiredFields(RpId());
   empty_id_builder.SetPublicKeyCredentialUserEntity({}, "Emma");
+  empty_id_builder.SetResidentKeyOptions(true);
   absl::variant<cbor::Value, Status> response =
       fido2_commands::MakeCredentialPositiveTest(device, device_tracker,
                                                  empty_id_builder.GetCbor());
@@ -648,7 +628,7 @@ std::optional<std::string> GetAssertionEmptyUserIdTest::Execute(
 
   cbor::Value assertion_response = std::move(absl::get<cbor::Value>(response));
   const auto& decoded_map = assertion_response.GetMap();
-  auto map_iter = decoded_map.find(CborValue(GetAssertionResponse ::kUser));
+  auto map_iter = decoded_map.find(CborValue(GetAssertionResponse::kUser));
   if (map_iter != decoded_map.end()) {
     return "The response includes user with an empty ID. This behaviour has "
            "known interoperability hurdles.";

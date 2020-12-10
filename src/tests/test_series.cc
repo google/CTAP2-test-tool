@@ -34,7 +34,6 @@ const std::vector<std::unique_ptr<BaseTest>>& GetTests() {
     test_list->push_back(
         std::make_unique<MakeCredentialRelyingPartyEntityTest>());
     test_list->push_back(std::make_unique<MakeCredentialUserEntityTest>());
-    test_list->push_back(std::make_unique<MakeCredentialExcludeListDepth>());
     test_list->push_back(
         std::make_unique<MakeCredentialExcludeListCredentialDescriptorTest>());
     test_list->push_back(std::make_unique<MakeCredentialExtensionsTest>());
@@ -64,7 +63,6 @@ const std::vector<std::unique_ptr<BaseTest>>& GetTests() {
 
     test_list->push_back(std::make_unique<GetAssertionBadParameterTypesTest>());
     test_list->push_back(std::make_unique<GetAssertionMissingParameterTest>());
-    test_list->push_back(std::make_unique<GetAssertionAllowListDepthTest>());
     test_list->push_back(
         std::make_unique<GetAssertionAllowListCredentialDescriptorTest>());
     test_list->push_back(std::make_unique<GetAssertionExtensionsTest>());

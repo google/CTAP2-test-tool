@@ -45,6 +45,16 @@ TEST(DeviceTracker, TestInitialize) {
   EXPECT_TRUE(device_tracker.HasOption("bioEnroll"));
 }
 
+TEST(DeviceTracker, TestInitializeDefault) {
+  DeviceTracker device_tracker = DeviceTracker();
+  cbor::Value::ArrayValue versions;
+  cbor::Value::ArrayValue extensions;
+  cbor::Value::MapValue options;
+
+  device_tracker.Initialize(versions, extensions, options);
+  EXPECT_TRUE(device_tracker.HasOption("up"));
+}
+
 TEST(DeviceTracker, TestCheckStatusOneArgument) {
   DeviceTracker device_tracker = DeviceTracker();
   EXPECT_TRUE(device_tracker.CheckStatus(Status::kErrNone));
@@ -78,7 +88,7 @@ TEST(DeviceTracker, TestGenerateResultsJson) {
   cbor::Value::ArrayValue extensions;
   extensions.push_back(cbor::Value("EXTENSION"));
   cbor::Value::MapValue options;
-  options[cbor::Value("OPTION")] = cbor::Value(true);
+  options[cbor::Value("up")] = cbor::Value(true);
 
   device_tracker.Initialize(versions, extensions, options);
   device_tracker.SetDeviceIdentifiers({.manufacturer = "M",
@@ -136,7 +146,7 @@ TEST(DeviceTracker, TestGenerateResultsJson) {
           "capabilities",
           {
               {"versions", {"VERSION"}},
-              {"options", {"OPTION"}},
+              {"options", {"up"}},
               {"extensions", {"EXTENSION"}},
               {"wink", true},
               {"cbor", true},
