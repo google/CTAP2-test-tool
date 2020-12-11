@@ -318,7 +318,8 @@ std::optional<std::string> GetAssertionResidentKeyTest::Execute(
   GetAssertionCborBuilder assertion_builder;
   assertion_builder.AddDefaultsForRequiredFields(RpId());
   Status returned_status = fido2_commands::GetAssertionNegativeTest(
-      device, assertion_builder.GetCbor(), false);
+      device, assertion_builder.GetCbor(),
+      !test_helpers::IsFido2Point1Complicant(device_tracker));
   if (!device_tracker->CheckStatus(Status::kErrNoCredentials,
                                    returned_status)) {
     return "There should be no credentials for this relying party.";
@@ -349,7 +350,8 @@ std::optional<std::string> GetAssertionNonResidentKeyTest::Execute(
   GetAssertionCborBuilder assertion_builder;
   assertion_builder.AddDefaultsForRequiredFields(RpId());
   Status returned_status = fido2_commands::GetAssertionNegativeTest(
-      device, assertion_builder.GetCbor(), false);
+      device, assertion_builder.GetCbor(),
+      !test_helpers::IsFido2Point1Complicant(device_tracker));
   if (!device_tracker->CheckStatus(Status::kErrNoCredentials,
                                    returned_status)) {
     return "There should be no credentials for this relying party.";

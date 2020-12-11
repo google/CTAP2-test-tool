@@ -95,14 +95,14 @@ const std::vector<std::unique_ptr<BaseTest>>& GetTests() {
     test_list->push_back(std::make_unique<SetPinMissingParameterTest>());
     test_list->push_back(std::make_unique<ChangePinBadParameterTypesTest>());
     test_list->push_back(std::make_unique<ChangePinMissingParameterTest>());
+    test_list->push_back(std::make_unique<GetPinTokenBadParameterTypesTest>());
+    test_list->push_back(std::make_unique<GetPinTokenMissingParameterTest>());
     test_list->push_back(
-        std::make_unique<GetPinUvAuthTokenUsingPinBadParameterTypesTest>());
+        std::make_unique<
+            GetPinUvAuthTokenUsingUvWithPermissionsBadParameterTypesTest>());
     test_list->push_back(
-        std::make_unique<GetPinUvAuthTokenUsingPinMissingParameterTest>());
-    test_list->push_back(
-        std::make_unique<GetPinUvAuthTokenUsingUvBadParameterTypesTest>());
-    test_list->push_back(
-        std::make_unique<GetPinUvAuthTokenUsingUvMissingParameterTest>());
+        std::make_unique<
+            GetPinUvAuthTokenUsingUvWithPermissionsMissingParameterTest>());
     test_list->push_back(std::make_unique<GetUVRetriesBadParameterTypesTest>());
     test_list->push_back(std::make_unique<GetUVRetriesMissingParameterTest>());
     test_list->push_back(std::make_unique<ClientPinRequirementsSetPinTest>());

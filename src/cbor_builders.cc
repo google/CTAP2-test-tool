@@ -45,6 +45,10 @@ void CborBuilder::RemoveArbitraryMapEntry(cbor::Value&& key) {
 
 cbor::Value CborBuilder::GetCbor() { return cbor::Value(request_map_); }
 
+bool MakeCredentialCborBuilder::HasEntry(MakeCredentialParameters key) {
+  return CborBuilder::HasEntry(static_cast<int>(key));
+}
+
 void MakeCredentialCborBuilder::SetMapEntry(MakeCredentialParameters key,
                                             cbor::Value&& value) {
   SetArbitraryMapEntry(static_cast<int>(key), std::move(value));
@@ -163,18 +167,22 @@ void MakeCredentialCborBuilder::SetDefaultPinUvAuthProtocol() {
 
 void MakeCredentialCborBuilder::AddDefaultsForRequiredFields(
     const std::string& rp_id) {
-  if (!HasEntry(1)) {
+  if (!HasEntry(MakeCredentialParameters::kClientDataHash)) {
     SetDefaultClientDataHash();
   }
-  if (!HasEntry(2)) {
+  if (!HasEntry(MakeCredentialParameters::kRp)) {
     SetDefaultPublicKeyCredentialRpEntity(rp_id);
   }
-  if (!HasEntry(3)) {
+  if (!HasEntry(MakeCredentialParameters::kUser)) {
     SetDefaultPublicKeyCredentialUserEntity();
   }
-  if (!HasEntry(4)) {
+  if (!HasEntry(MakeCredentialParameters::kPubKeyCredParams)) {
     SetEs256CredentialParameters();
   }
+}
+
+bool GetAssertionCborBuilder::HasEntry(GetAssertionParameters key) {
+  return CborBuilder::HasEntry(static_cast<int>(key));
 }
 
 void GetAssertionCborBuilder::SetMapEntry(GetAssertionParameters key,
@@ -238,12 +246,16 @@ void GetAssertionCborBuilder::SetDefaultPinUvAuthProtocol() {
 }
 
 void GetAssertionCborBuilder::AddDefaultsForRequiredFields(std::string rp_id) {
-  if (!HasEntry(1)) {
+  if (!HasEntry(GetAssertionParameters::kRpId)) {
     SetRelyingParty(rp_id);
   }
-  if (!HasEntry(2)) {
+  if (!HasEntry(GetAssertionParameters::kClientDataHash)) {
     SetDefaultClientDataHash();
   }
+}
+
+bool AuthenticatorClientPinCborBuilder::HasEntry(ClientPinParameters key) {
+  return CborBuilder::HasEntry(static_cast<int>(key));
 }
 
 void AuthenticatorClientPinCborBuilder::SetMapEntry(ClientPinParameters key,
@@ -286,20 +298,29 @@ void AuthenticatorClientPinCborBuilder::SetPinHashEnc(
   SetMapEntry(ClientPinParameters::kPinHashEnc, cbor::Value(pin_hash_enc));
 }
 
+void AuthenticatorClientPinCborBuilder::SetDefaultPermissions() {
+  SetMapEntry(ClientPinParameters::kPermissions, cbor::Value(0x03));
+}
+
+void AuthenticatorClientPinCborBuilder::SetPermissionsRpId(
+    const std::string& rp_id) {
+  SetMapEntry(ClientPinParameters::kPermissionsRpId, cbor::Value(rp_id));
+}
+
 void AuthenticatorClientPinCborBuilder::AddDefaultsForGetPinRetries() {
-  if (!HasEntry(1)) {
+  if (!HasEntry(ClientPinParameters::kPinUvAuthProtocol)) {
     SetDefaultPinProtocol();
   }
-  if (!HasEntry(2)) {
+  if (!HasEntry(ClientPinParameters::kSubCommand)) {
     SetSubCommand(PinSubCommand::kGetPinRetries);
   }
 }
 
 void AuthenticatorClientPinCborBuilder::AddDefaultsForGetKeyAgreement() {
-  if (!HasEntry(1)) {
+  if (!HasEntry(ClientPinParameters::kPinUvAuthProtocol)) {
     SetDefaultPinProtocol();
   }
-  if (!HasEntry(2)) {
+  if (!HasEntry(ClientPinParameters::kSubCommand)) {
     SetSubCommand(PinSubCommand::kGetKeyAgreement);
   }
 }
@@ -308,19 +329,19 @@ void AuthenticatorClientPinCborBuilder::AddDefaultsForSetPin(
     const cbor::Value::MapValue& cose_key,
     const cbor::Value::BinaryValue& pin_auth,
     const cbor::Value::BinaryValue& new_pin_enc) {
-  if (!HasEntry(1)) {
+  if (!HasEntry(ClientPinParameters::kPinUvAuthProtocol)) {
     SetDefaultPinProtocol();
   }
-  if (!HasEntry(2)) {
+  if (!HasEntry(ClientPinParameters::kSubCommand)) {
     SetSubCommand(PinSubCommand::kSetPin);
   }
-  if (!HasEntry(3)) {
+  if (!HasEntry(ClientPinParameters::kKeyAgreement)) {
     SetKeyAgreement(cose_key);
   }
-  if (!HasEntry(4)) {
+  if (!HasEntry(ClientPinParameters::kPinUvAuthParam)) {
     SetPinAuth(pin_auth);
   }
-  if (!HasEntry(5)) {
+  if (!HasEntry(ClientPinParameters::kNewPinEnc)) {
     SetNewPinEnc(new_pin_enc);
   }
 }
@@ -330,61 +351,68 @@ void AuthenticatorClientPinCborBuilder::AddDefaultsForChangePin(
     const cbor::Value::BinaryValue& pin_auth,
     const cbor::Value::BinaryValue& new_pin_enc,
     const cbor::Value::BinaryValue& pin_hash_enc) {
-  if (!HasEntry(1)) {
+  if (!HasEntry(ClientPinParameters::kPinUvAuthProtocol)) {
     SetDefaultPinProtocol();
   }
-  if (!HasEntry(2)) {
+  if (!HasEntry(ClientPinParameters::kSubCommand)) {
     SetSubCommand(PinSubCommand::kChangePin);
   }
-  if (!HasEntry(3)) {
+  if (!HasEntry(ClientPinParameters::kKeyAgreement)) {
     SetKeyAgreement(cose_key);
   }
-  if (!HasEntry(4)) {
+  if (!HasEntry(ClientPinParameters::kPinUvAuthParam)) {
     SetPinAuth(pin_auth);
   }
-  if (!HasEntry(5)) {
+  if (!HasEntry(ClientPinParameters::kNewPinEnc)) {
     SetNewPinEnc(new_pin_enc);
   }
-  if (!HasEntry(6)) {
+  if (!HasEntry(ClientPinParameters::kPinHashEnc)) {
     SetPinHashEnc(pin_hash_enc);
   }
 }
 
-void AuthenticatorClientPinCborBuilder::AddDefaultsForGetPinUvAuthTokenUsingPin(
+void AuthenticatorClientPinCborBuilder::AddDefaultsForGetPinToken(
     const cbor::Value::MapValue& cose_key,
     const cbor::Value::BinaryValue& pin_hash_enc) {
-  if (!HasEntry(1)) {
+  if (!HasEntry(ClientPinParameters::kPinUvAuthProtocol)) {
     SetDefaultPinProtocol();
   }
-  if (!HasEntry(2)) {
+  if (!HasEntry(ClientPinParameters::kSubCommand)) {
     SetSubCommand(PinSubCommand::kGetPinToken);
   }
-  if (!HasEntry(3)) {
+  if (!HasEntry(ClientPinParameters::kKeyAgreement)) {
     SetKeyAgreement(cose_key);
   }
-  if (!HasEntry(6)) {
+  if (!HasEntry(ClientPinParameters::kPinHashEnc)) {
     SetPinHashEnc(pin_hash_enc);
   }
 }
 
-void AuthenticatorClientPinCborBuilder::AddDefaultsForGetPinUvAuthTokenUsingUv(
-    const cbor::Value::MapValue& cose_key) {
-  if (!HasEntry(1)) {
+void AuthenticatorClientPinCborBuilder::
+    AddDefaultsForGetPinUvAuthTokenUsingUvWithPermissions(
+        const cbor::Value::MapValue& cose_key, const std::string& rp_id) {
+  if (!HasEntry(ClientPinParameters::kPinUvAuthProtocol)) {
     SetDefaultPinProtocol();
   }
-  if (!HasEntry(2)) {
-    SetSubCommand(PinSubCommand::kGetPinUvAuthTokenUsingUv);
+  if (!HasEntry(ClientPinParameters::kSubCommand)) {
+    SetSubCommand(PinSubCommand::kGetPinUvAuthTokenUsingUvWithPermissions);
   }
-  if (!HasEntry(3)) {
+  if (!HasEntry(ClientPinParameters::kKeyAgreement)) {
     SetKeyAgreement(cose_key);
+  }
+  if (!HasEntry(ClientPinParameters::kPermissions)) {
+    SetDefaultPermissions();
+  }
+  if (!HasEntry(ClientPinParameters::kPermissionsRpId)) {
+    SetPermissionsRpId(rp_id);
   }
 }
 
 void AuthenticatorClientPinCborBuilder::AddDefaultsForGetUvRetries() {
-  if (!HasEntry(1)) {
+  if (!HasEntry(ClientPinParameters::kPinUvAuthProtocol)) {
     SetDefaultPinProtocol();
   }
-  if (!HasEntry(2)) {
+  if (!HasEntry(ClientPinParameters::kSubCommand)) {
     SetSubCommand(PinSubCommand::kGetUvRetries);
   }
 }
