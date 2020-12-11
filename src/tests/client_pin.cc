@@ -275,7 +275,7 @@ GetPinUvAuthTokenUsingUvWithPermissionsBadParameterTypesTest::Execute(
     CommandState* command_state) const {
   AuthenticatorClientPinCborBuilder pin_builder;
   pin_builder.AddDefaultsForGetPinUvAuthTokenUsingUvWithPermissions(
-      *kCoseKeyExample, RpId());
+      *kCoseKeyExample);
   return test_helpers::TestBadParameterTypes(
       device, device_tracker, Command::kAuthenticatorClientPIN, &pin_builder);
 }
@@ -295,7 +295,7 @@ GetPinUvAuthTokenUsingUvWithPermissionsMissingParameterTest::Execute(
     CommandState* command_state) const {
   AuthenticatorClientPinCborBuilder pin_builder;
   pin_builder.AddDefaultsForGetPinUvAuthTokenUsingUvWithPermissions(
-      *kCoseKeyExample, RpId());
+      *kCoseKeyExample);
   return test_helpers::TestMissingParameters(
       device, device_tracker, Command::kAuthenticatorClientPIN, &pin_builder);
 }

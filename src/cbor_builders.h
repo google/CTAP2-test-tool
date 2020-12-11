@@ -186,7 +186,7 @@ class AuthenticatorClientPinCborBuilder : public CborBuilder {
                                  const cbor::Value::BinaryValue& pin_hash_enc);
   // Sets defaults for keys 1, 2, 3, 9 and 10 ONLY if they are not present yet.
   void AddDefaultsForGetPinUvAuthTokenUsingUvWithPermissions(
-      const cbor::Value::MapValue& cose_key, const std::string& rp_id);
+      const cbor::Value::MapValue& cose_key);
   // Sets defaults for keys 1 and 2 ONLY if they are not present yet.
   void AddDefaultsForGetUvRetries();
 };

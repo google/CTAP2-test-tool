@@ -390,7 +390,7 @@ void AuthenticatorClientPinCborBuilder::AddDefaultsForGetPinToken(
 
 void AuthenticatorClientPinCborBuilder::
     AddDefaultsForGetPinUvAuthTokenUsingUvWithPermissions(
-        const cbor::Value::MapValue& cose_key, const std::string& rp_id) {
+        const cbor::Value::MapValue& cose_key) {
   if (!HasEntry(ClientPinParameters::kPinUvAuthProtocol)) {
     SetDefaultPinProtocol();
   }
@@ -402,9 +402,6 @@ void AuthenticatorClientPinCborBuilder::
   }
   if (!HasEntry(ClientPinParameters::kPermissions)) {
     SetDefaultPermissions();
-  }
-  if (!HasEntry(ClientPinParameters::kPermissionsRpId)) {
-    SetPermissionsRpId(rp_id);
   }
 }
 
