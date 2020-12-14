@@ -46,17 +46,19 @@ TEST_CLASS(ChangePinBadParameterTypesTest);
 // Tests if ChangePin works with missing parameters.
 TEST_CLASS(ChangePinMissingParameterTest);
 
-// Tests if GetPinUvAuthTokenUsingPin works with parameters of the wrong type.
-TEST_CLASS(GetPinUvAuthTokenUsingPinBadParameterTypesTest);
+// Tests if GetPinToken works with parameters of the wrong type.
+TEST_CLASS(GetPinTokenBadParameterTypesTest);
 
-// Tests if GetPinUvAuthTokenUsingPin works with missing parameters.
-TEST_CLASS(GetPinUvAuthTokenUsingPinMissingParameterTest);
+// Tests if GetPinToken works with missing parameters.
+TEST_CLASS(GetPinTokenMissingParameterTest);
 
-// Tests if GetPinUvAuthTokenUsingUv works with parameters of the wrong type.
-TEST_CLASS(GetPinUvAuthTokenUsingUvBadParameterTypesTest);
+// Tests if GetPinUvAuthTokenUsingUvWithPermissions works with parameters of the
+// wrong type.
+TEST_CLASS(GetPinUvAuthTokenUsingUvWithPermissionsBadParameterTypesTest);
 
-// Tests if GetPinUvAuthTokenUsingUv works with missing parameters.
-TEST_CLASS(GetPinUvAuthTokenUsingUvMissingParameterTest);
+// Tests if GetPinUvAuthTokenUsingUvWithPermissions works with missing
+// parameters.
+TEST_CLASS(GetPinUvAuthTokenUsingUvWithPermissionsMissingParameterTest);
 
 // Tests if GetUVRetries works with parameters of the wrong type.
 TEST_CLASS(GetUVRetriesBadParameterTypesTest);

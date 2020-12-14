@@ -61,6 +61,8 @@ class CborBuilder {
 //    cbor::Value request_cbor = builder.GetCbor();
 class MakeCredentialCborBuilder : public CborBuilder {
  public:
+  // Checks if the entry is present for the given key.
+  bool HasEntry(MakeCredentialParameters key);
   // Sets or overwrites the given key.
   void SetMapEntry(MakeCredentialParameters key, cbor::Value&& value);
   // Removes the map entry at given key, if existing.
@@ -69,14 +71,14 @@ class MakeCredentialCborBuilder : public CborBuilder {
   void SetDefaultClientDataHash();
   // Sets or overwrites key 2 with the cbor::Value::MapValue
   // {"id": relying party ID}.
-  void SetDefaultPublicKeyCredentialRpEntity(const std::string& rp_id);
+  void SetDefaultPublicKeyCredentialRpEntity(std::string rp_id);
   // Sets or overwrites key 3 with a cbor::Value::MapValue mapping "id" and
   // "name" to default values.
   void SetDefaultPublicKeyCredentialUserEntity();
   // Sets or overwrites key 3 with a cbor::Value::MapValue mapping "id" and
   // "name" to the parameters.
   void SetPublicKeyCredentialUserEntity(const cbor::Value::BinaryValue& user_id,
-                                        const std::string& user_name);
+                                        std::string user_name);
   // Sets or overwrites key 4 with a cbor::Value::MapValue enabling ES256.
   void SetEs256CredentialParameters();
   // Sets or overwrites key 4 with a cbor::Value::MapValue enabling RS256.
@@ -102,18 +104,20 @@ class MakeCredentialCborBuilder : public CborBuilder {
   // Sets or overwrites key 9 with a default PIN protocol.
   void SetDefaultPinUvAuthProtocol();
   // Sets defaults for keys 1 to 4 ONLY if they are not present yet.
-  void AddDefaultsForRequiredFields(const std::string& rp_id);
+  void AddDefaultsForRequiredFields(std::string rp_id);
 };
 
 // See MakeCredentialCborBuilder, this is a similar class for GetAssertion.
 class GetAssertionCborBuilder : public CborBuilder {
  public:
+  // Checks if the entry is present for the given key.
+  bool HasEntry(GetAssertionParameters key);
   // Sets or overwrites the given key.
   void SetMapEntry(GetAssertionParameters key, cbor::Value&& value);
   // Removes the map entry at given key, if existing.
   void RemoveMapEntry(GetAssertionParameters key);
   // Sets or overwrites key 1 with the cbor::Value::String rp_id.
-  void SetRelyingParty(const std::string& rp_id);
+  void SetRelyingParty(std::string rp_id);
   // Sets or overwrites key 2 with a cbor::Value::BinaryValue.
   void SetDefaultClientDataHash();
   // Sets or overwrites key 3 with a cbor::Value::ArrayValue including one
@@ -141,6 +145,8 @@ class GetAssertionCborBuilder : public CborBuilder {
 // AuthenticatorClientPin.
 class AuthenticatorClientPinCborBuilder : public CborBuilder {
  public:
+  // Checks if the entry is present for the given key.
+  bool HasEntry(ClientPinParameters key);
   // Sets or overwrites the given key.
   void SetMapEntry(ClientPinParameters key, cbor::Value&& value);
   // Removes the map entry at given key, if existing.
@@ -158,6 +164,10 @@ class AuthenticatorClientPinCborBuilder : public CborBuilder {
   void SetNewPinEnc(const cbor::Value::BinaryValue& new_pin_enc);
   // Sets or overwrites key 6 with the given bytestring.
   void SetPinHashEnc(const cbor::Value::BinaryValue& pin_hash_enc);
+  // Sets or overwrites key 9 with the unsigned value 0x03.
+  void SetDefaultPermissions();
+  // Sets or overwrites key 10 with the given string.
+  void SetPermissionsRpId(std::string rp_id);
   // Sets defaults for keys 1 and 2 ONLY if they are not present yet.
   void AddDefaultsForGetPinRetries();
   // Sets defaults for keys 1 and 2 ONLY if they are not present yet.
@@ -172,11 +182,10 @@ class AuthenticatorClientPinCborBuilder : public CborBuilder {
                                const cbor::Value::BinaryValue& new_pin_enc,
                                const cbor::Value::BinaryValue& pin_hash_enc);
   // Sets defaults for keys 1, 2, 3 and 6 ONLY if they are not present yet.
-  void AddDefaultsForGetPinUvAuthTokenUsingPin(
-      const cbor::Value::MapValue& cose_key,
-      const cbor::Value::BinaryValue& pin_hash_enc);
-  // Sets defaults for keys 1, 2 and 3 ONLY if they are not present yet.
-  void AddDefaultsForGetPinUvAuthTokenUsingUv(
+  void AddDefaultsForGetPinToken(const cbor::Value::MapValue& cose_key,
+                                 const cbor::Value::BinaryValue& pin_hash_enc);
+  // Sets defaults for keys 1, 2, 3, 9 and 10 ONLY if they are not present yet.
+  void AddDefaultsForGetPinUvAuthTokenUsingUvWithPermissions(
       const cbor::Value::MapValue& cose_key);
   // Sets defaults for keys 1 and 2 ONLY if they are not present yet.
   void AddDefaultsForGetUvRetries();

@@ -63,9 +63,7 @@ std::optional<std::string> MakeCredentialBadParameterTypesTest::Execute(
 
   cbor::Value::MapValue options;
   options[cbor::Value("rk")] = cbor::Value(false);
-  if (test_helpers::IsFido2Point1Complicant(device_tracker)) {
-    options[cbor::Value("up")] = cbor::Value(true);
-  }
+  // TODO(#16) resolve backwards incompatible user presence precedence for "up"
   options[cbor::Value("uv")] = cbor::Value(false);
   full_builder.SetMapEntry(MakeCredentialParameters::kOptions,
                            cbor::Value(options));

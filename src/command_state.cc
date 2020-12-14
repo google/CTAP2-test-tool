@@ -92,9 +92,9 @@ void CommandState::Prepare(bool set_uv) {
 }
 
 absl::variant<cbor::Value, Status> CommandState::MakeTestCredential(
-    const std::string& rp_id, bool use_resident_key) {
+    std::string rp_id, bool use_resident_key) {
   MakeCredentialCborBuilder test_builder;
-  test_builder.AddDefaultsForRequiredFields(rp_id);
+  test_builder.AddDefaultsForRequiredFields(std::move(rp_id));
   test_builder.SetResidentKeyOptions(use_resident_key);
   if (!auth_token_.empty()) {
     test_builder.SetDefaultPinUvAuthParam(auth_token_);
@@ -241,8 +241,7 @@ Status CommandState::GetAuthToken(bool set_pin_if_necessary) {
   AuthenticatorClientPinCborBuilder pin_token_builder;
   cbor::Value::BinaryValue pin_hash_enc = crypto_utility::Aes256CbcEncrypt(
       shared_secret_, crypto_utility::LeftSha256Hash(pin_utf8_));
-  pin_token_builder.AddDefaultsForGetPinUvAuthTokenUsingPin(platform_cose_key_,
-                                                            pin_hash_enc);
+  pin_token_builder.AddDefaultsForGetPinToken(platform_cose_key_, pin_hash_enc);
   absl::variant<cbor::Value, Status> pin_token_response =
       fido2_commands::AuthenticatorClientPinPositiveTest(
           device_, device_tracker_, pin_token_builder.GetCbor());
@@ -275,8 +274,7 @@ Status CommandState::AttemptGetAuthToken(
   AuthenticatorClientPinCborBuilder pin_token_builder;
   cbor::Value::BinaryValue pin_hash_enc = crypto_utility::Aes256CbcEncrypt(
       shared_secret_, crypto_utility::LeftSha256Hash(pin_utf8));
-  pin_token_builder.AddDefaultsForGetPinUvAuthTokenUsingPin(platform_cose_key_,
-                                                            pin_hash_enc);
+  pin_token_builder.AddDefaultsForGetPinToken(platform_cose_key_, pin_hash_enc);
   Status returned_status = fido2_commands::AuthenticatorClientPinNegativeTest(
       device_, pin_token_builder.GetCbor(), false);
   if (redo_key_agreement) {

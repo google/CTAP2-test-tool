@@ -229,72 +229,73 @@ std::optional<std::string> ChangePinMissingParameterTest::Execute(
       device, device_tracker, Command::kAuthenticatorClientPIN, &pin_builder);
 }
 
-GetPinUvAuthTokenUsingPinBadParameterTypesTest::
-    GetPinUvAuthTokenUsingPinBadParameterTypesTest()
-    : BaseTest("client_pin_get_pin_uv_auth_token_using_pin_bad_parameter_types",
-               "Tests if GetPinUvAuthTokenUsingPin works with parameters of "
-               "the wrong type.",
+GetPinTokenBadParameterTypesTest::GetPinTokenBadParameterTypesTest()
+    : BaseTest("client_pin_get_pin_token_bad_parameter_types",
+               "Tests if GetPinToken works with parameters of the wrong type.",
                {.has_pin = false}, {Tag::kClientPin}) {}
 
-std::optional<std::string>
-GetPinUvAuthTokenUsingPinBadParameterTypesTest::Execute(
+std::optional<std::string> GetPinTokenBadParameterTypesTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
   AuthenticatorClientPinCborBuilder pin_builder;
-  pin_builder.AddDefaultsForGetPinUvAuthTokenUsingPin(
-      *kCoseKeyExample, cbor::Value::BinaryValue());
+  pin_builder.AddDefaultsForGetPinToken(*kCoseKeyExample,
+                                        cbor::Value::BinaryValue());
   return test_helpers::TestBadParameterTypes(
       device, device_tracker, Command::kAuthenticatorClientPIN, &pin_builder);
 }
 
-GetPinUvAuthTokenUsingPinMissingParameterTest::
-    GetPinUvAuthTokenUsingPinMissingParameterTest()
-    : BaseTest(
-          "client_pin_get_pin_uv_auth_token_using_pin_missing_parameter",
-          "Tests if GetPinUvAuthTokenUsingPin works with missing parameters.",
-          {.has_pin = false}, {Tag::kClientPin}) {}
+GetPinTokenMissingParameterTest::GetPinTokenMissingParameterTest()
+    : BaseTest("client_pin_get_token_missing_parameter",
+               "Tests if GetPinToken works with missing parameters.",
+               {.has_pin = false}, {Tag::kClientPin}) {}
 
-std::optional<std::string>
-GetPinUvAuthTokenUsingPinMissingParameterTest::Execute(
+std::optional<std::string> GetPinTokenMissingParameterTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
   AuthenticatorClientPinCborBuilder pin_builder;
-  pin_builder.AddDefaultsForGetPinUvAuthTokenUsingPin(
-      *kCoseKeyExample, cbor::Value::BinaryValue());
+  pin_builder.AddDefaultsForGetPinToken(*kCoseKeyExample,
+                                        cbor::Value::BinaryValue());
   return test_helpers::TestMissingParameters(
       device, device_tracker, Command::kAuthenticatorClientPIN, &pin_builder);
 }
 
-GetPinUvAuthTokenUsingUvBadParameterTypesTest::
-    GetPinUvAuthTokenUsingUvBadParameterTypesTest()
-    : BaseTest("client_pin_get_pin_uv_auth_token_using_uv_bad_parameter_types",
-               "Tests if GetPinUvAuthTokenUsingUv works with parameters of the "
-               "wrong type.",
-               {.has_pin = false}, {Tag::kClientPin, Tag::kFido2Point1}) {}
+GetPinUvAuthTokenUsingUvWithPermissionsBadParameterTypesTest::
+    GetPinUvAuthTokenUsingUvWithPermissionsBadParameterTypesTest()
+    : BaseTest(
+          "client_pin_get_pin_uv_auth_token_using_uv_with_permissions_bad_"
+          "parameter_types",
+          "Tests if GetPinUvAuthTokenUsingUvWithPermissions works with "
+          "parameters of the "
+          "wrong type.",
+          {.has_pin = false}, {Tag::kClientPin, Tag::kFido2Point1}) {}
 
 std::optional<std::string>
-GetPinUvAuthTokenUsingUvBadParameterTypesTest::Execute(
+GetPinUvAuthTokenUsingUvWithPermissionsBadParameterTypesTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
   AuthenticatorClientPinCborBuilder pin_builder;
-  pin_builder.AddDefaultsForGetPinUvAuthTokenUsingUv(*kCoseKeyExample);
+  pin_builder.AddDefaultsForGetPinUvAuthTokenUsingUvWithPermissions(
+      *kCoseKeyExample);
   return test_helpers::TestBadParameterTypes(
       device, device_tracker, Command::kAuthenticatorClientPIN, &pin_builder);
 }
 
-GetPinUvAuthTokenUsingUvMissingParameterTest::
-    GetPinUvAuthTokenUsingUvMissingParameterTest()
+GetPinUvAuthTokenUsingUvWithPermissionsMissingParameterTest::
+    GetPinUvAuthTokenUsingUvWithPermissionsMissingParameterTest()
     : BaseTest(
-          "client_pin_get_pin_uv_auth_token_using_uv_missing_parameter",
-          "Tests if GetPinUvAuthTokenUsingUv works with missing parameters.",
+          "client_pin_get_pin_uv_auth_token_using_uv_with_permissions_missing_"
+          "parameter",
+          "Tests if GetPinUvAuthTokenUsingUvWithPermissions works with missing "
+          "parameters.",
           {.has_pin = false}, {Tag::kClientPin, Tag::kFido2Point1}) {}
 
 std::optional<std::string>
-GetPinUvAuthTokenUsingUvMissingParameterTest::Execute(
+GetPinUvAuthTokenUsingUvWithPermissionsMissingParameterTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
   AuthenticatorClientPinCborBuilder pin_builder;
-  pin_builder.AddDefaultsForGetPinUvAuthTokenUsingUv(*kCoseKeyExample);
+  pin_builder.AddDefaultsForGetPinUvAuthTokenUsingUvWithPermissions(
+      *kCoseKeyExample);
   return test_helpers::TestMissingParameters(
       device, device_tracker, Command::kAuthenticatorClientPIN, &pin_builder);
 }

@@ -750,7 +750,7 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
     case PinSubCommand::kChangePin: {
       break;
     }
-    case PinSubCommand::kGetPinUvAuthTokenUsingPin: {
+    case PinSubCommand::kGetPinToken: {
       allowed_map_keys.insert(ClientPinResponse::kPinUvAuthToken);
       auto map_iter =
           decoded_map.find(CborValue(ClientPinResponse::kPinUvAuthToken));
@@ -760,7 +760,7 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
           << "pinUvAuthToken entry is not a bytestring";
       break;
     }
-    case PinSubCommand::kGetPinUvAuthTokenUsingUv: {
+    case PinSubCommand::kGetPinUvAuthTokenUsingUvWithPermissions: {
       allowed_map_keys.insert(ClientPinResponse::kPinUvAuthToken);
       auto map_iter =
           decoded_map.find(CborValue(ClientPinResponse::kPinUvAuthToken));
