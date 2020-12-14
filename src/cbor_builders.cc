@@ -65,7 +65,7 @@ void MakeCredentialCborBuilder::SetDefaultClientDataHash() {
 }
 
 void MakeCredentialCborBuilder::SetDefaultPublicKeyCredentialRpEntity(
-    std::string&& rp_id) {
+    std::string rp_id) {
   cbor::Value::MapValue pub_key_cred_rp_entity;
   pub_key_cred_rp_entity[cbor::Value("id")] = cbor::Value(std::move(rp_id));
   SetMapEntry(MakeCredentialParameters::kRp,
@@ -86,7 +86,7 @@ void MakeCredentialCborBuilder::SetDefaultPublicKeyCredentialUserEntity() {
 }
 
 void MakeCredentialCborBuilder::SetPublicKeyCredentialUserEntity(
-    const cbor::Value::BinaryValue& user_id, std::string&& user_name) {
+    const cbor::Value::BinaryValue& user_id, std::string user_name) {
   cbor::Value::MapValue pub_key_cred_user_entity;
   pub_key_cred_user_entity[cbor::Value("id")] = cbor::Value(user_id);
   pub_key_cred_user_entity[cbor::Value("name")] =
@@ -167,7 +167,7 @@ void MakeCredentialCborBuilder::SetDefaultPinUvAuthProtocol() {
 }
 
 void MakeCredentialCborBuilder::AddDefaultsForRequiredFields(
-    std::string&& rp_id) {
+    std::string rp_id) {
   if (!HasEntry(MakeCredentialParameters::kClientDataHash)) {
     SetDefaultClientDataHash();
   }
@@ -195,7 +195,7 @@ void GetAssertionCborBuilder::RemoveMapEntry(GetAssertionParameters key) {
   RemoveArbitraryMapEntry(static_cast<int>(key));
 }
 
-void GetAssertionCborBuilder::SetRelyingParty(std::string&& rp_id) {
+void GetAssertionCborBuilder::SetRelyingParty(std::string rp_id) {
   SetMapEntry(GetAssertionParameters::kRpId, cbor::Value(std::move(rp_id)));
 }
 
@@ -246,8 +246,7 @@ void GetAssertionCborBuilder::SetDefaultPinUvAuthProtocol() {
   SetMapEntry(GetAssertionParameters::kPinUvAuthProtocol, cbor::Value(1));
 }
 
-void GetAssertionCborBuilder::AddDefaultsForRequiredFields(
-    std::string&& rp_id) {
+void GetAssertionCborBuilder::AddDefaultsForRequiredFields(std::string rp_id) {
   if (!HasEntry(GetAssertionParameters::kRpId)) {
     SetRelyingParty(std::move(rp_id));
   }
@@ -304,8 +303,7 @@ void AuthenticatorClientPinCborBuilder::SetDefaultPermissions() {
   SetMapEntry(ClientPinParameters::kPermissions, cbor::Value(0x03));
 }
 
-void AuthenticatorClientPinCborBuilder::SetPermissionsRpId(
-    std::string&& rp_id) {
+void AuthenticatorClientPinCborBuilder::SetPermissionsRpId(std::string rp_id) {
   SetMapEntry(ClientPinParameters::kPermissionsRpId,
               cbor::Value(std::move(rp_id)));
 }

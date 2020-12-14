@@ -59,7 +59,7 @@ std::optional<std::string> DeleteCredentialsTest::Execute(
 
   command_state->Reset();
 
-  // TODO(#16) resolve backwards incompatible user presece precedence
+  // TODO(#16) resolve backwards incompatible user presence precedence
   returned_status = fido2_commands::GetAssertionNegativeTest(
       device, reset_get_assertion_builder.GetCbor(),
       !test_helpers::IsFido2Point1Complicant(device_tracker));
@@ -71,7 +71,7 @@ std::optional<std::string> DeleteCredentialsTest::Execute(
   cbor::Value::BinaryValue credential_id =
       test_helpers::ExtractCredentialId(credential_response);
   reset_get_assertion_builder.SetAllowListCredential(credential_id);
-  // TODO(#16) resolve backwards incompatible user presece precedence
+  // TODO(#16) resolve backwards incompatible user presence precedence
   returned_status = fido2_commands::GetAssertionNegativeTest(
       device, reset_get_assertion_builder.GetCbor(),
       !test_helpers::IsFido2Point1Complicant(device_tracker));

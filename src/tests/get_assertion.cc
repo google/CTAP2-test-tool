@@ -317,7 +317,7 @@ std::optional<std::string> GetAssertionResidentKeyTest::Execute(
     CommandState* command_state) const {
   GetAssertionCborBuilder assertion_builder;
   assertion_builder.AddDefaultsForRequiredFields(RpId());
-  // TODO(#16) resolve backwards incompatible user presece precedence
+  // TODO(#16) resolve backwards incompatible user presence precedence
   Status returned_status = fido2_commands::GetAssertionNegativeTest(
       device, assertion_builder.GetCbor(),
       !test_helpers::IsFido2Point1Complicant(device_tracker));
@@ -350,7 +350,7 @@ std::optional<std::string> GetAssertionNonResidentKeyTest::Execute(
     CommandState* command_state) const {
   GetAssertionCborBuilder assertion_builder;
   assertion_builder.AddDefaultsForRequiredFields(RpId());
-  // TODO(#16) resolve backwards incompatible user presece precedence
+  // TODO(#16) resolve backwards incompatible user presence precedence
   Status returned_status = fido2_commands::GetAssertionNegativeTest(
       device, assertion_builder.GetCbor(),
       !test_helpers::IsFido2Point1Complicant(device_tracker));
