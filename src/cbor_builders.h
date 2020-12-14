@@ -71,14 +71,14 @@ class MakeCredentialCborBuilder : public CborBuilder {
   void SetDefaultClientDataHash();
   // Sets or overwrites key 2 with the cbor::Value::MapValue
   // {"id": relying party ID}.
-  void SetDefaultPublicKeyCredentialRpEntity(const std::string& rp_id);
+  void SetDefaultPublicKeyCredentialRpEntity(std::string&& rp_id);
   // Sets or overwrites key 3 with a cbor::Value::MapValue mapping "id" and
   // "name" to default values.
   void SetDefaultPublicKeyCredentialUserEntity();
   // Sets or overwrites key 3 with a cbor::Value::MapValue mapping "id" and
   // "name" to the parameters.
   void SetPublicKeyCredentialUserEntity(const cbor::Value::BinaryValue& user_id,
-                                        const std::string& user_name);
+                                        std::string&& user_name);
   // Sets or overwrites key 4 with a cbor::Value::MapValue enabling ES256.
   void SetEs256CredentialParameters();
   // Sets or overwrites key 4 with a cbor::Value::MapValue enabling RS256.
@@ -104,7 +104,7 @@ class MakeCredentialCborBuilder : public CborBuilder {
   // Sets or overwrites key 9 with a default PIN protocol.
   void SetDefaultPinUvAuthProtocol();
   // Sets defaults for keys 1 to 4 ONLY if they are not present yet.
-  void AddDefaultsForRequiredFields(const std::string& rp_id);
+  void AddDefaultsForRequiredFields(std::string&& rp_id);
 };
 
 // See MakeCredentialCborBuilder, this is a similar class for GetAssertion.
@@ -117,7 +117,7 @@ class GetAssertionCborBuilder : public CborBuilder {
   // Removes the map entry at given key, if existing.
   void RemoveMapEntry(GetAssertionParameters key);
   // Sets or overwrites key 1 with the cbor::Value::String rp_id.
-  void SetRelyingParty(const std::string& rp_id);
+  void SetRelyingParty(std::string&& rp_id);
   // Sets or overwrites key 2 with a cbor::Value::BinaryValue.
   void SetDefaultClientDataHash();
   // Sets or overwrites key 3 with a cbor::Value::ArrayValue including one
@@ -138,7 +138,7 @@ class GetAssertionCborBuilder : public CborBuilder {
   // Sets or overwrites key 7 with a default PIN protocol.
   void SetDefaultPinUvAuthProtocol();
   // Sets defaults for keys 1 and 2 ONLY if they are not present yet.
-  void AddDefaultsForRequiredFields(std::string rp_id);
+  void AddDefaultsForRequiredFields(std::string&& rp_id);
 };
 
 // See MakeCredentialCborBuilder, this is a similar class for
@@ -167,7 +167,7 @@ class AuthenticatorClientPinCborBuilder : public CborBuilder {
   // Sets or overwrites key 9 with the unsigned value 0x03.
   void SetDefaultPermissions();
   // Sets or overwrites key 10 with the given string.
-  void SetPermissionsRpId(const std::string& rp_id);
+  void SetPermissionsRpId(std::string&& rp_id);
   // Sets defaults for keys 1 and 2 ONLY if they are not present yet.
   void AddDefaultsForGetPinRetries();
   // Sets defaults for keys 1 and 2 ONLY if they are not present yet.
