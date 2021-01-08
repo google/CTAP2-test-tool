@@ -72,7 +72,7 @@ def convert(result, template_file='template.md'):
   try:
     result = json.loads(result)
   except ValueError as _:
-    print('File was not valid JSON.')
+    print('File is not valid JSON.')
     return ''
 
   for key in ['capabilities', 'device_under_test', 'tests']:
@@ -99,15 +99,17 @@ def convert(result, template_file='template.md'):
 
 
 def main(args):
-  """Converts all JSON file from the source directory to Markdown."""
+  """Converts all JSON files from the source directory to Markdown."""
   output_path = Path(args.output_dir)
   if output_path.exists():
     print('Directory', args.output_dir, 'exists, files may be overwritten.')
   else:
     output_path.mkdir(parents=True)
-  progress_bar = tqdm(Path(args.source_dir).glob('*.json'))
-  for path in progress_bar:
-    progress_bar.set_description('Converting {}...'.format(path.stem))
+
+  paths = list(Path(args.source_dir).glob('*.json'))
+  progress_bar = tqdm(total=len(paths), unit='files')
+  for path in paths:
+    progress_bar.update()
     output_file = output_path / path.with_suffix('.md').name
     json_text = path.read_text()
     output_file.write_text(convert(json_text))
