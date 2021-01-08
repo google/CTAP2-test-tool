@@ -108,8 +108,7 @@ enum class PinSubCommand : uint8_t {
   kSetPin = 0x03,
   kChangePin = 0x04,
   kGetPinToken = 0x05,
-  kGetPinUvAuthTokenUsingPin = 0x05,
-  kGetPinUvAuthTokenUsingUv = 0x06,
+  kGetPinUvAuthTokenUsingUvWithPermissions = 0x06,
   kGetUvRetries = 0x07
 };
 
@@ -153,8 +152,6 @@ enum class ClientPinParameters : uint8_t {
   kPinUvAuthParam = 0x04,
   kNewPinEnc = 0x05,
   kPinHashEnc = 0x06,
-  kMinPinLength = 0x07,
-  kMinPinLengthRpIds = 0x08,
   kPermissions = 0x09,
   kPermissionsRpId = 0x0A,
 };

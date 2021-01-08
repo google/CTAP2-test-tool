@@ -59,8 +59,10 @@ std::optional<std::string> DeleteCredentialsTest::Execute(
 
   command_state->Reset();
 
+  // TODO(#16) resolve backwards incompatible user presence precedence
   returned_status = fido2_commands::GetAssertionNegativeTest(
-      device, reset_get_assertion_builder.GetCbor(), false);
+      device, reset_get_assertion_builder.GetCbor(),
+      !test_helpers::IsFido2Point1Complicant(device_tracker));
   if (!device_tracker->CheckStatus(Status::kErrNoCredentials,
                                    returned_status)) {
     return "A resident key was still usable after reset.";
@@ -69,8 +71,10 @@ std::optional<std::string> DeleteCredentialsTest::Execute(
   cbor::Value::BinaryValue credential_id =
       test_helpers::ExtractCredentialId(credential_response);
   reset_get_assertion_builder.SetAllowListCredential(credential_id);
+  // TODO(#16) resolve backwards incompatible user presence precedence
   returned_status = fido2_commands::GetAssertionNegativeTest(
-      device, reset_get_assertion_builder.GetCbor(), false);
+      device, reset_get_assertion_builder.GetCbor(),
+      !test_helpers::IsFido2Point1Complicant(device_tracker));
   if (!device_tracker->CheckStatus(Status::kErrNoCredentials,
                                    returned_status)) {
     return "A non-resident key was still usable after reset.";
