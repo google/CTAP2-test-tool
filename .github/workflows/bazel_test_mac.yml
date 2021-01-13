@@ -1,4 +1,4 @@
-# Copyright 2020 Google LLC
+# Copyright 2020-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Run bazel tests
+name: Run bazel tests on MacOS
 on:
   push:
     paths-ignore:
@@ -22,18 +22,12 @@ on:
 
 jobs:
   bazel_test:
-    name: bazel test all
-    runs-on: ubuntu-20.04
+    name: bazel test all (MacOS)
+    runs-on: macos-10.15
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Update apt
-        run: |
-          sudo apt update
-      - name: Install system libraries
-        run: |
-          sudo apt-get install libudev-dev
       - name: Run gtest on ./
         run: |
           bazel test --test_output=all --spawn_strategy=local --test_timeout=60 //:all
