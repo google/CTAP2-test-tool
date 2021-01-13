@@ -1,4 +1,4 @@
-// Copyright 2020 Google LLC
+// Copyright 2020-2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -122,7 +122,7 @@ TEST(DeviceTracker, TestGenerateResultsJson) {
                         {"id", "TRUE_TEST"},
                         {"description", "TRUE_DESCRIPTION"},
                         {"result", "pass"},
-                        {"error_message", {}},
+                        {"error_message", nullptr},
                         {"observations", nlohmann::json::array()},
                         {"tags", {"TAG"}},
                     },
