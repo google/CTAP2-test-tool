@@ -24,6 +24,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.SUMMARY_TOKEN }}
     - name: setup python
       uses: actions/setup-python@v2
       with:
