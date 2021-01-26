@@ -39,10 +39,9 @@ jobs:
       run: |
         python3 convert_results.py --source results/ --output results/summaries/
         python3 convert_results.py --source fuzzing_results/ --output fuzzing_results/summaries/
-        git add results/summaries/
-        git add fuzzing_results/summaries/
+        git add results/summaries/ fuzzing_results/summaries/
     - name: Commit & Push changes
-      uses: actions-js/push@master
+      uses: actions-js/push@v1.2
       with:
         github_token: ${{ secrets.SUMMARY_TOKEN }}
         author_email: ${{ secrets.EMAIL_ADDRESS }}
