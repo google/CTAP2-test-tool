@@ -23,8 +23,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout with token
+      uses: actions/checkout@v2
       with:
+        fetch-depth: 0
         token: ${{ secrets.SUMMARY_TOKEN }}
     - name: setup python
       uses: actions/setup-python@v2
@@ -37,18 +39,14 @@ jobs:
       run: |
         python3 convert_results.py --source results/ --output results/summaries/
         python3 convert_results.py --source fuzzing_results/ --output fuzzing_results/summaries/
-    - name: Push new summary
-      env:
-        EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
-        SUMMARY_TOKEN: ${{ secrets.SUMMARY_TOKEN }}
-      run: |
-        git config user.email "$EMAIL_ADDRESS"
-        git config user.name "kaczmarczyck"
-        if [[ `git status --porcelain` ]]; then
-          git add results/summaries/
-          git add fuzzing_results/summaries/
-          git commit -a -m "update summaries"
-          git push origin main
-        else
-          echo 'There were no new reports.'
-        fi
+        git add results/summaries/
+        git add fuzzing_results/summaries/
+    - name: Commit & Push changes
+      uses: actions-js/push@master
+      with:
+        github_token: ${{ secrets.SUMMARY_TOKEN }}
+        author_email: ${{ secrets.EMAIL_ADDRESS }}
+        author_name: "kaczmarczyck"
+        message: "update summaries"
+        branch: "main"
+        force: true
