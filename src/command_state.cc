@@ -105,12 +105,15 @@ absl::variant<cbor::Value, Status> CommandState::MakeTestCredential(
                                                     test_builder.GetCbor());
 }
 
-Status CommandState::ComputeSharedSecret() {
+absl::variant<cbor::Value, Status> CommandState::GetKeyAgreementValue() {
   AuthenticatorClientPinCborBuilder key_agreement_builder;
   key_agreement_builder.AddDefaultsForGetKeyAgreement();
-  absl::variant<cbor::Value, Status> key_response =
-      fido2_commands::AuthenticatorClientPinPositiveTest(
-          device_, device_tracker_, key_agreement_builder.GetCbor());
+  return fido2_commands::AuthenticatorClientPinPositiveTest(
+      device_, device_tracker_, key_agreement_builder.GetCbor());
+}
+
+Status CommandState::ComputeSharedSecret() {
+  absl::variant<cbor::Value, Status> key_response = GetKeyAgreementValue();
   if (absl::holds_alternative<Status>(key_response)) {
     device_tracker_->AddObservation("GetKeyAgreement failed");
     return absl::get<Status>(key_response);

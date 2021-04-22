@@ -33,7 +33,7 @@ class BlackboxMonitor : public Monitor {
       CommandState* command_state, int retries = 1) override;
 
  private:
-  cbor::Value::BinaryValue initial_pin_token_;
+  cbor::Value initial_key_agreement_;
 };
 
 }  // namespace fido2_tests

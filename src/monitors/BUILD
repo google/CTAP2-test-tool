@@ -48,8 +48,9 @@ cc_library(
     srcs = ["blackbox_monitor.cc"],
     hdrs = ["blackbox_monitor.h"],
     deps = [
-        "//src/monitors:monitor",
         "//:command_state",
+        "//src/monitors:monitor",
+        "//third_party/chromium_components_cbor:cbor",
         "@com_google_absl//absl/strings",
     ],
 )
