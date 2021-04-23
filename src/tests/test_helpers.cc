@@ -145,7 +145,7 @@ void PrintNoTouchPrompt() {
             << "not touch your security key until the test finishes. You\n"
             << "should see a flashing LED on the device, please ignore it.\n"
             << "===========================================================\n";
-  absl::SleepFor(absl::Milliseconds(2000));
+  absl::SleepFor(absl::Seconds(2));
 }
 
 bool IsFido2Point1Complicant(DeviceTracker* device_tracker) {
