@@ -138,3 +138,12 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "test_helpers_test",
+    srcs = ["test_helpers_test.cc"],
+    deps = [
+        ":test_helpers",
+        "@com_google_googletest//:gtest_main",
+    ],
+    size = "small",
+)

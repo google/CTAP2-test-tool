@@ -490,7 +490,6 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
   }
   CHECK(versions_set.find("FIDO_2_0") != versions_set.end())
       << "versions does not contain \"FIDO_2_0\"";
-  const cbor::Value::ArrayValue& versions = map_iter->second.GetArray();
 
   map_iter = decoded_map.find(CborValue(InfoMember::kExtensions));
   if (map_iter != decoded_map.end()) {
@@ -503,10 +502,6 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
       extensions_set.insert(extension.GetString());
     }
   }
-  cbor::Value::ArrayValue empty_extensions;
-  const cbor::Value::ArrayValue& extensions = map_iter != decoded_map.end()
-                                                  ? map_iter->second.GetArray()
-                                                  : empty_extensions;
 
   map_iter = decoded_map.find(CborValue(InfoMember::kAaguid));
   CHECK(map_iter != decoded_map.end())
@@ -521,9 +516,6 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
       CHECK(options_iter.second.is_bool()) << "option value is not a boolean";
     }
   }
-  cbor::Value::MapValue empty_options;
-  const cbor::Value::MapValue& options =
-      map_iter != decoded_map.end() ? map_iter->second.GetMap() : empty_options;
 
   map_iter = decoded_map.find(CborValue(InfoMember::kMaxMsgSize));
   if (map_iter != decoded_map.end()) {
@@ -682,7 +674,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
     }
   }
 
-  device_tracker->Initialize(versions, extensions, options);
+  device_tracker->Initialize(decoded_map);
   return decoded_response->Clone();
 }
 

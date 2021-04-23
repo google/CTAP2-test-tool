@@ -95,7 +95,8 @@ std::optional<std::string> DeletePinTest::Execute(
   }
   if (!device_tracker->CheckStatus(
           Status::kErrPinInvalid,
-          command_state->AttemptGetAuthToken(test_helpers::BadPin()))) {
+          command_state->AttemptGetAuthToken(
+              test_helpers::BadPin(device_tracker->GetMinPinLength())))) {
     return "GetAuthToken did not fail with the wrong PIN.";
   }
   cbor::Value::BinaryValue old_auth_token =

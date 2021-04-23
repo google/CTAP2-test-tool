@@ -107,7 +107,9 @@ int ExtractPinRetries(const cbor::Value& response) {
 
 namespace test_helpers {
 
-cbor::Value::BinaryValue BadPin() { return {0x66, 0x61, 0x6B, 0x65}; }
+cbor::Value::BinaryValue BadPin(size_t pin_length) {
+  return cbor::Value::BinaryValue(pin_length, '$');
+}
 
 // Extracts the credential ID from an authenticator data structure[1].
 // [1] https://www.w3.org/TR/webauthn/#sec-authenticator-data

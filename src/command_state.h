@@ -52,8 +52,9 @@ class CommandState {
   // if not already done. Safe to call multiple times, and only talks to the
   // authenticator if there is no PIN already. Defaults to 1234 if nothing else
   // is set. Fails if the PIN requirements are not satisfied.
-  Status SetPin(const cbor::Value::BinaryValue& new_pin_utf8 = {0x31, 0x32,
-                                                                0x33, 0x34});
+  Status SetPin(const cbor::Value::BinaryValue& new_pin_utf8);
+  // Sets the PIN as above, using a default.
+  Status SetPin();
   // Calls the SetPin command with the given padded PIN. Fails if the length is
   // not a multiple of the AES block size. Returns the command's status code.
   // Performs key agreement if not already done.
@@ -66,7 +67,7 @@ class CommandState {
   // Returns the command's status code. Creates a PIN if not already done.
   Status AttemptChangePin(const cbor::Value::BinaryValue& new_padded_pin);
   // Returns a PIN Auth token valid for this power cycle from the authenticator.
-  // Sets the PIN to 1234 if no PIN exists and set_pin_if_necessary is true.
+  // Defaults the PIN if none exists and set_pin_if_necessary is true.
   Status GetAuthToken(bool set_pin_if_necessary = true);
   // Calls the GetAuthToken command with the given PIN. Creates a PIN if
   // not already done. The tested PIN defaults to 1234, which should work with
@@ -75,9 +76,11 @@ class CommandState {
   // necessary because authenticators reset the key agreement on failed PIN
   // hash checks. Setting redo_key_agreement is only used for specific failure
   // mode tests.
-  Status AttemptGetAuthToken(
-      const cbor::Value::BinaryValue& pin_utf8 = {0x31, 0x32, 0x33, 0x34},
-      bool redo_key_agreement = true);
+  Status AttemptGetAuthToken(const cbor::Value::BinaryValue& pin_utf8,
+                             bool redo_key_agreement = true);
+  // Attemps to call GetAuthToken as above, using a default PIN and redoing the
+  // key agreements afterwards.
+  Status AttemptGetAuthToken();
   // Returns the currently stored auth token. This value represents what should
   // be the internal state of the device right now (or is empty if unknown).
   cbor::Value::BinaryValue GetCurrentAuthToken();

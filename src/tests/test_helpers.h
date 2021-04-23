@@ -25,9 +25,10 @@ namespace fido2_tests {
 
 namespace test_helpers {
 
-// Returns a PIN that is different from the PIN set on the device. This is
-// enforced in SetPin() by making sure the chosen PIN is different.
-cbor::Value::BinaryValue BadPin();
+// Returns a PIN of the given length. It is similar to DefaultPin in
+// command_state.cc, but differs in suggested usage. The bad PIN is never
+// supposed to be successfully set as the device PIN.
+cbor::Value::BinaryValue BadPin(size_t pin_length);
 
 // Extracts the credential ID from an authenticator data structure[1].
 // [1] https://www.w3.org/TR/webauthn/#sec-authenticator-data
