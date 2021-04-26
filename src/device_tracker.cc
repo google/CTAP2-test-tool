@@ -81,6 +81,8 @@ void DeviceTracker::Initialize(const cbor::Value::MapValue& info_map) {
   is_initialized_ = true;
 
   auto map_iter = info_map.find(CborValue(InfoMember::kVersions));
+  CHECK(map_iter != info_map.end())
+      << "no versions in GetInfo response - TEST SUITE BUG";
   const cbor::Value::ArrayValue& versions = map_iter->second.GetArray();
   for (const auto& versions_iter : versions) {
     if (versions_iter.is_string()) {

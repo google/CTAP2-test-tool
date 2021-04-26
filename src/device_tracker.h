@@ -49,7 +49,7 @@ class DeviceTracker {
   // is not available until calling Initialize. You can always log findings.
   DeviceTracker();
   // Writes information about device capabilities. Call this function during a
-  // GetInfo call.
+  // GetInfo call. The passed in info_map must be a valid GetInfo response.
   void Initialize(const cbor::Value::MapValue& info_map);
   // Returns if the device supports the version. Will always return false if not
   // initialized.
