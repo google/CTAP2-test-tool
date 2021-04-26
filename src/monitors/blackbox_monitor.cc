@@ -17,31 +17,43 @@
 #include <iostream>
 
 #include "absl/strings/str_cat.h"
+#include "third_party/chromium_components_cbor/values.h"
+#include "third_party/chromium_components_cbor/writer.h"
 
 namespace fido2_tests {
 
 bool BlackboxMonitor::Prepare(CommandState* command_state) {
-  bool ok = command_state->GetAuthToken() == Status::kErrNone;
-  if (ok) {
-    initial_pin_token_ = command_state->GetCurrentAuthToken();
+  absl::variant<cbor::Value, Status> key_agreement_value =
+      command_state->GetKeyAgreementValue();
+  if (absl::holds_alternative<Status>(key_agreement_value)) {
+    return false;
   }
-  return ok;
+  initial_key_agreement_ =
+      std::move(absl::get<cbor::Value>(key_agreement_value));
+  return true;
 }
 
 std::tuple<bool, std::vector<std::string>> BlackboxMonitor::DeviceCrashed(
     CommandState* command_state, int retries) {
   Status status = Status::kErrNone;
+  cbor::Value new_key_agreement;
   std::vector<std::string> observations;
   for (int i = 0; i < retries; ++i) {
-    status = command_state->GetAuthToken();
-    if (status == Status::kErrNone) {
+    absl::variant<cbor::Value, Status> key_agreement_value =
+        command_state->GetKeyAgreementValue();
+    if (absl::holds_alternative<Status>(key_agreement_value)) {
+      status = absl::get<Status>(key_agreement_value);
+      observations.push_back(absl::StrCat("GetKeyAgreement got error code - ",
+                                          StatusToString(status)));
+    } else {
+      new_key_agreement =
+          std::move(absl::get<cbor::Value>(key_agreement_value));
       break;
     }
-    observations.push_back(
-        absl::StrCat("GetAuthToken got error code - ", StatusToString(status)));
   }
   return {status != Status::kErrNone ||
-              command_state->GetCurrentAuthToken() != initial_pin_token_,
+              cbor::Writer::Write(new_key_agreement) !=
+                  cbor::Writer::Write(initial_key_agreement_),
           observations};
 }
 
