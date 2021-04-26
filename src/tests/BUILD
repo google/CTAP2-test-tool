@@ -1,4 +1,4 @@
-# Copyright 2019 Google LLC
+# Copyright 2019-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -132,6 +132,7 @@ cc_library(
         "//:fido2_commands",
         "//third_party/chromium_components_cbor:cbor",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time:time",
         "@com_google_absl//absl/types:variant",
         "@com_google_glog//:glog",
     ],

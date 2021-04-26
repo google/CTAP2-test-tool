@@ -1,4 +1,4 @@
-// Copyright 2020 Google LLC
+// Copyright 2020-2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
 #include <iostream>
 
 #include "absl/strings/str_cat.h"
+#include "absl/time/clock.h"
+#include "absl/time/time.h"
 #include "absl/types/variant.h"
 #include "glog/logging.h"
 #include "src/cbor_builders.h"
@@ -143,6 +145,7 @@ void PrintNoTouchPrompt() {
             << "not touch your security key until the test finishes. You\n"
             << "should see a flashing LED on the device, please ignore it.\n"
             << "===========================================================\n";
+  absl::SleepFor(absl::Seconds(2));
 }
 
 bool IsFido2Point1Complicant(DeviceTracker* device_tracker) {
