@@ -45,7 +45,9 @@ class CommandState {
   // Works with or without a PIN being set.
   absl::variant<cbor::Value, Status> MakeTestCredential(std::string rp_id,
                                                         bool use_resident_key);
-  // Compute the shared secret between authenticator and platform. Sets the
+  // Calls the GetKeyAgreement subcommand and returns its result.
+  absl::variant<cbor::Value, Status> GetKeyAgreementValue();
+  // Computes the shared secret between authenticator and platform. Sets the
   // argument platform_cose_key to the EC key used during the transaction.
   Status ComputeSharedSecret();
   // Sets the PIN to the value specified in new_pin_utf8. Performs key agreement
