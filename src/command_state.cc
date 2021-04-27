@@ -28,6 +28,16 @@ namespace fido2_tests {
 namespace {
 constexpr size_t kPinByteLength = 64;
 constexpr int kResetRetries = 3;
+
+// Returns a PIN of the given length. This PIN is supposed to be used as the
+// default throughout.
+cbor::Value::BinaryValue DefaultPin(size_t pin_length) {
+  cbor::Value::BinaryValue pin;
+  for (size_t i = 0; i < pin_length; ++i) {
+    pin.push_back('1' + i);
+  }
+  return pin;
+}
 }  // namespace
 
 CommandState::CommandState(DeviceInterface* device,
@@ -161,6 +171,10 @@ Status CommandState::SetPin(const cbor::Value::BinaryValue& new_pin_utf8) {
   }
 }
 
+Status CommandState::SetPin() {
+  return SetPin(DefaultPin(device_tracker_->GetMinPinLength()));
+}
+
 Status CommandState::AttemptSetPin(
     const cbor::Value::BinaryValue& new_padded_pin) {
   if (platform_cose_key_.empty() || shared_secret_.empty()) {
@@ -285,6 +299,10 @@ Status CommandState::AttemptGetAuthToken(
     OK_OR_RETURN(ComputeSharedSecret());
   }
   return returned_status;
+}
+
+Status CommandState::AttemptGetAuthToken() {
+  return AttemptGetAuthToken(DefaultPin(device_tracker_->GetMinPinLength()));
 }
 
 cbor::Value::BinaryValue CommandState::GetCurrentAuthToken() {

@@ -117,7 +117,8 @@ std::optional<std::string> PersistentPinRetriesTest::Execute(
     CommandState* command_state) const {
   if (!device_tracker->CheckStatus(
           Status::kErrPinInvalid,
-          command_state->AttemptGetAuthToken(test_helpers::BadPin()))) {
+          command_state->AttemptGetAuthToken(
+              test_helpers::BadPin(device_tracker->GetMinPinLength())))) {
     return "GetAuthToken did not fail with the wrong PIN.";
   }
   auto reduced_counter = test_helpers::GetPinRetries(device, device_tracker);

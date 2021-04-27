@@ -33,8 +33,12 @@ TEST(DeviceTracker, TestInitialize) {
   options[cbor::Value("rk")] = cbor::Value(true);
   options[cbor::Value("clientPin")] = cbor::Value(false);
   options[cbor::Value("bioEnroll")] = cbor::Value(true);
+  cbor::Value::MapValue info;
+  info[CborValue(InfoMember::kVersions)] = cbor::Value(versions);
+  info[CborValue(InfoMember::kExtensions)] = cbor::Value(extensions);
+  info[CborValue(InfoMember::kOptions)] = cbor::Value(options);
 
-  device_tracker.Initialize(versions, extensions, options);
+  device_tracker.Initialize(info);
   EXPECT_TRUE(device_tracker.HasVersion("VERSION"));
   EXPECT_FALSE(device_tracker.HasVersion("WRONG_VERSION"));
   EXPECT_TRUE(device_tracker.HasExtension("EXTENSION"));
@@ -48,11 +52,23 @@ TEST(DeviceTracker, TestInitialize) {
 TEST(DeviceTracker, TestInitializeDefault) {
   DeviceTracker device_tracker = DeviceTracker();
   cbor::Value::ArrayValue versions;
-  cbor::Value::ArrayValue extensions;
-  cbor::Value::MapValue options;
+  cbor::Value::MapValue info;
+  info[CborValue(InfoMember::kVersions)] = cbor::Value(versions);
 
-  device_tracker.Initialize(versions, extensions, options);
+  device_tracker.Initialize(info);
   EXPECT_TRUE(device_tracker.HasOption("up"));
+}
+
+TEST(DeviceTracker, TestGetMinPinLength) {
+  DeviceTracker device_tracker = DeviceTracker();
+  EXPECT_EQ(device_tracker.GetMinPinLength(), 4);
+
+  cbor::Value::ArrayValue versions;
+  cbor::Value::MapValue info;
+  info[CborValue(InfoMember::kVersions)] = cbor::Value(versions);
+  info[CborValue(InfoMember::kMinPinLength)] = cbor::Value(6);
+  device_tracker.Initialize(info);
+  EXPECT_EQ(device_tracker.GetMinPinLength(), 6);
 }
 
 TEST(DeviceTracker, TestCheckStatusOneArgument) {
@@ -89,8 +105,12 @@ TEST(DeviceTracker, TestGenerateResultsJson) {
   extensions.push_back(cbor::Value("EXTENSION"));
   cbor::Value::MapValue options;
   options[cbor::Value("up")] = cbor::Value(true);
+  cbor::Value::MapValue info;
+  info[CborValue(InfoMember::kVersions)] = cbor::Value(versions);
+  info[CborValue(InfoMember::kExtensions)] = cbor::Value(extensions);
+  info[CborValue(InfoMember::kOptions)] = cbor::Value(options);
 
-  device_tracker.Initialize(versions, extensions, options);
+  device_tracker.Initialize(info);
   device_tracker.SetDeviceIdentifiers({.manufacturer = "M",
                                        .product_name = "P",
                                        .serial_number = "S",

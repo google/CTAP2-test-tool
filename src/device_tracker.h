@@ -49,10 +49,8 @@ class DeviceTracker {
   // is not available until calling Initialize. You can always log findings.
   DeviceTracker();
   // Writes information about device capabilities. Call this function during a
-  // GetInfo call.
-  void Initialize(const cbor::Value::ArrayValue& versions,
-                  const cbor::Value::ArrayValue& extensions,
-                  const cbor::Value::MapValue& options);
+  // GetInfo call. The passed in info_map must be a valid GetInfo response.
+  void Initialize(const cbor::Value::MapValue& info_map);
   // Returns if the device supports the version. Will always return false if not
   // initialized.
   bool HasVersion(std::string_view version_name) const;
@@ -62,6 +60,8 @@ class DeviceTracker {
   // Returns if the device supports the option. Will always return false if not
   // initialized.
   bool HasOption(std::string_view option_name) const;
+  // Returns the minimum PIN length as advertized in GetInfo.
+  size_t GetMinPinLength() const;
   // Returns if the device sets the wink capability in its response to Init.
   // Must be set through SetCapabilities, or returns false.
   bool HasWinkCapability() const;
@@ -127,10 +127,8 @@ class DeviceTracker {
   DeviceIdentifiers device_identifiers_;
   std::string aaguid_;
   bool ignores_touch_prompt_ = false;
-  // We want the observations, problems and tests to be listed in order of
-  // appearance.
+  // We want the observations and tests to be listed in order of appearance.
   std::vector<std::string> observations_;
-  std::vector<std::string> problems_;
   std::vector<TestResult> tests_;
   absl::flat_hash_set<std::string> versions_;
   absl::flat_hash_set<std::string> extensions_;
@@ -138,6 +136,7 @@ class DeviceTracker {
   // We only care about being supported in general, and activate as necessary.
   // Also, options that default to true are always initialized.
   absl::flat_hash_set<std::string> options_;
+  size_t min_pin_length_ = 4;
   bool is_initialized_ = false;
   bool has_wink_capability_ = false;
   bool has_cbor_capability_ = false;

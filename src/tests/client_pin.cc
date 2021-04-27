@@ -447,8 +447,8 @@ std::optional<std::string> ClientPinOldKeyMaterialTest::Execute(
     DeviceInterface* device, DeviceTracker* device_tracker,
     CommandState* command_state) const {
   // Reuses key material that should have been renewed to see if it still works.
-  Status returned_status =
-      command_state->AttemptGetAuthToken(test_helpers::BadPin(), false);
+  Status returned_status = command_state->AttemptGetAuthToken(
+      test_helpers::BadPin(device_tracker->GetMinPinLength()), false);
   if (!device_tracker->CheckStatus(Status::kErrPinInvalid, returned_status)) {
     return "A wrong PIN was not rejected.";
   }
@@ -491,8 +491,8 @@ std::optional<std::string> ClientPinGeneralPinRetriesTest::Execute(
     return "PIN retries changed between subsequent calls.";
   }
 
-  Status returned_status =
-      command_state->AttemptGetAuthToken(test_helpers::BadPin());
+  Status returned_status = command_state->AttemptGetAuthToken(
+      test_helpers::BadPin(device_tracker->GetMinPinLength()));
   if (!device_tracker->CheckStatus(Status::kErrPinInvalid, returned_status)) {
     return "A wrong PIN was not rejected.";
   }
@@ -543,14 +543,14 @@ std::optional<std::string> ClientPinAuthBlockPinRetriesTest::Execute(
   }
 
   for (int attempts = 1; attempts < kWrongPinsBeforePowerCycle; ++attempts) {
-    Status returned_status =
-        command_state->AttemptGetAuthToken(test_helpers::BadPin());
+    Status returned_status = command_state->AttemptGetAuthToken(
+        test_helpers::BadPin(device_tracker->GetMinPinLength()));
     if (!device_tracker->CheckStatus(Status::kErrPinInvalid, returned_status)) {
       return "A wrong PIN was not rejected.";
     }
   }
-  Status returned_status =
-      command_state->AttemptGetAuthToken(test_helpers::BadPin());
+  Status returned_status = command_state->AttemptGetAuthToken(
+      test_helpers::BadPin(device_tracker->GetMinPinLength()));
   if (!device_tracker->CheckStatus(Status::kErrPinAuthBlocked,
                                    returned_status)) {
     return "A wrong PIN was not blocked.";
@@ -611,8 +611,8 @@ std::optional<std::string> ClientPinBlockPinRetriesTest::Execute(
 
   // Leaves one attempt.
   for (int attempts = 1; attempts < max_retries; ++attempts) {
-    Status returned_status =
-        command_state->AttemptGetAuthToken(test_helpers::BadPin());
+    Status returned_status = command_state->AttemptGetAuthToken(
+        test_helpers::BadPin(device_tracker->GetMinPinLength()));
     if (attempts % kWrongPinsBeforePowerCycle != 0) {
       // Normal case, PIN not blocked.
       if (!device_tracker->CheckStatus(Status::kErrPinInvalid,
@@ -636,8 +636,8 @@ std::optional<std::string> ClientPinBlockPinRetriesTest::Execute(
     }
   }
 
-  Status returned_status =
-      command_state->AttemptGetAuthToken(test_helpers::BadPin());
+  Status returned_status = command_state->AttemptGetAuthToken(
+      test_helpers::BadPin(device_tracker->GetMinPinLength()));
   if (!device_tracker->CheckStatus(Status::kErrPinBlocked, returned_status)) {
     return "The PIN is not blocked after the counter reached 0.";
   }

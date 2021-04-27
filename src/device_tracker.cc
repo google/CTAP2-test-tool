@@ -74,26 +74,36 @@ nlohmann::json TestResult::ToJson() const {
 DeviceTracker::DeviceTracker()
     : key_checker_(std::vector<std::vector<uint8_t>>()) {}
 
-void DeviceTracker::Initialize(const cbor::Value::ArrayValue& versions,
-                               const cbor::Value::ArrayValue& extensions,
-                               const cbor::Value::MapValue& options) {
+void DeviceTracker::Initialize(const cbor::Value::MapValue& info_map) {
   if (is_initialized_) {
     return;
   }
   is_initialized_ = true;
 
+  auto map_iter = info_map.find(CborValue(InfoMember::kVersions));
+  CHECK(map_iter != info_map.end())
+      << "no versions in GetInfo response - TEST SUITE BUG";
+  const cbor::Value::ArrayValue& versions = map_iter->second.GetArray();
   for (const auto& versions_iter : versions) {
     if (versions_iter.is_string()) {
       versions_.insert(versions_iter.GetString());
     }
   }
 
-  for (const auto& extensions_iter : extensions) {
-    if (extensions_iter.is_string()) {
-      extensions_.insert(extensions_iter.GetString());
+  map_iter = info_map.find(CborValue(InfoMember::kExtensions));
+  if (map_iter != info_map.end()) {
+    const cbor::Value::ArrayValue& extensions = map_iter->second.GetArray();
+    for (const auto& extensions_iter : extensions) {
+      if (extensions_iter.is_string()) {
+        extensions_.insert(extensions_iter.GetString());
+      }
     }
   }
 
+  map_iter = info_map.find(CborValue(InfoMember::kOptions));
+  cbor::Value::MapValue empty_options;
+  const cbor::Value::MapValue& options =
+      map_iter != info_map.end() ? map_iter->second.GetMap() : empty_options;
   absl::flat_hash_set<std::string> mutable_options = {"clientPin", "uv",
                                                       "bioEnroll"};
   for (const auto& options_iter : options) {
@@ -113,6 +123,11 @@ void DeviceTracker::Initialize(const cbor::Value::ArrayValue& versions,
       options_.insert(option);
     }
   }
+
+  map_iter = info_map.find(CborValue(InfoMember::kMinPinLength));
+  if (map_iter != info_map.end()) {
+    min_pin_length_ = map_iter->second.GetUnsigned();
+  }
 }
 
 bool DeviceTracker::HasVersion(std::string_view version_name) const {
@@ -126,6 +141,8 @@ bool DeviceTracker::HasExtension(std::string_view extension_name) const {
 bool DeviceTracker::HasOption(std::string_view option_name) const {
   return options_.contains(option_name);
 }
+
+size_t DeviceTracker::GetMinPinLength() const { return min_pin_length_; }
 
 bool DeviceTracker::HasWinkCapability() const { return has_wink_capability_; }
 
