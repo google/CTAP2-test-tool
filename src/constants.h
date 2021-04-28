@@ -66,6 +66,7 @@ enum class Status : uint8_t {
   kErrActionTimeout = 0x3A,
   kErrUpRequired = 0x3B,
   kErrUvBlocked = 0x3C,
+  kErrTestToolInternal = 0x7E,
   kErrOther = 0x7F
 };
 
@@ -115,6 +116,7 @@ enum class PinSubCommand : uint8_t {
   kGetPinToken = 0x05,
   kGetPinUvAuthTokenUsingUvWithPermissions = 0x06,
   kGetUvRetries = 0x07,
+  // Sub command 0x08 existed in a draft, but was removed.
   kGetPinUvAuthTokenUsingPinWithPermissions = 0x09,
 };
 

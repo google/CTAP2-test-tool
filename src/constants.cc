@@ -104,6 +104,8 @@ std::string StatusToString(Status status) {
       return "CTAP2_ERR_UP_REQUIRED";
     case Status::kErrUvBlocked:
       return "CTAP2_ERR_UV_BLOCKED";
+    case Status::kErrTestToolInternal:
+      return "TEST TOOL FOUND A PROBLEM";
     case Status::kErrOther:
       return "CTAP1_ERR_OTHER";
     default:

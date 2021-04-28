@@ -788,6 +788,10 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
           << "pinUvAuthToken entry is not a bytestring";
       break;
     }
+    default:
+      device_tracker->AddObservation(
+          "ClientPin was called with an unknown sub command.");
+      return Status::kErrTestToolInternal;
   }
 
   // Check for unexpected map keys.
