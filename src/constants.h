@@ -88,7 +88,12 @@ enum class Command : uint8_t {
   kAuthenticatorGetInfo = 0x04,
   kAuthenticatorClientPIN = 0x06,
   kAuthenticatorReset = 0x07,
-  kAuthenticatorGetNextAssertion = 0x08
+  kAuthenticatorGetNextAssertion = 0x08,
+  kAuthenticatorBioEnrollment = 0x09,
+  kAuthenticatorCredentialManagement = 0x0A,
+  kAuthenticatorSelection = 0x0B,
+  kAuthenticatorLargeBlobs = 0x0C,
+  kAuthenticatorConfig = 0x0D,
 };
 
 // Converts a Command to a string for printing.
@@ -101,7 +106,7 @@ enum class Algorithm {
   kRs256Algorithm = -257
 };
 
-// The reset command has a few sub commands with the following representations.
+// The ClientPin command has these sub commands.
 enum class PinSubCommand : uint8_t {
   kGetPinRetries = 0x01,
   kGetKeyAgreement = 0x02,
@@ -109,7 +114,8 @@ enum class PinSubCommand : uint8_t {
   kChangePin = 0x04,
   kGetPinToken = 0x05,
   kGetPinUvAuthTokenUsingUvWithPermissions = 0x06,
-  kGetUvRetries = 0x07
+  kGetUvRetries = 0x07,
+  kGetPinUvAuthTokenUsingPinWithPermissions = 0x09,
 };
 
 // A keepalive packet has two possible status bytes, or errors.
@@ -233,6 +239,143 @@ cbor::Value CborValue(ClientPinResponse response);
 
 // Checks if the key is used in this enum.
 bool ClientPinResponseContains(int64_t key);
+
+// The command CredentialManagement has a parameter map with the following keys.
+enum class CredentialManagementParameters : uint8_t {
+  kSubCommand = 0x01,
+  kSubCommandParams = 0x02,
+  kPinUvAuthProtocol = 0x03,
+  kPinUvAuthParam = 0x04,
+};
+
+// Contains the map keys for CredentialManagement responses.
+enum class CredentialManagementResponse : uint8_t {
+  kExistingResidentCredentialsCount = 0x01,
+  kMaxPossibleRemainingResidentCredentialsCount = 0x02,
+  kRp = 0x03,
+  kRpIdHash = 0x04,
+  kTotalRps = 0x05,
+  kUser = 0x06,
+  kCredentialId = 0x07,
+  kPublicKey = 0x08,
+  kTotalCredentials = 0x09,
+  kCredProtect = 0x0A,
+  kLargeBlobKey = 0x0B,
+};
+
+// Converts a CredentialManagement response key to a cbor::Value.
+cbor::Value CborValue(CredentialManagementResponse response);
+
+// Checks if the key is used in this enum.
+bool CredentialManagementResponseContains(int64_t key);
+
+// The CredentialManagement command has these sub commands.
+enum class ManagementSubCommand : uint8_t {
+  kGetCredsMetadata = 0x01,
+  kEnumerateRpsBegin = 0x02,
+  kEnumerateRpsGetNextRp = 0x03,
+  kEnumerateCredentialsBegin = 0x04,
+  kEnumerateCredentialsGetNextCredential = 0x05,
+  kDeleteCredential = 0x06,
+  kUpdateUserInformation = 0x07,
+};
+
+// The CredentialManagement sub commands have these parameters.
+enum class ManagementSubCommandParams : uint8_t {
+  kRpIdHash = 0x01,
+  kCredentialId = 0x02,
+  kUser = 0x03,
+};
+
+// The command BioEnrollment has a parameter map with the following keys.
+enum class BioEnrollmentParameters : uint8_t {
+  kModality = 0x01,
+  kSubCommand = 0x02,
+  kSubCommandParams = 0x03,
+  kPinUvAuthProtocol = 0x04,
+  kPinUvAuthParam = 0x05,
+  kGetModality = 0x06,
+};
+
+// Contains the map keys for BioEnrollment responses.
+enum class BioEnrollmentResponse : uint8_t {
+  kModality = 0x01,
+  kFingerprintKind = 0x02,
+  kMaxCaptureSamplesRequiredForEnroll = 0x03,
+  kTemplateId = 0x04,
+  kLastEnrollSampleStatus = 0x05,
+  kRemainingSamples = 0x06,
+  kTemplateInfos = 0x07,
+  kMaxTemplateFriendlyName = 0x08,
+};
+
+// Converts a BioEnrollment response key to a cbor::Value.
+cbor::Value CborValue(BioEnrollmentResponse response);
+
+// Checks if the key is used in this enum.
+bool BioEnrollmentResponseContains(int64_t key);
+
+// The BioEnrollment command has these sub commands.
+enum class BioEnrollmentSubCommand : uint8_t {
+  kEnrollBegin = 0x01,
+  kEnrollCaptureNextSample = 0x02,
+  kCancelCurrentEnrollment = 0x03,
+  kEnumerateEnrollments = 0x04,
+  kSetFriendlyName = 0x05,
+  kRemoveEnrollment = 0x06,
+  kGetFingerprintSensorInfo = 0x07,
+};
+
+// The BioEnrollment sub commands have these parameters.
+enum class BioEnrollmentSubCommandParams : uint8_t {
+  kTemplateId = 0x01,
+  kTemplateFriendlyName = 0x02,
+  kTimeoutMilliseconds = 0x03,
+};
+
+// The command LargeBlobs has a parameter map with the following keys.
+enum class LargeBlobsParameters : uint8_t {
+  kGet = 0x01,
+  kSet = 0x02,
+  kOffset = 0x03,
+  kLength = 0x04,
+  kPinUvAuthParam = 0x05,
+  kPinUvAuthProtocol = 0x06,
+};
+
+// Contains the map keys for LargeBlobs responses.
+enum class LargeBlobsResponse : uint8_t {
+  kConfig = 0x01,
+};
+
+// Converts a LargeBlobs response key to a cbor::Value.
+cbor::Value CborValue(LargeBlobsResponse response);
+
+// Checks if the key is used in this enum.
+bool LargeBlobsResponseContains(int64_t key);
+
+// The command Config has a parameter map with the following keys.
+enum class ConfigParameters : uint8_t {
+  kSubCommand = 0x01,
+  kSubCommandParams = 0x02,
+  kPinUvAuthProtocol = 0x03,
+  kPinUvAuthParam = 0x04,
+};
+
+// The Config command has these sub commands.
+enum class ConfigSubCommand : uint8_t {
+  kEnableEnterpriseAttestation = 0x01,
+  kToggleAlwaysUv = 0x02,
+  kSetMinPinLength = 0x03,
+  kVendorPrototype = 0x04,
+};
+
+// The Configsub commands have these parameters.
+enum class ConfigSubCommandParams : uint8_t {
+  kNewMinPinLength = 0x01,
+  kMinPinLengthRpIds = 0x02,
+  kForceChangePin = 0x03,
+};
 
 }  // namespace fido2_tests
 

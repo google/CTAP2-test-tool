@@ -778,6 +778,16 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
           << "UV retries entry is not an unsigned";
       break;
     }
+    case PinSubCommand::kGetPinUvAuthTokenUsingPinWithPermissions: {
+      allowed_map_keys.insert(ClientPinResponse::kPinUvAuthToken);
+      auto map_iter =
+          decoded_map.find(CborValue(ClientPinResponse::kPinUvAuthToken));
+      CHECK(map_iter != decoded_map.end())
+          << "no pinUvAuthToken (key 2) in PIN protocol response";
+      CHECK(map_iter->second.is_bytestring())
+          << "pinUvAuthToken entry is not a bytestring";
+      break;
+    }
   }
 
   // Check for unexpected map keys.
