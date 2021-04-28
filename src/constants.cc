@@ -104,6 +104,8 @@ std::string StatusToString(Status status) {
       return "CTAP2_ERR_UP_REQUIRED";
     case Status::kErrUvBlocked:
       return "CTAP2_ERR_UV_BLOCKED";
+    case Status::kErrTestToolInternal:
+      return "TEST TOOL FOUND A PROBLEM";
     case Status::kErrOther:
       return "CTAP1_ERR_OTHER";
     default:
@@ -125,6 +127,16 @@ std::string CommandToString(Command command) {
       return "reset command";
     case Command::kAuthenticatorGetNextAssertion:
       return "get next assertion command";
+    case Command::kAuthenticatorBioEnrollment:
+      return "bio enrollment command";
+    case Command::kAuthenticatorCredentialManagement:
+      return "credential management command";
+    case Command::kAuthenticatorSelection:
+      return "selection command";
+    case Command::kAuthenticatorLargeBlobs:
+      return "large blobs command";
+    case Command::kAuthenticatorConfig:
+      return "config command";
     default:
       CHECK(false) << "unreachable default - TEST SUITE BUG";
   }
@@ -158,6 +170,28 @@ cbor::Value CborValue(ClientPinResponse response) {
 
 bool ClientPinResponseContains(int64_t key) {
   return key >= 0x01 && key <= 0x05;
+}
+
+cbor::Value CborValue(CredentialManagementResponse response) {
+  return cbor::Value(static_cast<uint8_t>(response));
+}
+
+bool CredentialManagementResponseContains(int64_t key) {
+  return key >= 0x01 && key <= 0x0B;
+}
+
+cbor::Value CborValue(LargeBlobsResponse response) {
+  return cbor::Value(static_cast<uint8_t>(response));
+}
+
+bool LargeBlobsResponseContains(int64_t key) { return key == 0x01; }
+
+cbor::Value CborValue(BioEnrollmentResponse response) {
+  return cbor::Value(static_cast<uint8_t>(response));
+}
+
+bool BioEnrollmentResponseContains(int64_t key) {
+  return key >= 0x01 && key <= 0x08;
 }
 
 }  // namespace fido2_tests
