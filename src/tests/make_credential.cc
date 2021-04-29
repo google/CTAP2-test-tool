@@ -318,7 +318,7 @@ std::optional<std::string> MakeCredentialCredParamsTest::Execute(
   }
 
   pub_key_cred_params.clear();
-  test_cred_param[cbor::Value("alg")] = CborValue(Algorithm::kEs256Algorithm);
+  test_cred_param[cbor::Value("alg")] = CborInt(Algorithm::kEs256Algorithm);
   test_cred_param[cbor::Value("type")] = cbor::Value("non-existing type");
   pub_key_cred_params.push_back(cbor::Value(test_cred_param));
   cose_algorithm_builder.SetMapEntry(
@@ -332,7 +332,7 @@ std::optional<std::string> MakeCredentialCredParamsTest::Execute(
   }
 
   pub_key_cred_params.clear();
-  test_cred_param[cbor::Value("alg")] = CborValue(Algorithm::kEs256Algorithm);
+  test_cred_param[cbor::Value("alg")] = CborInt(Algorithm::kEs256Algorithm);
   test_cred_param[cbor::Value("type")] = cbor::Value("public-key");
   pub_key_cred_params.push_back(cbor::Value(test_cred_param));
   test_cred_param[cbor::Value("alg")] = cbor::Value(-1);

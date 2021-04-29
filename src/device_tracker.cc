@@ -80,7 +80,7 @@ void DeviceTracker::Initialize(const cbor::Value::MapValue& info_map) {
   }
   is_initialized_ = true;
 
-  auto map_iter = info_map.find(CborValue(InfoMember::kVersions));
+  auto map_iter = info_map.find(CborInt(InfoMember::kVersions));
   CHECK(map_iter != info_map.end())
       << "no versions in GetInfo response - TEST SUITE BUG";
   const cbor::Value::ArrayValue& versions = map_iter->second.GetArray();
@@ -90,7 +90,7 @@ void DeviceTracker::Initialize(const cbor::Value::MapValue& info_map) {
     }
   }
 
-  map_iter = info_map.find(CborValue(InfoMember::kExtensions));
+  map_iter = info_map.find(CborInt(InfoMember::kExtensions));
   if (map_iter != info_map.end()) {
     const cbor::Value::ArrayValue& extensions = map_iter->second.GetArray();
     for (const auto& extensions_iter : extensions) {
@@ -100,7 +100,7 @@ void DeviceTracker::Initialize(const cbor::Value::MapValue& info_map) {
     }
   }
 
-  map_iter = info_map.find(CborValue(InfoMember::kOptions));
+  map_iter = info_map.find(CborInt(InfoMember::kOptions));
   cbor::Value::MapValue empty_options;
   const cbor::Value::MapValue& options =
       map_iter != info_map.end() ? map_iter->second.GetMap() : empty_options;
@@ -124,7 +124,7 @@ void DeviceTracker::Initialize(const cbor::Value::MapValue& info_map) {
     }
   }
 
-  map_iter = info_map.find(CborValue(InfoMember::kMinPinLength));
+  map_iter = info_map.find(CborInt(InfoMember::kMinPinLength));
   if (map_iter != info_map.end()) {
     min_pin_length_ = map_iter->second.GetUnsigned();
   }

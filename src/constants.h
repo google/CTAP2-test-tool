@@ -108,11 +108,11 @@ enum class Algorithm {
 };
 
 // Converts a the algorithm to a cbor::Value.
-cbor::Value CborValue(Algorithm alg);
+cbor::Value CborInt(Algorithm alg);
 
 // Converts parameter, response and subcommand keys to cbor::Value.
 template <typename T>
-cbor::Value CborValue(T variant) {
+cbor::Value CborInt(T variant) {
   return cbor::Value(static_cast<uint8_t>(variant));
 }
 

@@ -142,7 +142,7 @@ std::string CommandToString(Command command) {
   }
 }
 
-cbor::Value CborValue(Algorithm alg) {
+cbor::Value CborInt(Algorithm alg) {
   return cbor::Value(static_cast<int>(alg));
 }
 

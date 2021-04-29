@@ -102,7 +102,7 @@ size_t PubKeyDuplicateCheck(KeyChecker* key_checker,
 std::string ExtractRpIdFromMakeCredentialRequest(const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(CborValue(MakeCredentialParameters::kRp));
+  auto req_iter = request_map.find(CborInt(MakeCredentialParameters::kRp));
   CHECK(req_iter != request_map.end()) << "RP not in request - TEST SUITE BUG";
   CHECK(req_iter->second.is_map()) << "RP is not a map - TEST SUITE BUG";
   const auto& inner_map = req_iter->second.GetMap();
@@ -117,7 +117,7 @@ std::string ExtractRpIdFromMakeCredentialRequest(const cbor::Value& request) {
 std::string ExtractRpIdFromGetAssertionRequest(const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(CborValue(GetAssertionParameters::kRpId));
+  auto req_iter = request_map.find(CborInt(GetAssertionParameters::kRpId));
   CHECK(req_iter != request_map.end())
       << "RP ID not in request - TEST SUITE BUG";
   CHECK(req_iter->second.is_string())
@@ -128,7 +128,7 @@ std::string ExtractRpIdFromGetAssertionRequest(const cbor::Value& request) {
 PinSubCommand ExtractPinSubCommand(const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(CborValue(ClientPinParameters::kSubCommand));
+  auto req_iter = request_map.find(CborInt(ClientPinParameters::kSubCommand));
   CHECK(req_iter != request_map.end())
       << "subcommand not in request - TEST SUITE BUG";
   return static_cast<PinSubCommand>(req_iter->second.GetUnsigned());
@@ -138,8 +138,7 @@ cbor::Value::BinaryValue ExtractUniqueCredentialFromAllowList(
     const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter =
-      request_map.find(CborValue(GetAssertionParameters::kAllowList));
+  auto req_iter = request_map.find(CborInt(GetAssertionParameters::kAllowList));
   CHECK(req_iter != request_map.end())
       << "allow list not in request - TEST SUITE BUG";
   CHECK(req_iter->second.is_array())
@@ -162,7 +161,7 @@ cbor::Value::BinaryValue ExtractUniqueCredentialFromAllowList(
 bool ExtractUpOptionFromGetAssertionRequest(const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(CborValue(GetAssertionParameters::kOptions));
+  auto req_iter = request_map.find(CborInt(GetAssertionParameters::kOptions));
   if (req_iter == request_map.end()) {
     return true;
   }
@@ -197,13 +196,13 @@ absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
   CHECK(decoded_response->is_map()) << "CBOR response is not a map";
   const auto& decoded_map = decoded_response->GetMap();
 
-  auto map_iter = decoded_map.find(CborValue(MakeCredentialResponse::kFmt));
+  auto map_iter = decoded_map.find(CborInt(MakeCredentialResponse::kFmt));
   CHECK(map_iter != decoded_map.end())
       << "no fmt (key 1) in MakeCredential response";
   CHECK(map_iter->second.is_string()) << "fmt is not a string";
   std::string fmt = map_iter->second.GetString();
 
-  map_iter = decoded_map.find(CborValue(MakeCredentialResponse::kAuthData));
+  map_iter = decoded_map.find(CborInt(MakeCredentialResponse::kAuthData));
   CHECK(map_iter != decoded_map.end())
       << "no authData (key 2) in MakeCredential response";
   CHECK(map_iter->second.is_bytestring())
@@ -258,7 +257,7 @@ absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
   ByteVector extension_data(cose_key.begin() + cose_key_size, cose_key.end());
   CheckExtensions(extension_data);
 
-  map_iter = decoded_map.find(CborValue(MakeCredentialResponse::kAttStmt));
+  map_iter = decoded_map.find(CborInt(MakeCredentialResponse::kAttStmt));
   CHECK(map_iter != decoded_map.end())
       << "no attStmt (key 3) in MakeCredential response";
 
@@ -325,8 +324,7 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
   CHECK(decoded_response->is_map()) << "CBOR response is not a map";
   const auto& decoded_map = decoded_response->GetMap();
 
-  auto map_iter =
-      decoded_map.find(CborValue(GetAssertionResponse::kCredential));
+  auto map_iter = decoded_map.find(CborInt(GetAssertionResponse::kCredential));
   cbor::Value::BinaryValue credential_id;
   if (map_iter == decoded_map.end()) {
     // Allow list length 1 can be enforced here because only then is not
@@ -344,7 +342,7 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
     credential_id = inner_iter->second.GetBytestring();
   }
 
-  map_iter = decoded_map.find(CborValue(GetAssertionResponse::kAuthData));
+  map_iter = decoded_map.find(CborInt(GetAssertionResponse::kAuthData));
   CHECK(map_iter != decoded_map.end())
       << "no authData (key 2) in GetAssertion response";
   CHECK(map_iter->second.is_bytestring())
@@ -382,7 +380,7 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
   ByteVector extension_data(auth_data.begin() + 37, auth_data.end());
   CheckExtensions(extension_data);
 
-  map_iter = decoded_map.find(CborValue(GetAssertionResponse::kSignature));
+  map_iter = decoded_map.find(CborInt(GetAssertionResponse::kSignature));
   CHECK(map_iter != decoded_map.end())
       << "no signature (key 3) in GetAssertion response";
   CHECK(map_iter->second.is_bytestring())
@@ -395,7 +393,7 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
   // What is the intended way to remember the algorithm used? Just somehow store
   // it along with the PublicKeyCredentialSource? What about non-resident keys?
 
-  map_iter = decoded_map.find(CborValue(GetAssertionResponse::kUser));
+  map_iter = decoded_map.find(CborInt(GetAssertionResponse::kUser));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_map()) << "user entry is not a map";
     const auto& user = map_iter->second.GetMap();
@@ -426,7 +424,7 @@ absl::variant<cbor::Value, Status> GetAssertionPositiveTest(
   }
 
   map_iter =
-      decoded_map.find(CborValue(GetAssertionResponse::kNumberOfCredentials));
+      decoded_map.find(CborInt(GetAssertionResponse::kNumberOfCredentials));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "number of credentials entry is not an unsigned";
@@ -470,7 +468,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
   CHECK(decoded_response->is_map()) << "CBOR response is not a map";
   const auto& decoded_map = decoded_response->GetMap();
 
-  auto map_iter = decoded_map.find(CborValue(InfoMember::kVersions));
+  auto map_iter = decoded_map.find(CborInt(InfoMember::kVersions));
   CHECK(map_iter != decoded_map.end())
       << "no versions (key 1) included in GetInfo response";
   CHECK(map_iter->second.is_array()) << "versions entry is not an array";
@@ -484,7 +482,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
   CHECK(versions_set.find("FIDO_2_0") != versions_set.end())
       << "versions does not contain \"FIDO_2_0\"";
 
-  map_iter = decoded_map.find(CborValue(InfoMember::kExtensions));
+  map_iter = decoded_map.find(CborInt(InfoMember::kExtensions));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_array()) << "extensions entry is not an array";
     absl::flat_hash_set<std::string> extensions_set;
@@ -496,12 +494,12 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
     }
   }
 
-  map_iter = decoded_map.find(CborValue(InfoMember::kAaguid));
+  map_iter = decoded_map.find(CborInt(InfoMember::kAaguid));
   CHECK(map_iter != decoded_map.end())
       << "no AAGUID (key 3) in GetInfo response";
   CHECK(map_iter->second.is_bytestring()) << "aaguid entry is not a bytestring";
 
-  map_iter = decoded_map.find(CborValue(InfoMember::kOptions));
+  map_iter = decoded_map.find(CborInt(InfoMember::kOptions));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_map()) << "options entry is not a map";
     for (const auto& options_iter : map_iter->second.GetMap()) {
@@ -510,13 +508,13 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
     }
   }
 
-  map_iter = decoded_map.find(CborValue(InfoMember::kMaxMsgSize));
+  map_iter = decoded_map.find(CborInt(InfoMember::kMaxMsgSize));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "maxMsgSize entry is not an unsigned";
   }
 
-  map_iter = decoded_map.find(CborValue(InfoMember::kPinUvAuthProtocols));
+  map_iter = decoded_map.find(CborInt(InfoMember::kPinUvAuthProtocols));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_array())
         << "pinUvAuthProtocols entry is not an array";
@@ -526,19 +524,19 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
     }
   }
 
-  map_iter = decoded_map.find(CborValue(InfoMember::kMaxCredentialCountInList));
+  map_iter = decoded_map.find(CborInt(InfoMember::kMaxCredentialCountInList));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "maxCredentialCountInList entry is not an unsigned";
   }
 
-  map_iter = decoded_map.find(CborValue(InfoMember::kMaxCredentialIdLength));
+  map_iter = decoded_map.find(CborInt(InfoMember::kMaxCredentialIdLength));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "maxCredentialIdLength entry is not an unsigned";
   }
 
-  map_iter = decoded_map.find(CborValue(InfoMember::kTransports));
+  map_iter = decoded_map.find(CborInt(InfoMember::kTransports));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_array()) << "transports entry is not an array";
     absl::flat_hash_set<std::string> transports_set;
@@ -550,7 +548,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
     }
   }
 
-  map_iter = decoded_map.find(CborValue(InfoMember::kAlgorithms));
+  map_iter = decoded_map.find(CborInt(InfoMember::kAlgorithms));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_array()) << "algorithms entry is not an array";
     absl::flat_hash_set<int> algorithms_set;
@@ -577,7 +575,7 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
   }
 
   map_iter =
-      decoded_map.find(CborValue(InfoMember::kMaxSerializedLargeBlobArray));
+      decoded_map.find(CborInt(InfoMember::kMaxSerializedLargeBlobArray));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "maxSerializedLargeBlobArray entry is not an unsigned";
@@ -585,25 +583,25 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
         << "maxSerializedLargeBlobArray is too small";
   }
 
-  map_iter = decoded_map.find(CborValue(InfoMember::kForcePinChange));
+  map_iter = decoded_map.find(CborInt(InfoMember::kForcePinChange));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_bool()) << "forcePINChangeentry is not a bool";
   }
 
-  map_iter = decoded_map.find(CborValue(InfoMember::kMinPinLength));
+  map_iter = decoded_map.find(CborInt(InfoMember::kMinPinLength));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "minPINLength entry is not an unsigned";
     CHECK_GE(map_iter->second.GetUnsigned(), 4) << "minPINLength is too small";
   }
 
-  map_iter = decoded_map.find(CborValue(InfoMember::kFirmwareVersion));
+  map_iter = decoded_map.find(CborInt(InfoMember::kFirmwareVersion));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "firmwareVersion entry is not an unsigned";
   }
 
-  map_iter = decoded_map.find(CborValue(InfoMember::kMaxCredBlobLength));
+  map_iter = decoded_map.find(CborInt(InfoMember::kMaxCredBlobLength));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "maxCredBlobLength entry is not an unsigned";
@@ -611,40 +609,39 @@ absl::variant<cbor::Value, Status> GetInfoPositiveTest(
         << "maxCredBlobLength is too small";
   }
 
-  map_iter =
-      decoded_map.find(CborValue(InfoMember::kMaxRpIdsForSetMinPinLength));
+  map_iter = decoded_map.find(CborInt(InfoMember::kMaxRpIdsForSetMinPinLength));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "maxRPIDsForSetMinPINLength entry is not an unsigned";
   }
 
   map_iter =
-      decoded_map.find(CborValue(InfoMember::kPreferredPlatformUvAttempts));
+      decoded_map.find(CborInt(InfoMember::kPreferredPlatformUvAttempts));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "preferredPlatformUvAttempts entry is not an unsigned";
   }
 
-  map_iter = decoded_map.find(CborValue(InfoMember::kUvModality));
+  map_iter = decoded_map.find(CborInt(InfoMember::kUvModality));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "uvModality entry is not an unsigned";
   }
 
-  map_iter = decoded_map.find(CborValue(InfoMember::kCertifications));
+  map_iter = decoded_map.find(CborInt(InfoMember::kCertifications));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_map()) << "certifications entry is not a map";
   }
 
-  map_iter = decoded_map.find(
-      CborValue(InfoMember::kRemainingDiscoverableCredentials));
+  map_iter =
+      decoded_map.find(CborInt(InfoMember::kRemainingDiscoverableCredentials));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_unsigned())
         << "remainingDiscoverableCredentials entry is not an unsigned";
   }
 
   map_iter =
-      decoded_map.find(CborValue(InfoMember::kVendorPrototypeConfigCommands));
+      decoded_map.find(CborInt(InfoMember::kVendorPrototypeConfigCommands));
   if (map_iter != decoded_map.end()) {
     CHECK(map_iter->second.is_array())
         << "vendorPrototypeConfigCommands entry is not an array";
@@ -703,15 +700,13 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
   switch (subcommand) {
     case PinSubCommand::kGetPinRetries: {
       allowed_map_keys.insert(ClientPinResponse::kPinRetries);
-      auto map_iter =
-          decoded_map.find(CborValue(ClientPinResponse::kPinRetries));
+      auto map_iter = decoded_map.find(CborInt(ClientPinResponse::kPinRetries));
       CHECK(map_iter != decoded_map.end())
           << "no PIN retries (key 3) included in PIN protocol response";
       CHECK(map_iter->second.is_unsigned())
           << "PIN retries entry is not an unsigned";
       allowed_map_keys.insert(ClientPinResponse::kPowerCycleState);
-      map_iter =
-          decoded_map.find(CborValue(ClientPinResponse::kPowerCycleState));
+      map_iter = decoded_map.find(CborInt(ClientPinResponse::kPowerCycleState));
       if (map_iter != decoded_map.end()) {
         CHECK(map_iter->second.is_bool())
             << "powerCycleState entry is not a boolean";
@@ -721,7 +716,7 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
     case PinSubCommand::kGetKeyAgreement: {
       allowed_map_keys.insert(ClientPinResponse::kKeyAgreement);
       auto map_iter =
-          decoded_map.find(CborValue(ClientPinResponse::kKeyAgreement));
+          decoded_map.find(CborInt(ClientPinResponse::kKeyAgreement));
       CHECK(map_iter != decoded_map.end())
           << "no KeyAgreement (key 1) in PIN protocol response";
       CHECK(map_iter->second.is_map()) << "KeyAgreement entry is not a map";
@@ -738,7 +733,7 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
     case PinSubCommand::kGetPinToken: {
       allowed_map_keys.insert(ClientPinResponse::kPinUvAuthToken);
       auto map_iter =
-          decoded_map.find(CborValue(ClientPinResponse::kPinUvAuthToken));
+          decoded_map.find(CborInt(ClientPinResponse::kPinUvAuthToken));
       CHECK(map_iter != decoded_map.end())
           << "no pinUvAuthToken (key 2) in PIN protocol response";
       CHECK(map_iter->second.is_bytestring())
@@ -748,7 +743,7 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
     case PinSubCommand::kGetPinUvAuthTokenUsingUvWithPermissions: {
       allowed_map_keys.insert(ClientPinResponse::kPinUvAuthToken);
       auto map_iter =
-          decoded_map.find(CborValue(ClientPinResponse::kPinUvAuthToken));
+          decoded_map.find(CborInt(ClientPinResponse::kPinUvAuthToken));
       CHECK(map_iter != decoded_map.end())
           << "no pinUvAuthToken (key 2) in PIN protocol response";
       CHECK(map_iter->second.is_bytestring())
@@ -758,13 +753,13 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
     case PinSubCommand::kGetUvRetries: {
       allowed_map_keys.insert(ClientPinResponse::kPowerCycleState);
       auto map_iter =
-          decoded_map.find(CborValue(ClientPinResponse::kPowerCycleState));
+          decoded_map.find(CborInt(ClientPinResponse::kPowerCycleState));
       if (map_iter != decoded_map.end()) {
         CHECK(map_iter->second.is_bool())
             << "powerCycleState entry is not a boolean";
       }
       allowed_map_keys.insert(ClientPinResponse::kUvRetries);
-      map_iter = decoded_map.find(CborValue(ClientPinResponse::kUvRetries));
+      map_iter = decoded_map.find(CborInt(ClientPinResponse::kUvRetries));
       CHECK(map_iter != decoded_map.end())
           << "no UV retries (key 5) included in PIN protocol response";
       CHECK(map_iter->second.is_unsigned())
@@ -774,7 +769,7 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
     case PinSubCommand::kGetPinUvAuthTokenUsingPinWithPermissions: {
       allowed_map_keys.insert(ClientPinResponse::kPinUvAuthToken);
       auto map_iter =
-          decoded_map.find(CborValue(ClientPinResponse::kPinUvAuthToken));
+          decoded_map.find(CborInt(ClientPinResponse::kPinUvAuthToken));
       CHECK(map_iter != decoded_map.end())
           << "no pinUvAuthToken (key 2) in PIN protocol response";
       CHECK(map_iter->second.is_bytestring())
