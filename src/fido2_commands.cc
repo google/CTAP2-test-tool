@@ -134,6 +134,15 @@ PinSubCommand ExtractPinSubCommand(const cbor::Value& request) {
   return static_cast<PinSubCommand>(req_iter->second.GetUnsigned());
 }
 
+ManagementSubCommand ExtractManagementSubCommand(const cbor::Value& request) {
+  const auto& request_map = request.GetMap();
+  auto req_iter =
+      request_map.find(CborInt(CredentialManagementParameters::kSubCommand));
+  CHECK(req_iter != request_map.end())
+      << "sub command not in request - TEST SUITE BUG";
+  return static_cast<ManagementSubCommand>(req_iter->second.GetUnsigned());
+}
+
 cbor::Value::BinaryValue ExtractUniqueCredentialFromAllowList(
     const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
@@ -175,6 +184,16 @@ bool ExtractUpOptionFromGetAssertionRequest(const cbor::Value& request) {
       << "option \"up\" is not a boolean - TEST SUITE BUG";
   return options_iter->second.GetBool();
 }
+
+// Logs an observation and returns a Status, if the condition is not met.
+// Requires a device_tracker object to exist.
+#define TRUE_OR_RETURN(condition, s)       \
+  do {                                     \
+    if (!(condition)) {                    \
+      device_tracker->AddObservation((s)); \
+      return Status::kErrTestToolInternal; \
+    }                                      \
+  } while (0)
 }  // namespace
 
 absl::variant<cbor::Value, Status> MakeCredentialPositiveTest(
@@ -815,6 +834,199 @@ absl::variant<cbor::Value, Status> ResetPositiveTest(DeviceInterface* device) {
   return cbor::Value();
 }
 
+absl::variant<cbor::Value, Status>
+AuthenticatorCredentialManagementPositiveTest(DeviceInterface* device,
+                                              DeviceTracker* device_tracker,
+                                              const cbor::Value& request) {
+  auto encoded_request = cbor::Writer::Write(request);
+  CHECK(encoded_request.has_value()) << "encoding went wrong - TEST SUITE BUG";
+
+  ByteVector resp_cbor;
+  Status status =
+      device->ExchangeCbor(Command::kAuthenticatorCredentialManagement,
+                           *encoded_request, false, &resp_cbor);
+  if (status != Status::kErrNone) {
+    return status;
+  }
+
+  ManagementSubCommand subcommand = ExtractManagementSubCommand(request);
+  if (subcommand == ManagementSubCommand::kDeleteCredential ||
+      subcommand == ManagementSubCommand::kUpdateUserInformation) {
+    TRUE_OR_RETURN(resp_cbor.empty(), "The CBOR response was not empty.");
+    return cbor::Value();
+  }
+
+  absl::optional<cbor::Value> decoded_response = cbor::Reader::Read(resp_cbor);
+  TRUE_OR_RETURN(decoded_response.has_value(), "CBOR decoding failed.");
+  TRUE_OR_RETURN(decoded_response->is_map(), "CBOR response is not a map.");
+  const auto& decoded_map = decoded_response->GetMap();
+  absl::flat_hash_set<CredentialManagementResponse> allowed_map_keys;
+
+  switch (subcommand) {
+    case ManagementSubCommand::kGetCredsMetadata: {
+      allowed_map_keys.insert(
+          CredentialManagementResponse::kExistingResidentCredentialsCount);
+      auto map_iter = decoded_map.find(CborInt(
+          CredentialManagementResponse::kExistingResidentCredentialsCount));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No existingResidentCredentialsCount in "
+                     "CredentialManagement response.");
+      TRUE_OR_RETURN(
+          map_iter->second.is_unsigned(),
+          "existingResidentCredentialsCountentry is not an unsigned.");
+      allowed_map_keys.insert(
+          CredentialManagementResponse::
+              kMaxPossibleRemainingResidentCredentialsCount);
+      map_iter = decoded_map.find(
+          CborInt(CredentialManagementResponse::
+                      kMaxPossibleRemainingResidentCredentialsCount));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No maxPossibleRemainingResidentCredentialsCount in "
+                     "CredentialManagement response.");
+      TRUE_OR_RETURN(
+          map_iter->second.is_unsigned(),
+          "maxPossibleRemainingResidentCredentialsCount is not an unsigned.");
+      break;
+    }
+    case ManagementSubCommand::kEnumerateRpsBegin: {
+      allowed_map_keys.insert(CredentialManagementResponse::kRp);
+      auto map_iter =
+          decoded_map.find(CborInt(CredentialManagementResponse::kRp));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No rp in CredentialManagement response.");
+      TRUE_OR_RETURN(map_iter->second.is_map(), "rp is not a map.");
+      allowed_map_keys.insert(CredentialManagementResponse::kRpIdHash);
+      map_iter =
+          decoded_map.find(CborInt(CredentialManagementResponse::kRpIdHash));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No rpIDHash in CredentialManagement response.");
+      TRUE_OR_RETURN(map_iter->second.is_bytestring(),
+                     "rpIDHash is not a bytestring.");
+      map_iter =
+          decoded_map.find(CborInt(CredentialManagementResponse::kTotalRps));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No totalRPs in CredentialManagement response.");
+      TRUE_OR_RETURN(map_iter->second.is_unsigned(),
+                     "totalRPs is not an unsigned.");
+      break;
+    }
+    case ManagementSubCommand::kEnumerateRpsGetNextRp: {
+      allowed_map_keys.insert(CredentialManagementResponse::kRp);
+      auto map_iter =
+          decoded_map.find(CborInt(CredentialManagementResponse::kRp));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No rp in CredentialManagement response.");
+      TRUE_OR_RETURN(map_iter->second.is_map(), "rp is not a map.");
+      allowed_map_keys.insert(CredentialManagementResponse::kRpIdHash);
+      map_iter =
+          decoded_map.find(CborInt(CredentialManagementResponse::kRpIdHash));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No rpIDHash in CredentialManagement response.");
+      TRUE_OR_RETURN(map_iter->second.is_bytestring(),
+                     "rpIDHash is not a bytestring.");
+      break;
+    }
+    case ManagementSubCommand::kEnumerateCredentialsBegin: {
+      allowed_map_keys.insert(CredentialManagementResponse::kUser);
+      auto map_iter =
+          decoded_map.find(CborInt(CredentialManagementResponse::kUser));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No user in CredentialManagement response.");
+      TRUE_OR_RETURN(map_iter->second.is_map(), "user is not a map.");
+      allowed_map_keys.insert(CredentialManagementResponse::kCredentialId);
+      map_iter = decoded_map.find(
+          CborInt(CredentialManagementResponse::kCredentialId));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No credentialID in CredentialManagement response.");
+      TRUE_OR_RETURN(map_iter->second.is_map(), "credentialID is not a map.");
+      allowed_map_keys.insert(CredentialManagementResponse::kPublicKey);
+      map_iter =
+          decoded_map.find(CborInt(CredentialManagementResponse::kPublicKey));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No publicKey in CredentialManagement response.");
+      TRUE_OR_RETURN(map_iter->second.is_map(), "publicKey is not a map.");
+      allowed_map_keys.insert(CredentialManagementResponse::kTotalCredentials);
+      map_iter = decoded_map.find(
+          CborInt(CredentialManagementResponse::kTotalCredentials));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No publicKey in totalCredentials response.");
+      TRUE_OR_RETURN(map_iter->second.is_unsigned(),
+                     "totalCredentials is not an unsigned.");
+      allowed_map_keys.insert(CredentialManagementResponse::kCredProtect);
+      map_iter =
+          decoded_map.find(CborInt(CredentialManagementResponse::kCredProtect));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No credProtect in totalCredentials response.");
+      TRUE_OR_RETURN(map_iter->second.is_unsigned(),
+                     "credProtect is not an unsigned.");
+      allowed_map_keys.insert(CredentialManagementResponse::kLargeBlobKey);
+      map_iter = decoded_map.find(
+          CborInt(CredentialManagementResponse::kLargeBlobKey));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No largeBlobKey in totalCredentials response.");
+      TRUE_OR_RETURN(map_iter->second.is_bytestring(),
+                     "largeBlobKey is not a bytestring.");
+      break;
+    }
+    case ManagementSubCommand::kEnumerateCredentialsGetNextCredential: {
+      allowed_map_keys.insert(CredentialManagementResponse::kUser);
+      auto map_iter =
+          decoded_map.find(CborInt(CredentialManagementResponse::kUser));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No user in CredentialManagement response.");
+      TRUE_OR_RETURN(map_iter->second.is_map(), "user is not a map.");
+      allowed_map_keys.insert(CredentialManagementResponse::kCredentialId);
+      map_iter = decoded_map.find(
+          CborInt(CredentialManagementResponse::kCredentialId));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No credentialID in CredentialManagement response.");
+      TRUE_OR_RETURN(map_iter->second.is_map(), "credentialID is not a map.");
+      allowed_map_keys.insert(CredentialManagementResponse::kPublicKey);
+      map_iter =
+          decoded_map.find(CborInt(CredentialManagementResponse::kPublicKey));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No publicKey in CredentialManagement response.");
+      TRUE_OR_RETURN(map_iter->second.is_map(), "publicKey is not a map.");
+      allowed_map_keys.insert(CredentialManagementResponse::kCredProtect);
+      map_iter =
+          decoded_map.find(CborInt(CredentialManagementResponse::kCredProtect));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No credProtect in totalCredentials response.");
+      TRUE_OR_RETURN(map_iter->second.is_unsigned(),
+                     "credProtect is not an unsigned.");
+      allowed_map_keys.insert(CredentialManagementResponse::kLargeBlobKey);
+      map_iter = decoded_map.find(
+          CborInt(CredentialManagementResponse::kLargeBlobKey));
+      TRUE_OR_RETURN(map_iter != decoded_map.end(),
+                     "No largeBlobKey in totalCredentials response.");
+      TRUE_OR_RETURN(map_iter->second.is_bytestring(),
+                     "largeBlobKey is not a bytestring.");
+      break;
+    }
+    default:
+      CHECK(false) << "unreachable default - TEST SUITE BUG";
+  }
+
+  // Check for unexpected map keys.
+  for (const auto& map_entry : decoded_map) {
+    if (map_entry.first.is_unsigned()) {
+      const int64_t map_key = map_entry.first.GetUnsigned();
+      if (!CredentialManagementResponseContains(map_key) ||
+          !allowed_map_keys.contains(
+              static_cast<CredentialManagementResponse>(map_key))) {
+        device_tracker->AddObservation(
+            absl::StrCat("Received unspecified CredentialManagement map key ",
+                         map_key, "."));
+      }
+    } else {
+      device_tracker->AddObservation(
+          "Some Credential Management map keys are not unsigned.");
+    }
+  }
+
+  return decoded_response->Clone();
+}
+
 Status MakeCredentialNegativeTest(DeviceInterface* device,
                                   const cbor::Value& request,
                                   bool expect_up_check) {
@@ -853,6 +1065,34 @@ Status AuthenticatorClientPinNegativeTest(DeviceInterface* device,
 Status ResetNegativeTest(DeviceInterface* device, const cbor::Value& request,
                          bool expect_up_check) {
   return GenericNegativeTest(device, request, Command::kAuthenticatorReset,
+                             expect_up_check);
+}
+
+Status CredentialManagementNegativeTest(DeviceInterface* device,
+                                        const cbor::Value& request,
+                                        bool expect_up_check) {
+  return GenericNegativeTest(device, request,
+                             Command::kAuthenticatorCredentialManagement,
+                             expect_up_check);
+}
+
+Status SelectionNegativeTest(DeviceInterface* device,
+                             const cbor::Value& request, bool expect_up_check) {
+  return GenericNegativeTest(device, request, Command::kAuthenticatorSelection,
+                             expect_up_check);
+}
+
+Status LargeBlobsNegativeTest(DeviceInterface* device,
+                              const cbor::Value& request,
+                              bool expect_up_check) {
+  return GenericNegativeTest(device, request, Command::kAuthenticatorLargeBlobs,
+                             expect_up_check);
+}
+
+Status AuthenticatorConfigNegativeTest(DeviceInterface* device,
+                                       const cbor::Value& request,
+                                       bool expect_up_check) {
+  return GenericNegativeTest(device, request, Command::kAuthenticatorConfig,
                              expect_up_check);
 }
 
