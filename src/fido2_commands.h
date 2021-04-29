@@ -43,6 +43,8 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
     DeviceInterface* device, DeviceTracker* device_tracker,
     const cbor::Value& request);
 absl::variant<cbor::Value, Status> ResetPositiveTest(DeviceInterface* device);
+absl::variant<cbor::Value, Status>
+AuthenticatorCredentialManagementPositiveTest(DeviceInterface* device);
 
 // Sends the request to the device and returns the error code passed by the
 // authenticator. Warns if you expected a user presence check, but none was
@@ -60,6 +62,16 @@ Status GetInfoNegativeTest(DeviceInterface* device, const cbor::Value& request);
 Status AuthenticatorClientPinNegativeTest(DeviceInterface* device,
                                           const cbor::Value& request,
                                           bool expect_up_check);
+Status CredentialManagementNegativeTest(DeviceInterface* device,
+                                        const cbor::Value& request,
+                                        bool expect_up_check);
+Status SelectionNegativeTest(DeviceInterface* device,
+                             const cbor::Value& request, bool expect_up_check);
+Status LargeBlobsNegativeTest(DeviceInterface* device,
+                              const cbor::Value& request, bool expect_up_check);
+Status AuthenticatorConfigNegativeTest(DeviceInterface* device,
+                                       const cbor::Value& request,
+                                       bool expect_up_check);
 // Be careful: vendor-specific things might happen here.
 // Yubico i.e. only allows for resets in the first 5 seconds after powerup.
 Status ResetNegativeTest(DeviceInterface* device, const cbor::Value& request,
