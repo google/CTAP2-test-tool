@@ -93,8 +93,7 @@ void WritePublicKeyToCoseMap(const EC_GROUP* ec_group,
   // Beware here: Despite the algorithm's name, this is not supposed to do
   // SHA256 at the end. The algorithm identifier is only there for backwards
   // compatibility.
-  (*cose_public_key_out)[cbor::Value(3)] =
-      cbor::Value(static_cast<int>(Algorithm::kEcdhEsHkdf256));
+  (*cose_public_key_out)[cbor::Value(3)] = CborValue(Algorithm::kEcdhEsHkdf256);
   (*cose_public_key_out)[cbor::Value(-1)] = cbor::Value(kCurveParameter);
   (*cose_public_key_out)[cbor::Value(-2)] = cbor::Value(platform_public_key_x);
   (*cose_public_key_out)[cbor::Value(-3)] = cbor::Value(platform_public_key_y);
@@ -127,8 +126,7 @@ cbor::Value::MapValue GenerateExampleEcdhCoseKey() {
   cbor::Value::MapValue example_cose_key;
   example_cose_key[cbor::Value(1)] = cbor::Value(kEcdhKeyType);
   // The spec asks for -25, even though it is not the algorithm in use.
-  example_cose_key[cbor::Value(3)] =
-      cbor::Value(static_cast<int>(Algorithm::kEcdhEsHkdf256));
+  example_cose_key[cbor::Value(3)] = CborValue(Algorithm::kEcdhEsHkdf256);
   example_cose_key[cbor::Value(-1)] = cbor::Value(kCurveParameter);
   example_cose_key[cbor::Value(-2)] = cbor::Value(cbor::Value::BinaryValue(
       {0xb2, 0x07, 0x17, 0xfb, 0xc7, 0xc8, 0x25, 0x17, 0xf5, 0x11, 0x02,

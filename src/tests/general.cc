@@ -51,8 +51,7 @@ std::optional<std::string> GetInfoTest::Execute(
   }
 
   const auto& decoded_map = absl::get<cbor::Value>(response).GetMap();
-  auto map_iter = decoded_map.find(
-      cbor::Value(static_cast<uint8_t>(InfoMember::kPinUvAuthProtocols)));
+  auto map_iter = decoded_map.find(CborValue(InfoMember::kPinUvAuthProtocols));
   bool has_pin_protocol_1 = false;
   if (map_iter != decoded_map.end()) {
     for (const auto& pin_protocol : map_iter->second.GetArray()) {

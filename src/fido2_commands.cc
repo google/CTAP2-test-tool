@@ -102,8 +102,7 @@ size_t PubKeyDuplicateCheck(KeyChecker* key_checker,
 std::string ExtractRpIdFromMakeCredentialRequest(const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(
-      cbor::Value(static_cast<int>(MakeCredentialParameters::kRp)));
+  auto req_iter = request_map.find(CborValue(MakeCredentialParameters::kRp));
   CHECK(req_iter != request_map.end()) << "RP not in request - TEST SUITE BUG";
   CHECK(req_iter->second.is_map()) << "RP is not a map - TEST SUITE BUG";
   const auto& inner_map = req_iter->second.GetMap();
@@ -118,8 +117,7 @@ std::string ExtractRpIdFromMakeCredentialRequest(const cbor::Value& request) {
 std::string ExtractRpIdFromGetAssertionRequest(const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(
-      cbor::Value(static_cast<int>(GetAssertionParameters::kRpId)));
+  auto req_iter = request_map.find(CborValue(GetAssertionParameters::kRpId));
   CHECK(req_iter != request_map.end())
       << "RP ID not in request - TEST SUITE BUG";
   CHECK(req_iter->second.is_string())
@@ -127,16 +125,12 @@ std::string ExtractRpIdFromGetAssertionRequest(const cbor::Value& request) {
   return req_iter->second.GetString();
 }
 
-PinSubCommand ExtractSubCommandFromClientPinRequest(
-    const cbor::Value& request) {
+PinSubCommand ExtractPinSubCommand(const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(
-      cbor::Value(static_cast<int>(ClientPinParameters::kSubCommand)));
+  auto req_iter = request_map.find(CborValue(ClientPinParameters::kSubCommand));
   CHECK(req_iter != request_map.end())
       << "subcommand not in request - TEST SUITE BUG";
-  CHECK(req_iter->second.is_unsigned())
-      << "subcommand is not an unsigned - TEST SUITE BUG";
   return static_cast<PinSubCommand>(req_iter->second.GetUnsigned());
 }
 
@@ -144,8 +138,8 @@ cbor::Value::BinaryValue ExtractUniqueCredentialFromAllowList(
     const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(
-      cbor::Value(static_cast<int>(GetAssertionParameters::kAllowList)));
+  auto req_iter =
+      request_map.find(CborValue(GetAssertionParameters::kAllowList));
   CHECK(req_iter != request_map.end())
       << "allow list not in request - TEST SUITE BUG";
   CHECK(req_iter->second.is_array())
@@ -168,8 +162,7 @@ cbor::Value::BinaryValue ExtractUniqueCredentialFromAllowList(
 bool ExtractUpOptionFromGetAssertionRequest(const cbor::Value& request) {
   CHECK(request.is_map()) << "request is not a map - TEST SUITE BUG";
   const auto& request_map = request.GetMap();
-  auto req_iter = request_map.find(
-      cbor::Value(static_cast<int>(GetAssertionParameters::kOptions)));
+  auto req_iter = request_map.find(CborValue(GetAssertionParameters::kOptions));
   if (req_iter == request_map.end()) {
     return true;
   }
@@ -691,7 +684,7 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
     return status;
   }
 
-  PinSubCommand subcommand = ExtractSubCommandFromClientPinRequest(request);
+  PinSubCommand subcommand = ExtractPinSubCommand(request);
   bool has_response_cbor = subcommand != PinSubCommand::kSetPin &&
                            subcommand != PinSubCommand::kChangePin;
   absl::optional<cbor::Value> decoded_response = cbor::Reader::Read(resp_cbor);
@@ -789,9 +782,7 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
       break;
     }
     default:
-      device_tracker->AddObservation(
-          "ClientPin was called with an unknown sub command.");
-      return Status::kErrTestToolInternal;
+      CHECK(false) << "unreachable default - TEST SUITE BUG";
   }
 
   // Check for unexpected map keys.
@@ -799,7 +790,7 @@ absl::variant<cbor::Value, Status> AuthenticatorClientPinPositiveTest(
     for (const auto& map_entry : decoded_map) {
       if (map_entry.first.is_unsigned()) {
         const int64_t map_key = map_entry.first.GetUnsigned();
-        if (!GetAssertionResponseContains(map_key) ||
+        if (!ClientPinResponseContains(map_key) ||
             !allowed_map_keys.contains(
                 static_cast<ClientPinResponse>(map_key))) {
           device_tracker->AddObservation(absl::StrCat(
