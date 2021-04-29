@@ -107,6 +107,15 @@ enum class Algorithm {
   kRs256Algorithm = -257
 };
 
+// Converts a the algorithm to a cbor::Value.
+cbor::Value CborInt(Algorithm alg);
+
+// Converts parameter, response and subcommand keys to cbor::Value.
+template <typename T>
+cbor::Value CborInt(T variant) {
+  return cbor::Value(static_cast<uint8_t>(variant));
+}
+
 // The ClientPin command has these sub commands.
 enum class PinSubCommand : uint8_t {
   kGetPinRetries = 0x01,
@@ -173,9 +182,6 @@ enum class MakeCredentialResponse : uint8_t {
   kLargeBlobKey = 0x05,
 };
 
-// Converts a MakeCredential response key to a cbor::Value.
-cbor::Value CborValue(MakeCredentialResponse response);
-
 // Checks if the key is used in this enum.
 bool MakeCredentialResponseContains(int64_t key);
 
@@ -189,9 +195,6 @@ enum class GetAssertionResponse : uint8_t {
   kUserSelected = 0x06,
   kLargeBlobKey = 0x07,
 };
-
-// Converts a GetAssertion response key to a cbor::Value.
-cbor::Value CborValue(GetAssertionResponse response);
 
 // Checks if the key is used in this enum.
 bool GetAssertionResponseContains(int64_t key);
@@ -221,9 +224,6 @@ enum class InfoMember : uint8_t {
   kVendorPrototypeConfigCommands = 0x15,
 };
 
-// Converts a GetInfo response key to a cbor::Value.
-cbor::Value CborValue(InfoMember response);
-
 // Checks if the key is used in this enum.
 bool InfoMemberContains(int64_t key);
 
@@ -235,9 +235,6 @@ enum class ClientPinResponse : uint8_t {
   kPowerCycleState = 0x04,
   kUvRetries = 0x05,
 };
-
-// Converts a ClientPin response key to a cbor::Value.
-cbor::Value CborValue(ClientPinResponse response);
 
 // Checks if the key is used in this enum.
 bool ClientPinResponseContains(int64_t key);
@@ -264,9 +261,6 @@ enum class CredentialManagementResponse : uint8_t {
   kCredProtect = 0x0A,
   kLargeBlobKey = 0x0B,
 };
-
-// Converts a CredentialManagement response key to a cbor::Value.
-cbor::Value CborValue(CredentialManagementResponse response);
 
 // Checks if the key is used in this enum.
 bool CredentialManagementResponseContains(int64_t key);
@@ -311,9 +305,6 @@ enum class BioEnrollmentResponse : uint8_t {
   kMaxTemplateFriendlyName = 0x08,
 };
 
-// Converts a BioEnrollment response key to a cbor::Value.
-cbor::Value CborValue(BioEnrollmentResponse response);
-
 // Checks if the key is used in this enum.
 bool BioEnrollmentResponseContains(int64_t key);
 
@@ -349,9 +340,6 @@ enum class LargeBlobsParameters : uint8_t {
 enum class LargeBlobsResponse : uint8_t {
   kConfig = 0x01,
 };
-
-// Converts a LargeBlobs response key to a cbor::Value.
-cbor::Value CborValue(LargeBlobsResponse response);
 
 // Checks if the key is used in this enum.
 bool LargeBlobsResponseContains(int64_t key);
