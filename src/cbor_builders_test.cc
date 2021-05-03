@@ -100,6 +100,17 @@ TEST(CborBuilders, TestClientPinCborBuilder) {
   EXPECT_EQ(blank_map.GetMap().size(), 0);
 }
 
+TEST(CborBuilders, TestCredentialManagementCborBuilder) {
+  CredentialManagementCborBuilder cbor_builder =
+      CredentialManagementCborBuilder();
+  cbor_builder.SetMapEntry(CredentialManagementParameters::kSubCommand,
+                           cbor::Value(2));
+  cbor_builder.RemoveMapEntry(CredentialManagementParameters::kSubCommand);
+  cbor::Value blank_map = cbor_builder.GetCbor();
+  ASSERT_EQ(blank_map.type(), cbor::Value::Type::MAP);
+  EXPECT_EQ(blank_map.GetMap().size(), 0);
+}
+
 }  // namespace
 }  // namespace fido2_tests
 

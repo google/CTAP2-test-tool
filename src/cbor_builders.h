@@ -191,6 +191,51 @@ class AuthenticatorClientPinCborBuilder : public CborBuilder {
   void AddDefaultsForGetUvRetries();
 };
 
+// See MakeCredentialCborBuilder, this is a similar class for
+// AuthenticatorCredentialManagement.
+class CredentialManagementCborBuilder : public CborBuilder {
+ public:
+  // Checks if the entry is present for the given key.
+  bool HasEntry(CredentialManagementParameters key);
+  // Sets or overwrites the given key.
+  void SetMapEntry(CredentialManagementParameters key, cbor::Value&& value);
+  // Removes the map entry at given key, if existing.
+  void RemoveMapEntry(CredentialManagementParameters key);
+  // Sets or overwrites key 1 with the given integer.
+  void SetSubCommand(ManagementSubCommand sub_command);
+  // Sets or overwrites key 2 with a map containing the given RP ID hash.
+  void SetSubCommandParamsRpIdHash(const cbor::Value::BinaryValue& rp_id_hash);
+  // Sets or overwrites key 2 with a map containing a credential descriptor with
+  // the given credential ID.
+  void SetSubCommandParamsCredentialId(
+      const cbor::Value::BinaryValue& cred_descriptor_id);
+  // Sets or overwrites key 2 with a map containing a credential descriptor with
+  // the given credential ID and a user entity with given ID and name.
+  void SetSubCommandParamsCredentialAndUser(
+      const cbor::Value::BinaryValue& cred_descriptor_id,
+      const cbor::Value::BinaryValue& user_id, std::string user_name);
+  // Sets or overwrites key 3 with the unsigned value 1.
+  void SetDefaultPinProtocol();
+  // Sets or overwrites key 4 with the given bytestring.
+  void SetPinAuth(const cbor::Value::BinaryValue& pin_auth);
+  // Sets defaults for keys 1, 2 and 4 ONLY if they are not present yet.
+  void AddDefaultsForGetCredsMetadata(const cbor::Value::BinaryValue& pin_auth);
+  void AddDefaultsForEnumerateRpsBegin(
+      const cbor::Value::BinaryValue& pin_auth);
+  void AddDefaultsForEnumerateRpsGetNextRp();
+  void AddDefaultsForEnumerateCredentialsBegin(
+      const cbor::Value::BinaryValue& rp_id_hash,
+      const cbor::Value::BinaryValue& pin_auth);
+  void AddDefaultsForEnumerateCredentialsGetNextCredential();
+  void AddDefaultsForDeleteCredential(
+      const cbor::Value::BinaryValue& cred_descriptor_id,
+      const cbor::Value::BinaryValue& pin_auth);
+  void AddDefaultsForUpdateUserInformation(
+      const cbor::Value::BinaryValue& cred_descriptor_id,
+      const cbor::Value::BinaryValue& user_id, std::string user_name,
+      const cbor::Value::BinaryValue& pin_auth);
+};
+
 }  // namespace fido2_tests
 
 #endif  // CBOR_BUILDERS_H_

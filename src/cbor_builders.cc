@@ -415,5 +415,168 @@ void AuthenticatorClientPinCborBuilder::AddDefaultsForGetUvRetries() {
   }
 }
 
+bool CredentialManagementCborBuilder::HasEntry(
+    CredentialManagementParameters key) {
+  return CborBuilder::HasEntry(static_cast<int>(key));
+}
+
+void CredentialManagementCborBuilder::SetMapEntry(
+    CredentialManagementParameters key, cbor::Value&& value) {
+  SetArbitraryMapEntry(static_cast<int>(key), std::move(value));
+}
+
+void CredentialManagementCborBuilder::RemoveMapEntry(
+    CredentialManagementParameters key) {
+  RemoveArbitraryMapEntry(static_cast<int>(key));
+}
+
+void CredentialManagementCborBuilder::SetSubCommand(
+    ManagementSubCommand sub_command) {
+  SetMapEntry(CredentialManagementParameters::kSubCommand,
+              CborInt(sub_command));
+}
+
+void CredentialManagementCborBuilder::SetSubCommandParamsRpIdHash(
+    const cbor::Value::BinaryValue& rp_id_hash) {
+  cbor::Value::MapValue sub_command_params;
+  sub_command_params[CborInt(ManagementSubCommandParams::kRpIdHash)] =
+      cbor::Value(rp_id_hash);
+  SetMapEntry(CredentialManagementParameters::kSubCommandParams,
+              cbor::Value(std::move(sub_command_params)));
+}
+
+void CredentialManagementCborBuilder::SetSubCommandParamsCredentialId(
+    const cbor::Value::BinaryValue& cred_descriptor_id) {
+  cbor::Value::MapValue cred_descriptor;
+  cred_descriptor[cbor::Value("type")] = cbor::Value("public-key");
+  cred_descriptor[cbor::Value("id")] = cbor::Value(cred_descriptor_id);
+  cbor::Value::MapValue sub_command_params;
+  sub_command_params[CborInt(ManagementSubCommandParams::kCredentialId)] =
+      cbor::Value(std::move(cred_descriptor));
+  SetMapEntry(CredentialManagementParameters::kSubCommandParams,
+              cbor::Value(std::move(sub_command_params)));
+}
+
+void CredentialManagementCborBuilder::SetSubCommandParamsCredentialAndUser(
+    const cbor::Value::BinaryValue& cred_descriptor_id,
+    const cbor::Value::BinaryValue& user_id, std::string user_name) {
+  cbor::Value::MapValue cred_descriptor;
+  cred_descriptor[cbor::Value("type")] = cbor::Value("public-key");
+  cred_descriptor[cbor::Value("id")] = cbor::Value(cred_descriptor_id);
+  cbor::Value::MapValue user;
+  user[cbor::Value("id")] = cbor::Value(user_id);
+  user[cbor::Value("name")] = cbor::Value(std::move(user_name));
+  cbor::Value::MapValue sub_command_params;
+  sub_command_params[CborInt(ManagementSubCommandParams::kCredentialId)] =
+      cbor::Value(std::move(cred_descriptor));
+  sub_command_params[CborInt(ManagementSubCommandParams::kUser)] =
+      cbor::Value(std::move(user));
+  SetMapEntry(CredentialManagementParameters::kSubCommandParams,
+              cbor::Value(std::move(sub_command_params)));
+}
+
+void CredentialManagementCborBuilder::SetDefaultPinProtocol() {
+  SetMapEntry(CredentialManagementParameters::kPinUvAuthProtocol,
+              cbor::Value(1));
+}
+
+void CredentialManagementCborBuilder::SetPinAuth(
+    const cbor::Value::BinaryValue& pin_auth) {
+  SetMapEntry(CredentialManagementParameters::kPinUvAuthParam,
+              cbor::Value(pin_auth));
+}
+
+void CredentialManagementCborBuilder::AddDefaultsForGetCredsMetadata(
+    const cbor::Value::BinaryValue& pin_auth) {
+  if (!HasEntry(CredentialManagementParameters::kSubCommand)) {
+    SetSubCommand(ManagementSubCommand::kGetCredsMetadata);
+  }
+  if (!HasEntry(CredentialManagementParameters::kPinUvAuthProtocol)) {
+    SetDefaultPinProtocol();
+  }
+  if (!HasEntry(CredentialManagementParameters::kPinUvAuthParam)) {
+    SetPinAuth(pin_auth);
+  }
+}
+
+void CredentialManagementCborBuilder::AddDefaultsForEnumerateRpsBegin(
+    const cbor::Value::BinaryValue& pin_auth) {
+  if (!HasEntry(CredentialManagementParameters::kSubCommand)) {
+    SetSubCommand(ManagementSubCommand::kEnumerateRpsBegin);
+  }
+  if (!HasEntry(CredentialManagementParameters::kPinUvAuthProtocol)) {
+    SetDefaultPinProtocol();
+  }
+  if (!HasEntry(CredentialManagementParameters::kPinUvAuthParam)) {
+    SetPinAuth(pin_auth);
+  }
+}
+
+void CredentialManagementCborBuilder::AddDefaultsForEnumerateRpsGetNextRp() {
+  if (!HasEntry(CredentialManagementParameters::kSubCommand)) {
+    SetSubCommand(ManagementSubCommand::kEnumerateRpsGetNextRp);
+  }
+}
+
+void CredentialManagementCborBuilder::AddDefaultsForEnumerateCredentialsBegin(
+    const cbor::Value::BinaryValue& rp_id_hash,
+    const cbor::Value::BinaryValue& pin_auth) {
+  if (!HasEntry(CredentialManagementParameters::kSubCommand)) {
+    SetSubCommand(ManagementSubCommand::kEnumerateCredentialsBegin);
+  }
+  if (!HasEntry(CredentialManagementParameters::kSubCommandParams)) {
+    SetSubCommandParamsRpIdHash(rp_id_hash);
+  }
+  if (!HasEntry(CredentialManagementParameters::kPinUvAuthProtocol)) {
+    SetDefaultPinProtocol();
+  }
+  if (!HasEntry(CredentialManagementParameters::kPinUvAuthParam)) {
+    SetPinAuth(pin_auth);
+  }
+}
+
+void CredentialManagementCborBuilder::
+    AddDefaultsForEnumerateCredentialsGetNextCredential() {
+  if (!HasEntry(CredentialManagementParameters::kSubCommand)) {
+    SetSubCommand(ManagementSubCommand::kEnumerateCredentialsGetNextCredential);
+  }
+}
+
+void CredentialManagementCborBuilder::AddDefaultsForDeleteCredential(
+    const cbor::Value::BinaryValue& cred_descriptor_id,
+    const cbor::Value::BinaryValue& pin_auth) {
+  if (!HasEntry(CredentialManagementParameters::kSubCommand)) {
+    SetSubCommand(ManagementSubCommand::kDeleteCredential);
+  }
+  if (!HasEntry(CredentialManagementParameters::kSubCommandParams)) {
+    SetSubCommandParamsCredentialId(cred_descriptor_id);
+  }
+  if (!HasEntry(CredentialManagementParameters::kPinUvAuthProtocol)) {
+    SetDefaultPinProtocol();
+  }
+  if (!HasEntry(CredentialManagementParameters::kPinUvAuthParam)) {
+    SetPinAuth(pin_auth);
+  }
+}
+
+void CredentialManagementCborBuilder::AddDefaultsForUpdateUserInformation(
+    const cbor::Value::BinaryValue& cred_descriptor_id,
+    const cbor::Value::BinaryValue& user_id, std::string user_name,
+    const cbor::Value::BinaryValue& pin_auth) {
+  if (!HasEntry(CredentialManagementParameters::kSubCommand)) {
+    SetSubCommand(ManagementSubCommand::kDeleteCredential);
+  }
+  if (!HasEntry(CredentialManagementParameters::kSubCommandParams)) {
+    SetSubCommandParamsCredentialAndUser(cred_descriptor_id, user_id,
+                                         std::move(user_name));
+  }
+  if (!HasEntry(CredentialManagementParameters::kPinUvAuthProtocol)) {
+    SetDefaultPinProtocol();
+  }
+  if (!HasEntry(CredentialManagementParameters::kPinUvAuthParam)) {
+    SetPinAuth(pin_auth);
+  }
+}
+
 }  // namespace fido2_tests
 
