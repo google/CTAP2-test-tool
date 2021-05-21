@@ -1,0 +1,85 @@
+{
+  "capabilities": {
+    "cbor": true,
+    "extensions": [
+      "hmac-secret",
+      "credProtect"
+    ],
+    "msg": true,
+    "options": [
+      "rk",
+      "up",
+      "credMgmt",
+      "clientPin"
+    ],
+    "signature_counter": "All counters were constant zero.",
+    "versions": [
+      "FIDO_2_0",
+      "FIDO_2_1_PRE",
+      "U2F_V2"
+    ],
+    "wink": true
+  },
+  "commit": "e65dd85e6f3147a11decfa4461df027df587376f",
+  "date": "2020-12-08",
+  "device_under_test": {
+    "aaguid": "8976631bd4a0427f57730ec71c9e0279",
+    "manufacturer": "SoloKeys",
+    "product_id": "0xa2ca",
+    "product_name": "Solo 4.0.0",
+    "serial_number": "205137A7414B",
+    "url": null,
+    "vendor_id": "0x0483"
+  },
+  "passed_test_count": 3,
+  "tests": [
+    {
+      "description": "Tests the corpus of CTAP MakeCredential commands.",
+      "error_message": null,
+      "id": "make_credential_corpus",
+      "observations": [
+        "Received deprecated error code `0x10`",
+        "Received deprecated error code `0x13`"
+      ],
+      "result": "pass",
+      "tags": [
+        "Fuzzing"
+      ]
+    },
+    {
+      "description": "Tests the corpus of CTAP GetAssertion commands.",
+      "error_message": null,
+      "id": "get_assertion_corpus",
+      "observations": [
+        "Received deprecated error code `0x13`",
+        "Received deprecated error code `0x10`"
+      ],
+      "result": "pass",
+      "tags": [
+        "Fuzzing"
+      ]
+    },
+    {
+      "description": "Tests the corpus of CTAP ClientPIN commands.",
+      "error_message": null,
+      "id": "client_pin_corpus",
+      "observations": [
+        "Received deprecated error code `0x10`",
+        "Received deprecated error code `0x13`",
+        "GetAuthToken failed.",
+        "In file 4d72e36f660e0ff720ca487d6261e40fd8408a56 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "In file 6c501006a5f512307967eb77cf3452aa85c423bd GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "In file 924dcf5de871c82d4fa14227c1d53b892f45a028 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "In file c71ae102e9b76bae2528376c9dd40d9776ad9ad1 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "In file fb00a06acad5a321cff2123be3bc074d5ffa8e06 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "In file seed_file_29 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID"
+      ],
+      "result": "pass",
+      "tags": [
+        "Fuzzing"
+      ]
+    }
+  ],
+  "total_test_count": 3,
+  "transport_used": "HID"
+}

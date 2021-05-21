@@ -1,0 +1,69 @@
+{
+  "capabilities": {
+    "cbor": true,
+    "extensions": [
+      "hmac-secret"
+    ],
+    "msg": true,
+    "options": [
+      "clientPin",
+      "rk",
+      "up"
+    ],
+    "signature_counter": "All counters were constant zero.",
+    "versions": [
+      "FIDO_2_0",
+      "U2F_V2"
+    ],
+    "wink": true
+  },
+  "commit": "6b72e2b841be897ba0dc09e02f8afba1c9221544",
+  "date": "2020-11-13",
+  "device_under_test": {
+    "aaguid": "f8a011f38c0a4d15800617111f9edc7d",
+    "manufacturer": "Yubico",
+    "product_id": "0x0120",
+    "product_name": "Security Key by Yubico",
+    "serial_number": "",
+    "url": null,
+    "vendor_id": "0x1050"
+  },
+  "passed_test_count": 3,
+  "tests": [
+    {
+      "description": "Tests the corpus of CTAP MakeCredential commands.",
+      "error_message": null,
+      "id": "make_credential_corpus",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Fuzzing"
+      ]
+    },
+    {
+      "description": "Tests the corpus of CTAP GetAssertion commands.",
+      "error_message": null,
+      "id": "get_assertion_corpus",
+      "observations": [],
+      "result": "pass",
+      "tags": [
+        "Fuzzing"
+      ]
+    },
+    {
+      "description": "Tests the corpus of CTAP ClientPIN commands.",
+      "error_message": null,
+      "id": "client_pin_corpus",
+      "observations": [
+        "GetAuthToken failed.",
+        "In file seed_file_29 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID"
+      ],
+      "result": "pass",
+      "tags": [
+        "Fuzzing"
+      ]
+    }
+  ],
+  "total_test_count": 3,
+  "transport_used": "HID"
+}

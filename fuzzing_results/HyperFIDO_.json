@@ -1,0 +1,87 @@
+{
+  "capabilities": {
+    "cbor": true,
+    "extensions": [
+      "hmac-secret"
+    ],
+    "msg": true,
+    "options": [
+      "clientPin",
+      "rk",
+      "up",
+      "uv"
+    ],
+    "signature_counter": "All counters were constant zero.",
+    "versions": [
+      "U2F_V2",
+      "FIDO_2_0"
+    ],
+    "wink": true
+  },
+  "commit": "6b72e2b841be897ba0dc09e02f8afba1c9221544",
+  "date": "2020-11-16",
+  "device_under_test": {
+    "aaguid": "9f77e279a6e24d58b70031e5943c6a98",
+    "manufacturer": "HS",
+    "product_id": "0x0854",
+    "product_name": "HyperFIDO",
+    "serial_number": "",
+    "url": null,
+    "vendor_id": "0x2ccf"
+  },
+  "passed_test_count": 3,
+  "tests": [
+    {
+      "description": "Tests the corpus of CTAP MakeCredential commands.",
+      "error_message": null,
+      "id": "make_credential_corpus",
+      "observations": [
+        "Received deprecated error code `0x10`",
+        "Received vendor specific error code `0xf8`"
+      ],
+      "result": "pass",
+      "tags": [
+        "Fuzzing"
+      ]
+    },
+    {
+      "description": "Tests the corpus of CTAP GetAssertion commands.",
+      "error_message": null,
+      "id": "get_assertion_corpus",
+      "observations": [
+        "Received deprecated error code `0x10`",
+        "A prompt was sent unexpectedly.",
+        "Received vendor specific error code `0xf8`"
+      ],
+      "result": "pass",
+      "tags": [
+        "Fuzzing"
+      ]
+    },
+    {
+      "description": "Tests the corpus of CTAP ClientPIN commands.",
+      "error_message": null,
+      "id": "client_pin_corpus",
+      "observations": [
+        "Received deprecated error code `0x10`",
+        "GetAuthToken failed.",
+        "In file 65d80c91e4182ade4a83f13527d340d27d8396d9 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "In file f78ec2c6612067487824997bc65dcf4a2c8de8e6 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "Received vendor specific error code `0xf8`",
+        "In file 4d72e36f660e0ff720ca487d6261e40fd8408a56 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "In file 6c501006a5f512307967eb77cf3452aa85c423bd GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "In file 924dcf5de871c82d4fa14227c1d53b892f45a028 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "In file ab190d69b95482d36fee85fe552c521bbe47325e GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "In file c71ae102e9b76bae2528376c9dd40d9776ad9ad1 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "In file fb00a06acad5a321cff2123be3bc074d5ffa8e06 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "In file seed_file_29 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID"
+      ],
+      "result": "pass",
+      "tags": [
+        "Fuzzing"
+      ]
+    }
+  ],
+  "total_test_count": 3,
+  "transport_used": "HID"
+}

@@ -1,0 +1,77 @@
+{
+  "capabilities": {
+    "cbor": true,
+    "extensions": [
+      "hmac-secret"
+    ],
+    "msg": true,
+    "options": [
+      "rk",
+      "up",
+      "clientPin"
+    ],
+    "signature_counter": "All counters were constant zero.",
+    "versions": [
+      "U2F_V2",
+      "FIDO_2_0"
+    ],
+    "wink": true
+  },
+  "commit": "6b72e2b841be897ba0dc09e02f8afba1c9221544",
+  "date": "2020-11-14",
+  "device_under_test": {
+    "aaguid": "ab32f0c62239afbbc470d2ef4e254db7",
+    "manufacturer": "TOKEN2",
+    "product_id": "0xfc25",
+    "product_name": "FIDO2 Security Key",
+    "serial_number": "",
+    "url": null,
+    "vendor_id": "0x1ea8"
+  },
+  "passed_test_count": 3,
+  "tests": [
+    {
+      "description": "Tests the corpus of CTAP MakeCredential commands.",
+      "error_message": null,
+      "id": "make_credential_corpus",
+      "observations": [
+        "A prompt was sent unexpectedly."
+      ],
+      "result": "pass",
+      "tags": [
+        "Fuzzing"
+      ]
+    },
+    {
+      "description": "Tests the corpus of CTAP GetAssertion commands.",
+      "error_message": null,
+      "id": "get_assertion_corpus",
+      "observations": [
+        "A prompt was sent unexpectedly."
+      ],
+      "result": "pass",
+      "tags": [
+        "Fuzzing"
+      ]
+    },
+    {
+      "description": "Tests the corpus of CTAP ClientPIN commands.",
+      "error_message": null,
+      "id": "client_pin_corpus",
+      "observations": [
+        "GetAuthToken failed.",
+        "In file 6abcd28e1568cd8321af1261dc8b7463413636af GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "Received vendor specific error code `0xf7`",
+        "In file seed_file_29 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "In file dfdc583bc500ad1cf5015278c8e6b3658e78b6b5 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID",
+        "In file 612b9b474542f228693a2bed151bd1d6f0717bb2 GetAuthToken got error code - CTAP2_ERR_PIN_INVALID"
+      ],
+      "result": "pass",
+      "tags": [
+        "Fuzzing"
+      ]
+    }
+  ],
+  "total_test_count": 3,
+  "transport_used": "HID"
+}
