@@ -1,0 +1,78 @@
+{
+  "capabilities": {
+    "cbor": true,
+    "extensions": [
+      "hmac-secret"
+    ],
+    "msg": true,
+    "options": [
+      "up",
+      "clientPin",
+      "rk"
+    ],
+    "signature_counter": "All counters were constant zero.",
+    "versions": [
+      "FIDO_2_0",
+      "U2F_V2"
+    ],
+    "wink": true
+  },
+  "commit": "6b72e2b841be897ba0dc09e02f8afba1c9221544",
+  "date": "2020-11-16",
+  "device_under_test": {
+    "aaguid": "8876631bd4a0427f57730ec71c9e0279",
+    "manufacturer": "SoloKeys",
+    "product_id": "0xa2ca",
+    "product_name": "Solo 3.0.0",
+    "serial_number": "206336B1414B",
+    "url": null,
+    "vendor_id": "0x0483"
+  },
+  "passed_test_count": 2,
+  "tests": [
+    {
+      "description": "Tests the corpus of CTAP MakeCredential commands.",
+      "error_message": null,
+      "id": "make_credential_corpus",
+      "observations": [
+        "Received deprecated error code `0x10`",
+        "Received deprecated error code `0x13`"
+      ],
+      "result": "pass",
+      "tags": [
+        "Fuzzing"
+      ]
+    },
+    {
+      "description": "Tests the corpus of CTAP GetAssertion commands.",
+      "error_message": null,
+      "id": "get_assertion_corpus",
+      "observations": [
+        "Received deprecated error code `0x13`",
+        "Received deprecated error code `0x10`"
+      ],
+      "result": "pass",
+      "tags": [
+        "Fuzzing"
+      ]
+    },
+    {
+      "description": "Tests the corpus of CTAP ClientPIN commands.",
+      "error_message": "Saved crash input to /run/media/fabian/enc/Projekte/CTAP2-test-tool/corpus_tests/artifacts/Cbor_ClientPinParameters/6552d1c13cf46f864058c26f06ee615d9226fd87. Ran a total of 525 files.",
+      "id": "client_pin_corpus",
+      "observations": [
+        "Received deprecated error code `0x10`",
+        "Received deprecated error code `0x13`",
+        "GetAuthToken failed.",
+        "GetKeyAgreement failed",
+        "In file 6552d1c13cf46f864058c26f06ee615d9226fd87 GetAuthToken got error code - CTAP1_ERR_TIMEOUT"
+      ],
+      "result": "fail",
+      "tags": [
+        "Fuzzing"
+      ]
+    }
+  ],
+  "total_test_count": 3,
+  "transport_used": "HID"
+}

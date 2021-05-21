@@ -1,0 +1,87 @@
+{
+  "capabilities": {
+    "cbor": true,
+    "extensions": [
+      "credBlob",
+      "hmac-secret",
+      "credProtect"
+    ],
+    "msg": true,
+    "options": [
+      "setMinPINLength",
+      "uv",
+      "clientPin",
+      "credMgmt",
+      "uvToken",
+      "bioEnroll",
+      "up",
+      "platConfig",
+      "rk"
+    ],
+    "signature_counter": "All counters were constant zero.",
+    "versions": [
+      "FIDO_2_0",
+      "FIDO_2_1_PRE",
+      "U2F_V2"
+    ],
+    "wink": true
+  },
+  "commit": "adcaa19ce60e5ad91e3d8efe801c8777c4c29809",
+  "date": "2021-02-03",
+  "device_under_test": {
+    "aaguid": "e1a9618350164f24b55be3ae23614cc6",
+    "manufacturer": "AuthenTrend Technology Inc.",
+    "product_id": "0x0622",
+    "product_name": "ATKey.Pro-01C01F2D",
+    "serial_number": "41544B45-0700-0000-0000-000001C01F2D",
+    "url": null,
+    "vendor_id": "0x31bb"
+  },
+  "passed_test_count": 1,
+  "tests": [
+    {
+      "description": "Tests the corpus of CTAP MakeCredential commands.",
+      "error_message": null,
+      "id": "make_credential_corpus",
+      "observations": [
+        "Received deprecated error code `0x13`",
+        "A prompt was sent unexpectedly."
+      ],
+      "result": "pass",
+      "tags": [
+        "Fuzzing"
+      ]
+    },
+    {
+      "description": "Tests the corpus of CTAP GetAssertion commands.",
+      "error_message": "Saved crash input to /home/fabian/Projekte/CTAP2-test-tool/corpus_tests/artifacts/Cbor_GetAssertionParameters/542e4a656e0ca4779cbb642a0c79bbc1b1081e59. Ran a total of 687 files.",
+      "id": "get_assertion_corpus",
+      "observations": [
+        "Received deprecated error code `0x13`",
+        "GetAuthToken failed.",
+        "GetKeyAgreement failed",
+        "In file 542e4a656e0ca4779cbb642a0c79bbc1b1081e59 GetAuthToken got error code - CTAP1_ERR_CHANNEL_BUSY"
+      ],
+      "result": "fail",
+      "tags": [
+        "Fuzzing"
+      ]
+    },
+    {
+      "description": "Tests the corpus of CTAP ClientPIN commands.",
+      "error_message": "Saved crash input to /home/fabian/Projekte/CTAP2-test-tool/corpus_tests/artifacts/Cbor_ClientPinParameters/b1962064e7ed45dba5dc23ae37c752a130b78645. Ran a total of 3843 files.",
+      "id": "client_pin_corpus",
+      "observations": [
+        "GetAuthToken failed.",
+        "GetKeyAgreement failed",
+        "In file b1962064e7ed45dba5dc23ae37c752a130b78645 GetAuthToken got error code - CTAP1_ERR_OTHER"
+      ],
+      "result": "fail",
+      "tags": [
+        "Fuzzing"
+      ]
+    }
+  ],
+  "total_test_count": 3,
+  "transport_used": "HID"
+}
