@@ -18,11 +18,9 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
 
 http_archive(
     name = "com_google_absl",
-    sha256 = "ee568c74d4d94795dd0c17cee0a5ed30383fe53119cf191d8b68e626e0ed6bf6",
-    strip_prefix = "abseil-cpp-f3840bc5e33ce4932e35986cf3718450c6f02af2",
-    urls = [
-        "https://github.com/abseil/abseil-cpp/archive/f3840bc5e33ce4932e35986cf3718450c6f02af2.zip",
-    ],
+    sha256 = "b4e20d9e752a75c10636675691b1e9c2698e0764cb404987d0ffa77223041c19",
+    urls = ["https://github.com/abseil/abseil-cpp/archive/215105818dfde3174fe799600bb0f3cae233d0bf.zip"],
+    strip_prefix = "abseil-cpp-215105818dfde3174fe799600bb0f3cae233d0bf",
 )
 
 http_archive(
@@ -36,7 +34,7 @@ http_archive(
 
 git_repository(
     name = "boringssl",
-    commit = "f1d8e7640abf2923975d0c85f66ae43991f024bf",
+    commit = "822fefaebe545071599f69278102cbc645345f7b",
     remote = "https://boringssl.googlesource.com/boringssl",
 )
 
