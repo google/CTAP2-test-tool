@@ -149,8 +149,13 @@ const std::vector<std::unique_ptr<BaseTest>>& GetCorpusTests(
 
 void RunTests(DeviceInterface* device, DeviceTracker* device_tracker,
               CommandState* command_state,
-              const std::vector<std::unique_ptr<BaseTest>>& tests) {
+              const std::vector<std::unique_ptr<BaseTest>>& tests,
+              const std::set<std::string>& test_ids) {
   for (const auto& test : tests) {
+    if (!test_ids.empty() && test_ids.find(test->GetId()) == test_ids.end()) {
+      // skipping
+      continue;
+    }
     if (test->HasTag(Tag::kClientPin) &&
         !device_tracker->HasOption("clientPin")) {
       continue;
