@@ -77,7 +77,10 @@ int main(int argc, char** argv) {
   tracker.AssertCondition(tracker.HasCborCapability(),
                           "CBOR support expected.");
 
-  std::set<std::string> test_ids = absl::StrSplit(FLAGS_test_ids, ',');
+  std::set<std::string> test_ids;
+  if (!FLAGS_test_ids.empty()) {
+    test_ids = absl::StrSplit(FLAGS_test_ids, ',');
+  }
   // Setup and run all tests, while tracking their results.
   const std::vector<std::unique_ptr<fido2_tests::BaseTest>>& tests =
       fido2_tests::runners::GetTests();
