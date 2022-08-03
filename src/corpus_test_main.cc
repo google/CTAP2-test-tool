@@ -106,7 +106,8 @@ int main(int argc, char** argv) {
 
   const std::vector<std::unique_ptr<fido2_tests::BaseTest>>& tests =
       fido2_tests::runners::GetCorpusTests(monitor.get(), corpus_dir);
-  fido2_tests::runners::RunTests(device.get(), &tracker, &command_state, tests);
+  fido2_tests::runners::RunTests(device.get(), &tracker, &command_state, tests,
+                                 {});
 
   std::cout << "\nRESULTS" << std::endl;
   tracker.ReportFindings();
