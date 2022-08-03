@@ -14,6 +14,7 @@
 
 #include <iostream>
 
+#include "absl/strings/str_split.h"
 #include "gflags/gflags.h"
 #include "glog/logging.h"
 #include "src/command_state.h"
@@ -29,6 +30,9 @@ DEFINE_string(
     "The path to the device on your operating system, usually /dev/hidraw*.");
 
 DEFINE_bool(verbose, false, "Printing debug logs, i.e. transmitted packets.");
+
+DEFINE_string(test_ids, "",
+              "Comma-separated list of test IDs to run. Empty runs all tests.");
 
 // Calling this function first connects to the device and then executes all test
 // series listed.
@@ -73,10 +77,15 @@ int main(int argc, char** argv) {
   tracker.AssertCondition(tracker.HasCborCapability(),
                           "CBOR support expected.");
 
+  std::set<std::string> test_ids;
+  if (!FLAGS_test_ids.empty()) {
+    test_ids = absl::StrSplit(FLAGS_test_ids, ',');
+  }
   // Setup and run all tests, while tracking their results.
   const std::vector<std::unique_ptr<fido2_tests::BaseTest>>& tests =
       fido2_tests::runners::GetTests();
-  fido2_tests::runners::RunTests(device.get(), &tracker, &command_state, tests);
+  fido2_tests::runners::RunTests(device.get(), &tracker, &command_state, tests,
+                                 test_ids);
   // Reset the device to a clean state.
   command_state.Reset();
 

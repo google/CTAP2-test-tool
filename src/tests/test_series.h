@@ -37,7 +37,8 @@ const std::vector<std::unique_ptr<BaseTest>>& GetCorpusTests(
 // given authenticator by comparing device information and tags.
 void RunTests(DeviceInterface* device, DeviceTracker* device_tracker,
               CommandState* command_state,
-              const std::vector<std::unique_ptr<BaseTest>>& tests);
+              const std::vector<std::unique_ptr<BaseTest>>& tests,
+              const std::set<std::string>& test_ids);
 
 }  // namespace runners
 }  // namespace fido2_tests
