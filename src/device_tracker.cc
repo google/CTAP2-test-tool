@@ -18,6 +18,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "absl/strings/str_join.h"
 #include "absl/time/clock.h"
 #include "src/parameter_check.h"
 #include "third_party/chromium_components_cbor/values.h"
@@ -240,7 +241,8 @@ void DeviceTracker::LogTest(std::string test_id, std::string test_description,
   observations_ = {};
   if (result.error_message.has_value()) {
     PrintFailMessage(absl::StrCat("Failed test: ", result.test_description,
-                                  " - ", result.error_message.value()));
+                                  " (id: ", result.test_id, ")", " - ",
+                                  result.error_message.value()));
   } else {
     PrintSuccessMessage(
         absl::StrCat("Test successful: ", result.test_description));
@@ -257,11 +259,14 @@ CounterChecker* DeviceTracker::GetCounterChecker() { return &counter_checker_; }
 
 void DeviceTracker::ReportFindings() const {
   int failed_test_count = 0;
+  std::vector<std::string> failed_ids;
   for (const TestResult& test : tests_) {
     if (test.error_message.has_value()) {
       failed_test_count += 1;
+      failed_ids.push_back(test.test_id);
       PrintFailMessage(absl::StrCat("Failed test: ", test.test_description,
-                                    " - ", test.error_message.value()));
+                                    " (id: ", test.test_id, ")", " - ",
+                                    test.error_message.value()));
       for (std::string_view observation : test.observations) {
         PrintWarningMessage(observation);
       }
@@ -271,6 +276,10 @@ void DeviceTracker::ReportFindings() const {
   int successful_test_count = test_count - failed_test_count;
   std::cout << "Passed " << successful_test_count << " out of " << test_count
             << " tests." << std::endl;
+  if (!failed_ids.empty()) {
+    std::cout << "To re-run tests that failed, supply the following flag:\n"
+              << "--test_ids=" << absl::StrJoin(failed_ids, ",") << "\n";
+  }
 }
 
 nlohmann::json DeviceTracker::GenerateResultsJson(
