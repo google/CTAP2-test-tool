@@ -15,6 +15,7 @@
 #ifndef FUZZING_MUTATOR_H_
 #define FUZZING_MUTATOR_H_
 
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 
