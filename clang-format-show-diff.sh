@@ -14,9 +14,7 @@
 
 # Runs clang-format and show diff.
 
-alias clang-format=clang-format-9
-
-clang-format --version
+set -e
 
 EXIT_CODE=0
 
@@ -25,7 +23,7 @@ EXIT_CODE=0
 for FILE in $(find . -name '*.h' -o -name '*.cc' -o \
                      -path './third_party' -prune -false); do
   # Run clang-format, then compare the output.
-  clang-format --verbose "${FILE}" |
+  clang-format-15 --verbose "${FILE}" |
       { cat ; echo "" ; } |
       git diff --no-index --exit-code -- "${FILE}" -
   # Indicate formatting issues through the script exit code.

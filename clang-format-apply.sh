@@ -14,16 +14,14 @@
 
 # Runs clang-format and apply changes.
 
-alias clang-format=clang-format-9
-
-clang-format --version
+set -e
 
 # Recursively covers the same paths as clang-format-show-diff.sh. Breaks on
 # whitespace.
 for FILE in $(find . -name '*.h' -o -name '*.cc' -o \
                      -path './third_party' -prune -false); do
   # Run clang-format, then append a newline.
-  clang-format --verbose -i "${FILE}"
+  clang-format-15 --verbose -i "${FILE}"
   echo "" >> "${FILE}"
 done
 
