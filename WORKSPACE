@@ -52,7 +52,7 @@ git_repository(
 
 git_repository(
     name = "com_google_googletest",
-    commit = "23b2a3b1cf803999fb38175f6e9e038a4495c8a5",
+    commit = "b796f7d44681514f58a683a3a71ff17c94edb0c1",
     remote = "https://github.com/google/googletest",
 )
 

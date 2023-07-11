@@ -30,8 +30,8 @@ cc_library(
         "@com_google_absl//absl/types:optional",
         "@com_google_glog//:glog",
     ] + select({
-        "@bazel_tools//src/conditions:darwin": ["@com_github_kaczmarczyck_hidapi//:hidapi-osx"],
-        "@bazel_tools//src/conditions:windows": ["@com_github_kaczmarczyck_hidapi//:hidapi-libusb"],
+        "@platforms//os:macos": ["@com_github_kaczmarczyck_hidapi//:hidapi-osx"],
+        "@platforms//os:windows": ["@com_github_kaczmarczyck_hidapi//:hidapi-libusb"],
         "//conditions:default": ["@com_github_kaczmarczyck_hidapi//:hidapi-linux"],
     }),
 )

@@ -25,16 +25,14 @@ on:
 jobs:
   clang_format:
     name: clang-format-show-diff
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install clang-format-9
+    - name: Install clang-format-15
       run: |
-        sudo apt install clang-format-9
-        alias clang-format=clang-format-9
-        clang-format --version
+        sudo apt install clang-format-15
     - name: Run clang-format
       run: |
         ./clang-format-show-diff.sh
